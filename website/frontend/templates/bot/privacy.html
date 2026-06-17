@@ -1,0 +1,177 @@
+{% extends "bot/base.html" %}
+{% block title %}Privacy Policy - Nexus Bot{% endblock %}
+
+{% block extra_styles %}
+.legal-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.legal-wrap h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.legal-wrap .updated {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 32px;
+}
+
+.legal-wrap h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 28px 0 12px;
+}
+
+.legal-wrap p, .legal-wrap li {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.legal-wrap ul {
+    padding-left: 20px;
+    margin-bottom: 16px;
+}
+
+.legal-wrap ul li {
+    margin-bottom: 6px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+}
+
+.data-table th, .data-table td {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+}
+
+.data-table th {
+    color: #e2e8f0;
+    font-weight: 600;
+}
+
+.data-table td {
+    color: #94a3b8;
+}
+{% endblock %}
+
+{% block content %}
+<div class="legal-wrap">
+    <h1>Privacy Policy</h1>
+    <div class="updated">Last updated: March 8, 2026</div>
+
+    <p>This Privacy Policy explains what data Nexus Bot collects, how it is used, and how you can control it. I take your privacy seriously and only collect what is necessary to provide the service.</p>
+
+    <h2>1. What I Collect</h2>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Why</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Discord user ID</td>
+                <td>Identify your account</td>
+                <td>Discord OAuth</td>
+            </tr>
+            <tr>
+                <td>Discord username and display name</td>
+                <td>Show your name in the dashboard</td>
+                <td>Discord OAuth</td>
+            </tr>
+            <tr>
+                <td>Discord avatar</td>
+                <td>Show your profile picture</td>
+                <td>Discord OAuth</td>
+            </tr>
+            <tr>
+                <td>Server list (servers you manage)</td>
+                <td>Show which servers you can configure</td>
+                <td>Discord OAuth (guilds scope)</td>
+            </tr>
+            <tr>
+                <td>Server configurations</td>
+                <td>Store your bot settings per server</td>
+                <td>You (via dashboard)</td>
+            </tr>
+            <tr>
+                <td>Moderation logs</td>
+                <td>Record mod actions for review</td>
+                <td>Bot activity in your server</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. What I Do Not Collect</h2>
+    <ul>
+        <li>Message content (the bot processes messages in real-time for moderation but does not store them)</li>
+        <li>Direct messages</li>
+        <li>Voice channel audio</li>
+        <li>Email addresses (unless you link a Nexus account)</li>
+        <li>Payment information (there is nothing to pay for)</li>
+    </ul>
+
+    <h2>3. How Data Is Used</h2>
+    <p>All collected data is used exclusively to provide and improve the bot service. Specifically:</p>
+    <ul>
+        <li>Your Discord information is used to authenticate you and display your profile</li>
+        <li>Server configurations are used to determine how the bot behaves in your server</li>
+        <li>Moderation logs are stored so you can review actions taken by the bot and your moderators</li>
+    </ul>
+
+    <h2>4. Data Sharing</h2>
+    <p>I do not sell, share, or give your data to any third party. Data is only shared with:</p>
+    <ul>
+        <li>Discord (as part of normal bot operation via the Discord API)</li>
+        <li>The database hosting provider (to store your data securely)</li>
+    </ul>
+
+    <h2>5. Data Storage</h2>
+    <p>Data is stored in a PostgreSQL database. OAuth tokens are stored securely and used only to maintain your login session and fetch your server list.</p>
+
+    <h2>6. Data Retention</h2>
+    <ul>
+        <li>Account data is kept as long as your account exists</li>
+        <li>Server configurations are kept as long as your account exists</li>
+        <li>Moderation logs are kept indefinitely unless you delete your account</li>
+        <li>When you delete your account, all associated data is permanently removed</li>
+    </ul>
+
+    <h2>7. Your Rights</h2>
+    <p>You can:</p>
+    <ul>
+        <li>View all data associated with your account through the dashboard</li>
+        <li>Delete your account and all associated data at any time from the Account page</li>
+        <li>Unlink your Nexus account at any time</li>
+        <li>Remove the bot from your server at any time through Discord</li>
+    </ul>
+
+    <h2>8. Cookies</h2>
+    <p>The dashboard uses session cookies to keep you logged in. No tracking cookies, analytics cookies, or advertising cookies are used.</p>
+
+    <h2>9. Children's Privacy</h2>
+    <p>Nexus Bot is not intended for users under 13. If you are under 13, do not use the service. This aligns with Discord's own age requirement.</p>
+
+    <h2>10. Changes</h2>
+    <p>I may update this Privacy Policy when new features are added or data practices change. The "Last updated" date at the top will reflect the most recent version.</p>
+
+    <h2>11. Contact</h2>
+    <p>For privacy-related questions or data requests, reach out through the Nexus community Discord server or at <a href="https://nexusbeta.vercel.app/contact">nexusbeta.vercel.app/contact</a>.</p>
+</div>
+{% endblock %}

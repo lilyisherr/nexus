@@ -1,0 +1,295 @@
+{% extends "bot/base.html" %}
+{% block title %}Dashboard - Nexus Bot{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_styles %}
+.dash-page { background: #0f0f14; min-height: calc(100vh - 60px); }
+.dash-inner { max-width: 1160px; margin: 0 auto; padding: 32px 24px 60px; }
+
+.dash-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.dash-greeting h1 { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.dash-greeting p { font-size: 14px; color: #64748b; margin-top: 4px; }
+.dash-top-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+@media(max-width:900px){ .stat-strip { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:480px){ .stat-strip { grid-template-columns: 1fr 1fr; } }
+
+.sstrip-card { background: #16161d; border: 1px solid rgba(99,102,241,0.08); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 12px; }
+.sstrip-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.sstrip-val { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; }
+.sstrip-lbl { font-size: 11px; color: #64748b; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+.bot-connection-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #16161d; border: 1px solid rgba(99,102,241,0.08); border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; flex-wrap: wrap; }
+.bc-left { display: flex; align-items: center; gap: 14px; }
+.bc-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
+.bc-name { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+.bc-detail { font-size: 12px; color: #64748b; margin-top: 2px; }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); display: inline-block; }
+.offline-dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; display: inline-block; }
+.bc-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.bc-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.bc-pill.online { background: rgba(16,185,129,0.1); color: #34d399; }
+.bc-pill.offline { background: rgba(100,116,139,0.1); color: #64748b; }
+.bc-pill.latency-good { background: rgba(16,185,129,0.1); color: #34d399; }
+.bc-pill.latency-ok { background: rgba(245,158,11,0.1); color: #fbbf24; }
+.bc-pill.latency-bad { background: rgba(239,68,68,0.1); color: #f87171; }
+
+.servers-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+.servers-header h2 { font-size: 15px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; }
+.servers-count { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: rgba(99,102,241,0.12); color: #818cf8; }
+
+.server-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+@media(max-width:640px){ .server-grid { grid-template-columns: 1fr; } }
+
+.server-card { background: #16161d; border: 1px solid rgba(99,102,241,0.08); border-radius: 14px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; transition: border-color 0.2s, background 0.15s; text-decoration: none; color: inherit; position: relative; overflow: hidden; }
+.server-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: transparent; transition: background 0.2s; }
+.server-card:hover { border-color: rgba(99,102,241,0.25); background: #1a1a24; color: inherit; }
+.server-card.active-card:hover::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.server-card.inactive-card { opacity: 0.75; }
+.server-card.inactive-card:hover { opacity: 1; }
+
+.sv-icon { width: 50px; height: 50px; border-radius: 13px; background: #1e1e28; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.sv-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 13px; }
+.sv-icon .initials { font-size: 20px; font-weight: 800; color: #818cf8; }
+
+.sv-body { flex: 1; min-width: 0; }
+.sv-name { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+.sv-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.sv-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+.sv-tag.connected { background: rgba(16,185,129,0.12); color: #34d399; }
+.sv-tag.disconnected { background: rgba(100,116,139,0.1); color: #64748b; }
+.sv-tag.configured { background: rgba(99,102,241,0.12); color: #818cf8; }
+.sv-tag.owner { background: rgba(245,158,11,0.12); color: #fbbf24; }
+.sv-tag.members { background: rgba(59,130,246,0.1); color: #60a5fa; }
+
+.sv-action { flex-shrink: 0; }
+.sv-arrow { color: #334155; font-size: 13px; transition: color 0.2s; }
+.server-card:hover .sv-arrow { color: #6366f1; }
+
+.invite-chip { font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 8px; background: #5865f2; color: #fff; white-space: nowrap; transition: background 0.2s; cursor: pointer; border: none; }
+.invite-chip:hover { background: #4752c4; }
+
+.section-divider { display: flex; align-items: center; gap: 12px; margin: 28px 0 16px; }
+.section-divider span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; white-space: nowrap; }
+.section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: rgba(99,102,241,0.08); }
+
+.empty-servers { background: #16161d; border: 1px dashed rgba(99,102,241,0.15); border-radius: 16px; padding: 60px 24px; text-align: center; }
+.empty-servers .icon { font-size: 40px; color: #334155; margin-bottom: 16px; }
+.empty-servers h3 { font-size: 17px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; }
+.empty-servers p { font-size: 14px; color: #475569; margin-bottom: 24px; max-width: 380px; margin-left: auto; margin-right: auto; }
+
+.quick-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 28px; }
+.ql-card { display: flex; align-items: center; gap: 10px; padding: 13px 16px; background: #16161d; border: 1px solid rgba(99,102,241,0.08); border-radius: 10px; text-decoration: none; color: #94a3b8; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.ql-card:hover { background: #1a1a24; border-color: rgba(99,102,241,0.2); color: #e2e8f0; }
+.ql-card i { font-size: 14px; }
+
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <div class="dash-inner">
+
+        <div class="dash-top">
+            <div class="dash-greeting">
+                <h1>Welcome back, {{ bot_session_user.display_name.split(' ')[0] if bot_session_user else 'there' }}</h1>
+                <p>Manage your Discord servers and configure the Nexus bot.</p>
+            </div>
+            <div class="dash-top-actions">
+                <a href="https://discord.com/api/oauth2/authorize?client_id={{ discord_client_id }}&permissions=1642824532086&scope=bot%20applications.commands" target="_blank" class="btn btn-discord btn-sm"><i class="fab fa-discord"></i> Invite to Server</a>
+            </div>
+        </div>
+
+        <div class="bot-connection-bar">
+            <div class="bc-left">
+                {% if bot_avatar_url %}
+                <img src="{{ bot_avatar_url }}" alt="Nexus Bot" class="bc-avatar">
+                {% else %}
+                <div class="bc-avatar" style="background:#1e1e28;display:flex;align-items:center;justify-content:center;"><i class="fas fa-robot" style="color:#818cf8;"></i></div>
+                {% endif %}
+                <div>
+                    <div class="bc-name">
+                        {{ bot_username or 'Nexus Bot' }}
+                        <span class="{{ 'online-dot' if bot_online else 'offline-dot' }}"></span>
+                    </div>
+                    <div class="bc-detail">{{ 'Online and operational' if bot_online else 'Currently offline' }}</div>
+                </div>
+            </div>
+            <div class="bc-pills">
+                <span class="bc-pill {{ 'online' if bot_online else 'offline' }}">
+                    <i class="fas fa-circle" style="font-size:7px;"></i> {{ 'Connected' if bot_online else 'Offline' }}
+                </span>
+                {% if hosting_connected and hosting_info %}
+                <span class="bc-pill {{ 'latency-good' if hosting_info.latency_ms < 100 else ('latency-ok' if hosting_info.latency_ms < 200 else 'latency-bad') }}">
+                    <i class="fas fa-signal"></i> {{ hosting_info.latency_ms }}ms
+                </span>
+                <span class="bc-pill online">
+                    <i class="fas fa-server"></i> {{ hosting_info.guild_count }} server{{ 's' if hosting_info.guild_count != 1 }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set configured_servers = servers | selectattr('bot_in_server') | selectattr('configured') | list %}
+        {% set connected_servers = servers | selectattr('bot_in_server') | list %}
+        {% set all_servers = servers | list %}
+        <div class="stat-strip">
+            <div class="sstrip-card">
+                <div class="sstrip-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fab fa-discord"></i></div>
+                <div>
+                    <div class="sstrip-val">{{ all_servers | length }}</div>
+                    <div class="sstrip-lbl">Your Servers</div>
+                </div>
+            </div>
+            <div class="sstrip-card">
+                <div class="sstrip-icon" style="background:rgba(16,185,129,0.12);color:#34d399;"><i class="fas fa-robot"></i></div>
+                <div>
+                    <div class="sstrip-val">{{ connected_servers | length }}</div>
+                    <div class="sstrip-lbl">Bot Connected</div>
+                </div>
+            </div>
+            <div class="sstrip-card">
+                <div class="sstrip-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-sliders"></i></div>
+                <div>
+                    <div class="sstrip-val">{{ configured_servers | length }}</div>
+                    <div class="sstrip-lbl">Configured</div>
+                </div>
+            </div>
+            <div class="sstrip-card">
+                <div class="sstrip-icon" style="background:rgba(245,158,11,0.12);color:#fbbf24;"><i class="fas fa-user-crown"></i></div>
+                <div>
+                    <div class="sstrip-val">{{ servers | selectattr('owner') | list | length }}</div>
+                    <div class="sstrip-lbl">You Own</div>
+                </div>
+            </div>
+        </div>
+
+        {% if yt_live_status %}
+        <div style="background:#16161d;border:1px solid rgba(239,68,68,0.12);border-radius:14px;padding:18px 20px;margin-bottom:24px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <i class="fab fa-youtube" style="color:#ef4444;font-size:15px;"></i>
+                    <span style="font-size:14px;font-weight:700;color:#e2e8f0;">YouTube Live Status</span>
+                </div>
+                <a href="/dashboard" style="font-size:12px;color:#64748b;text-decoration:none;">Open Dashboard →</a>
+            </div>
+            <div style="display:grid;gap:10px;">
+                {% for ch in yt_live_status %}
+                <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#0f0f14;border-radius:10px;border:1px solid {{ 'rgba(239,68,68,0.15)' if ch.is_live else 'rgba(99,102,241,0.06)' }};">
+                    {% if ch.thumbnail %}
+                    <img src="{{ ch.thumbnail }}" alt="{{ ch.channel_name }}" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;object-fit:cover;">
+                    {% else %}
+                    <div style="width:34px;height:34px;border-radius:50%;background:#1e1e28;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fab fa-youtube" style="color:#ef4444;font-size:14px;"></i></div>
+                    {% endif %}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:3px;">{{ ch.channel_name }}</div>
+                        {% if ch.is_live %}
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;box-shadow:0 0 6px rgba(239,68,68,0.7);animation:yt-live-pulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>
+                            <span style="font-size:11px;font-weight:700;color:#ef4444;letter-spacing:0.3px;">LIVE</span>
+                            {% if ch.stream_title %}
+                            <span style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ch.stream_title }}</span>
+                            {% endif %}
+                        </div>
+                        {% if ch.messages_processed %}
+                        <div style="font-size:11px;color:#475569;margin-top:2px;">{{ ch.messages_processed }} messages processed</div>
+                        {% endif %}
+                        {% else %}
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="width:7px;height:7px;border-radius:50%;background:#334155;display:inline-block;"></span>
+                            <span style="font-size:11px;color:#475569;">{{ 'Bot active · Not live' if ch.running else 'Not streaming' }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <a href="/channel-settings/{{ ch.channel_id }}" style="font-size:11px;color:#475569;text-decoration:none;flex-shrink:0;">Manage →</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <style>@keyframes yt-live-pulse { 0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.4);}50%{box-shadow:0 0 10px rgba(239,68,68,0.8);}}</style>
+        {% endif %}
+
+        <div class="quick-links">
+            <a href="/bot/account" class="ql-card"><i class="fas fa-user-circle" style="color:#818cf8;"></i> Account</a>
+            <a href="/bot/help" class="ql-card"><i class="fas fa-question-circle" style="color:#34d399;"></i> Help &amp; Docs</a>
+            <a href="/bot/blog" class="ql-card"><i class="fas fa-newspaper" style="color:#fbbf24;"></i> Blog</a>
+            <a href="/bot/status" class="ql-card"><i class="fas fa-signal" style="color:#60a5fa;"></i> Bot Status</a>
+            <a href="/bot/logs" class="ql-card"><i class="fas fa-list-alt" style="color:#a78bfa;"></i> Logs</a>
+            <a href="/bot/contact" class="ql-card"><i class="fas fa-envelope" style="color:#f472b6;"></i> Contact</a>
+        </div>
+
+        {% if servers %}
+        {% set active = servers | selectattr('bot_in_server') | list %}
+        {% set inactive = servers | rejectattr('bot_in_server') | list %}
+
+        {% if active %}
+        <div class="servers-header">
+            <h2><i class="fas fa-check-circle" style="color:#34d399;font-size:14px;"></i> Active Servers <span class="servers-count">{{ active | length }}</span></h2>
+        </div>
+        <div class="server-grid">
+            {% for server in active %}
+            <a href="/bot/server/{{ server.id }}" class="server-card active-card">
+                <div class="sv-icon">
+                    {% if server.icon %}
+                    <img src="{{ server.icon }}" alt="{{ server.name }}">
+                    {% else %}
+                    <span class="initials">{{ server.name[0]|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="sv-body">
+                    <div class="sv-name">{{ server.name }}</div>
+                    <div class="sv-tags">
+                        <span class="sv-tag connected"><i class="fas fa-circle" style="font-size:6px;"></i> Bot Active</span>
+                        {% if server.configured %}<span class="sv-tag configured"><i class="fas fa-sliders" style="font-size:9px;"></i> Configured</span>{% endif %}
+                        {% if server.owner %}<span class="sv-tag owner">Owner</span>{% endif %}
+                    </div>
+                </div>
+                <div class="sv-action"><i class="fas fa-chevron-right sv-arrow"></i></div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if inactive %}
+        <div class="section-divider"><span>Invite Bot</span></div>
+        <div class="servers-header">
+            <h2 style="color:#64748b;"><i class="fas fa-server" style="font-size:13px;"></i> Not Yet Joined <span class="servers-count" style="background:rgba(100,116,139,0.1);color:#64748b;">{{ inactive | length }}</span></h2>
+            <p style="font-size:12px;color:#475569;">Invite Nexus to these servers to get started.</p>
+        </div>
+        <div class="server-grid">
+            {% for server in inactive %}
+            <div class="server-card inactive-card">
+                <div class="sv-icon">
+                    {% if server.icon %}
+                    <img src="{{ server.icon }}" alt="{{ server.name }}">
+                    {% else %}
+                    <span class="initials" style="color:#475569;">{{ server.name[0]|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="sv-body">
+                    <div class="sv-name" style="color:#94a3b8;">{{ server.name }}</div>
+                    <div class="sv-tags">
+                        <span class="sv-tag disconnected">Not Connected</span>
+                        {% if server.owner %}<span class="sv-tag owner">Owner</span>{% endif %}
+                    </div>
+                </div>
+                <div class="sv-action">
+                    <button class="invite-chip" onclick="event.stopPropagation(); window.open('https://discord.com/api/oauth2/authorize?client_id={{ discord_client_id }}&permissions=1642824532086&scope=bot%20applications.commands&guild_id={{ server.id }}', '_blank');">Invite</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-servers">
+            <div class="icon"><i class="fas fa-server"></i></div>
+            <h3>No servers found</h3>
+            <p>You need Manage Server permission in a Discord server for it to appear here. Invite Nexus to get started.</p>
+            <a href="https://discord.com/api/oauth2/authorize?client_id={{ discord_client_id }}&permissions=1642824532086&scope=bot%20applications.commands" target="_blank" class="btn btn-discord"><i class="fab fa-discord"></i> Invite Nexus Bot</a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

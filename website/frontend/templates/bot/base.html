@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nexus Bot{% endblock %}</title>
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f14;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { color: #818cf8; text-decoration: none; }
+        a:hover { color: #a5b4fc; }
+
+        .bot-nav {
+            background: #16161d;
+            border-bottom: 1px solid rgba(99,102,241,0.1);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .bot-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .bot-nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .bot-nav-logo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .bot-nav-logo span {
+            background: linear-gradient(135deg, #6366f1, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bot-nav-links {
+            display: flex;
+            gap: 4px;
+        }
+
+        .bot-nav-links a {
+            color: #94a3b8;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .bot-nav-links a:hover,
+        .bot-nav-links a.active {
+            color: #e2e8f0;
+            background: rgba(99,102,241,0.1);
+        }
+
+        .bot-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bot-nav-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: rgba(99,102,241,0.08);
+        }
+
+        .bot-nav-user img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+
+        .bot-nav-user span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            color: #fff;
+        }
+
+        .btn-discord {
+            background: #5865f2;
+            color: #fff;
+        }
+
+        .btn-discord:hover {
+            background: #4752c4;
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid rgba(148,163,184,0.2);
+        }
+
+        .btn-outline:hover {
+            color: #e2e8f0;
+            border-color: rgba(148,163,184,0.4);
+        }
+
+        .btn-danger {
+            background: rgba(239,68,68,0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239,68,68,0.2);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            flex: 1;
+        }
+
+        .card {
+            background: #16161d;
+            border: 1px solid rgba(99,102,241,0.08);
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        .form-group .desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0f0f14;
+            border: 1px solid rgba(148,163,184,0.15);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        select.form-input {
+            cursor: pointer;
+        }
+
+        .form-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(148,163,184,0.06);
+        }
+
+        .form-toggle:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-info {
+            flex: 1;
+        }
+
+        .toggle-info .label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .toggle-info .desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch input { display: none; }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background: #334155;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.2s;
+        }
+
+        .switch input:checked + .slider {
+            background: #6366f1;
+        }
+
+        .switch input:checked + .slider::before {
+            transform: translateX(20px);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .toast.success { background: #059669; color: #fff; }
+        .toast.error { background: #dc2626; color: #fff; }
+
+        .bot-footer {
+            background: #16161d;
+            border-top: 1px solid rgba(99,102,241,0.08);
+            padding: 24px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .bot-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 12px;
+        }
+
+        .bot-footer-links a {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .bot-footer-links a:hover {
+            color: #94a3b8;
+        }
+
+        .bot-footer-copy {
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #334155;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: rgba(16,185,129,0.1);
+            color: #10b981;
+        }
+
+        .badge-purple {
+            background: rgba(99,102,241,0.1);
+            color: #818cf8;
+        }
+
+        .badge-red {
+            background: rgba(239,68,68,0.1);
+            color: #ef4444;
+        }
+
+        .badge-yellow {
+            background: rgba(245,158,11,0.1);
+            color: #f59e0b;
+        }
+
+        @media (max-width: 768px) {
+            .bot-nav { padding: 0 16px; }
+            .bot-nav-links { display: none; }
+            .container { padding: 20px 16px; }
+        }
+
+        .warning-banner {
+            background: rgba(245, 158, 11, 0.15);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .warning-banner-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #f59e0b;
+            text-align: center;
+        }
+
+        .warning-banner-text i {
+            margin-right: 6px;
+        }
+
+        .warning-banner-close {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #f59e0b;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .warning-banner-close:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <nav class="bot-nav">
+        <div class="bot-nav-left">
+            <a href="/bot/" class="bot-nav-logo">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Nexus">
+                <span>Nexus Bot</span>
+            </a>
+            {% if bot_session_user %}
+            <div class="bot-nav-links">
+                <a href="/bot/dashboard" class="{% if request.path == '/bot/dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="/bot/account" class="{% if request.path == '/bot/account' %}active{% endif %}">Account</a>
+                <a href="/bot/blog" class="{% if '/bot/blog' in request.path %}active{% endif %}">Blog</a>
+                <a href="/bot/help" class="{% if request.path == '/bot/help' %}active{% endif %}">Help</a>
+                <a href="/bot/status" class="{% if request.path == '/bot/status' %}active{% endif %}">Status</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="bot-nav-right">
+            {% if bot_session_user %}
+            <div class="bot-nav-user">
+                <img src="{{ bot_session_user.avatar_url }}" alt="">
+                <span>{{ bot_session_user.display_name }}</span>
+            </div>
+            <a href="/bot/logout" class="btn btn-outline btn-sm">Log Out</a>
+            {% else %}
+            <a href="/bot/login" class="btn btn-discord btn-sm"><i class="fab fa-discord"></i> Log In</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="warning-banner" id="warning-banner">
+        <span class="warning-banner-text">
+            <i class="fas fa-exclamation-triangle"></i>
+            This bot is currently in beta and may not work as expected. It has not been fully tested yet.
+        </span>
+        <button class="warning-banner-close" onclick="document.getElementById('warning-banner').style.display='none'" aria-label="Dismiss">&times;</button>
+    </div>
+
+    <div id="toast-el" class="toast"></div>
+
+    {% block content %}{% endblock %}
+
+    <footer class="bot-footer">
+        <div class="bot-footer-links">
+            <a href="/bot/">Home</a>
+            <a href="/bot/blog">Blog</a>
+            <a href="/bot/help">Help</a>
+            <a href="/bot/contact">Contact</a>
+            <a href="/bot/status">Status</a>
+            <a href="/bot/terms">Terms</a>
+            <a href="/bot/privacy">Privacy</a>
+        </div>
+        <div class="bot-footer-copy">Nexus Bot &copy; 2026. Not affiliated with Discord or YouTube.</div>
+    </footer>
+
+    <script>
+        function showToast(msg, type) {
+            var t = document.getElementById('toast-el');
+            if (!t) return;
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(function() { t.classList.remove('show'); }, 3500);
+        }
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('saved') === '1') showToast('Settings saved!', 'success');
+        if (params.get('linked') === '1') showToast('Nexus account linked!', 'success');
+        if (params.get('unlinked') === '1') showToast('Nexus account unlinked.', 'success');
+        if (params.get('error') === 'login_failed') showToast('Login failed. Try again.', 'error');
+        if (params.get('error') === 'no_permission') showToast('You do not have permission to manage that server.', 'error');
+        if (params.get('error') === 'server_not_found') showToast('Server not found.', 'error');
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

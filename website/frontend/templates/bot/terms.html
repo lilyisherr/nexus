@@ -1,0 +1,102 @@
+{% extends "bot/base.html" %}
+{% block title %}Terms of Service - Nexus Bot{% endblock %}
+
+{% block extra_styles %}
+.legal-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.legal-wrap h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.legal-wrap .updated {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 32px;
+}
+
+.legal-wrap h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 28px 0 12px;
+}
+
+.legal-wrap p, .legal-wrap li {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.legal-wrap ul {
+    padding-left: 20px;
+    margin-bottom: 16px;
+}
+
+.legal-wrap ul li {
+    margin-bottom: 6px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="legal-wrap">
+    <h1>Terms of Service</h1>
+    <div class="updated">Last updated: March 8, 2026</div>
+
+    <p>These Terms of Service govern your use of Nexus Bot, the Discord bot and the associated web dashboard at nexusbeta.vercel.app/bot. By using Nexus Bot, you agree to these terms.</p>
+
+    <h2>1. What Nexus Bot Is</h2>
+    <p>Nexus Bot is a Discord bot that provides server management features including automated moderation, welcome messages, role management, server setup, and moderation logging. The web dashboard lets you configure the bot's settings for servers you manage.</p>
+
+    <h2>2. Eligibility</h2>
+    <p>You must be at least 13 years old to use Nexus Bot. You must also comply with Discord's Terms of Service and Community Guidelines. If you are under 18, you confirm that a parent or guardian has reviewed and agreed to these terms on your behalf.</p>
+
+    <h2>3. Your Account</h2>
+    <p>You sign in using your Discord account. You are responsible for all activity under your account. Do not share your login session or let others access your dashboard. If you suspect unauthorized access, sign out and sign back in immediately.</p>
+
+    <h2>4. What You Can Do</h2>
+    <ul>
+        <li>Use Nexus Bot in Discord servers where you have the Manage Server permission</li>
+        <li>Configure bot settings through the web dashboard</li>
+        <li>Use all features available during the beta period at no cost</li>
+        <li>Link your Nexus platform account for additional features</li>
+    </ul>
+
+    <h2>5. What You Cannot Do</h2>
+    <ul>
+        <li>Use Nexus Bot to harass, spam, or harm other users</li>
+        <li>Attempt to exploit, reverse-engineer, or interfere with the bot or its systems</li>
+        <li>Use the bot in violation of Discord's Terms of Service</li>
+        <li>Sell, sublicense, or redistribute access to the bot</li>
+        <li>Use automated tools to interact with the dashboard or API without permission</li>
+    </ul>
+
+    <h2>6. Data Collection</h2>
+    <p>I collect your Discord user ID, username, avatar, and a list of servers you manage (with your permission via Discord OAuth). Server configurations and moderation logs are stored to provide the service. See the <a href="/bot/privacy">Privacy Policy</a> for details.</p>
+
+    <h2>7. Availability</h2>
+    <p>Nexus Bot is provided as-is. I aim for consistent uptime, but I do not guarantee the bot will always be available. I may take the bot offline for maintenance, updates, or other reasons without notice.</p>
+
+    <h2>8. Beta Status</h2>
+    <p>Nexus Bot is currently in beta. Features may change, break, or be removed at any time. I appreciate bug reports and feedback - they help make the bot better.</p>
+
+    <h2>9. Termination</h2>
+    <p>I may suspend or terminate your access to Nexus Bot at any time if you violate these terms or misuse the service. You can delete your account at any time from the Account page, which removes all your data.</p>
+
+    <h2>10. Limitation of Liability</h2>
+    <p>Nexus Bot is provided without warranty. I am not liable for any damages arising from your use of the bot, including but not limited to data loss, server issues, or moderation actions taken by the bot based on your configuration.</p>
+
+    <h2>11. Changes to These Terms</h2>
+    <p>I may update these terms from time to time. Continued use of Nexus Bot after changes means you accept the updated terms.</p>
+
+    <h2>12. Contact</h2>
+    <p>If you have questions about these terms, reach out through the Nexus community Discord server or at <a href="https://nexusbeta.vercel.app/contact">nexusbeta.vercel.app/contact</a>.</p>
+</div>
+{% endblock %}

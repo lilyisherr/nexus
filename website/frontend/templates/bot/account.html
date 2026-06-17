@@ -1,0 +1,168 @@
+{% extends "bot/base.html" %}
+{% block title %}Account - Nexus Bot{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_styles %}
+.account-page { max-width: 780px; margin: 0 auto; }
+.profile-hero { display: flex; align-items: center; gap: 20px; padding: 28px; background: linear-gradient(135deg, #16161d 0%, #1a1a2e 100%); border: 1px solid rgba(99,102,241,0.12); border-radius: 16px; margin-bottom: 20px; }
+.profile-hero img { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(99,102,241,0.3); flex-shrink: 0; }
+.profile-hero-body { flex: 1; min-width: 0; }
+.profile-hero-name { font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.profile-hero-sub { font-size: 13px; color: #64748b; margin-top: 3px; }
+.profile-hero-stats { display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+.phs { font-size: 12px; color: #64748b; }
+.phs strong { display: block; font-size: 16px; font-weight: 700; color: #fff; }
+.admin-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: rgba(99,102,241,0.15); color: #818cf8; }
+.no-admin-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: rgba(239,68,68,0.1); color: #f87171; }
+
+.acct-card { background: #16161d; border: 1px solid rgba(99,102,241,0.08); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+.acct-card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid rgba(99,102,241,0.06); }
+.acct-card-header h3 { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+.acct-card-header h3 i { font-size: 13px; color: #818cf8; }
+.acct-card-body { padding: 20px 22px; }
+
+.link-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #0f0f14; border-radius: 10px; }
+.link-row .lr-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+.link-row .lr-icon img { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; }
+.link-row .lr-body { flex: 1; min-width: 0; }
+.link-row .lr-title { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+.link-row .lr-sub { font-size: 12px; color: #64748b; margin-top: 1px; }
+.link-row.linked { border-left: 3px solid rgba(16,185,129,0.4); }
+.link-row.not-linked { border-left: 3px solid rgba(100,116,139,0.3); }
+
+.access-info { background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.12); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+.access-info.denied { background: rgba(239,68,68,0.04); border-color: rgba(239,68,68,0.12); }
+.access-info p { font-size: 13px; color: #64748b; line-height: 1.5; }
+.access-info p strong { color: #e2e8f0; }
+
+.pref-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(99,102,241,0.06); }
+.pref-row:last-child { border-bottom: none; }
+.pref-label { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+.pref-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+.pref-val { font-size: 12px; color: #94a3b8; font-family: monospace; background: #0f0f14; padding: 3px 8px; border-radius: 5px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.danger-zone { border-color: rgba(239,68,68,0.12); }
+.danger-zone .acct-card-header { border-bottom-color: rgba(239,68,68,0.1); }
+.danger-zone .acct-card-header h3 { color: #ef4444; }
+.danger-zone .acct-card-header h3 i { color: #ef4444; }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="account-page">
+
+        <div class="profile-hero">
+            <img src="{{ bot_user.avatar_url }}" alt="{{ bot_user.display_name }}">
+            <div class="profile-hero-body">
+                <div class="profile-hero-name">
+                    {{ bot_user.display_name }}
+                    {% if nexus_user and nexus_user.is_admin %}
+                    <span class="admin-badge"><i class="fas fa-shield-check"></i> Nexus Admin</span>
+                    {% else %}
+                    <span class="no-admin-badge"><i class="fas fa-lock"></i> No Admin Access</span>
+                    {% endif %}
+                </div>
+                <div class="profile-hero-sub">@{{ bot_user.discord_username }} &middot; Discord ID {{ bot_user.discord_id }}</div>
+                <div class="profile-hero-stats">
+                    <div class="phs"><strong>{{ server_count }}</strong> Servers</div>
+                    <div class="phs"><strong>{{ bot_user.created_at.strftime('%b %Y') if bot_user.created_at else 'Unknown' }}</strong> Joined</div>
+                    {% if nexus_user %}
+                    <div class="phs"><strong>{{ nexus_user.username or nexus_user.email }}</strong> Nexus Account</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="acct-card">
+            <div class="acct-card-header">
+                <h3><i class="fas fa-link"></i> Nexus Platform Link</h3>
+                {% if nexus_user %}
+                <span class="badge badge-green"><i class="fas fa-check" style="font-size:9px;"></i> Linked</span>
+                {% else %}
+                <span class="badge badge-red">Not Linked</span>
+                {% endif %}
+            </div>
+            <div class="acct-card-body">
+                <div class="link-row {{ 'linked' if nexus_user else 'not-linked' }}">
+                    <div class="lr-icon" style="background:rgba(99,102,241,0.1);">
+                        {% if nexus_user and nexus_user.profile_picture %}
+                        <img src="{{ nexus_user.profile_picture }}" alt="">
+                        {% else %}
+                        <i class="fas fa-user" style="color:#818cf8;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="lr-body">
+                        {% if nexus_user %}
+                        <div class="lr-title">{{ nexus_user.username or nexus_user.email }}</div>
+                        <div class="lr-sub">{{ nexus_user.email }} &middot; {{ 'Administrator' if nexus_user.is_admin else 'Standard User' }}</div>
+                        {% else %}
+                        <div class="lr-title">Not linked to a Nexus account</div>
+                        <div class="lr-sub">Link your account to gain access to the Discord bot panel</div>
+                        {% endif %}
+                    </div>
+                    {% if nexus_user %}
+                    <form method="POST" action="/bot/account/unlink-nexus">
+                        <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Unlink your Nexus account? You will lose access to the bot panel if you are not an admin.')">Unlink</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="/bot/account/link-nexus">
+                        <button type="submit" class="btn btn-primary btn-sm">Link Account</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                {% if nexus_user and nexus_user.is_admin %}
+                <div class="access-info" style="margin-top:14px;">
+                    <p><strong>Access granted.</strong> Your Nexus admin status gives you full access to the Discord bot panel.</p>
+                </div>
+                {% elif nexus_user %}
+                <div class="access-info denied" style="margin-top:14px;">
+                    <p>Your Nexus account is linked but <strong>does not have admin status</strong>. Ask a Nexus owner to grant you admin access in the admin panel at <strong>/nx-admin/</strong>.</p>
+                </div>
+                {% else %}
+                <div class="access-info denied" style="margin-top:14px;">
+                    <p>You must <strong>sign in to Nexus first</strong> at <a href="https://nexusbeta.vercel.app" target="_blank" style="color:#818cf8;">nexusbeta.vercel.app</a>, then link your Discord account in Settings → Connected Accounts before clicking Link Account here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="acct-card">
+            <div class="acct-card-header">
+                <h3><i class="fab fa-discord"></i> Discord Details</h3>
+            </div>
+            <div class="acct-card-body">
+                <div class="pref-row">
+                    <div><div class="pref-label">Username</div><div class="pref-sub">Your Discord handle</div></div>
+                    <span class="pref-val">@{{ bot_user.discord_username }}</span>
+                </div>
+                <div class="pref-row">
+                    <div><div class="pref-label">Display Name</div><div class="pref-sub">How you appear in servers</div></div>
+                    <span class="pref-val">{{ bot_user.display_name }}</span>
+                </div>
+                <div class="pref-row">
+                    <div><div class="pref-label">Discord ID</div><div class="pref-sub">Your unique account identifier</div></div>
+                    <span class="pref-val">{{ bot_user.discord_id }}</span>
+                </div>
+                <div class="pref-row">
+                    <div><div class="pref-label">Servers</div><div class="pref-sub">Servers you can manage</div></div>
+                    <span class="pref-val">{{ server_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="acct-card danger-zone">
+            <div class="acct-card-header">
+                <h3><i class="fas fa-triangle-exclamation"></i> Danger Zone</h3>
+            </div>
+            <div class="acct-card-body">
+                <p style="font-size:13px;color:#64748b;margin-bottom:16px;">Permanently delete your Nexus Bot account. This removes all server configurations and cannot be undone.</p>
+                <form method="POST" action="/bot/account/delete" onsubmit="return confirm('Delete your Nexus Bot account? All server configurations will be permanently removed.')">
+                    <button type="submit" class="btn btn-danger">Delete Bot Account</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

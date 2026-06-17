@@ -1,0 +1,170 @@
+{% extends "bot/base.html" %}
+{% block title %}{{ post.title }} - Nexus Bot{% endblock %}
+
+{% block extra_styles %}
+.post-hero {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    padding: 48px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.post-hero::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.post-hero .post-tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.tag-announcement { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+.tag-devlog { background: rgba(245,158,11,0.2); color: #fbbf24; }
+.tag-feature { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+
+.post-hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.3;
+    position: relative;
+    z-index: 1;
+}
+
+.post-hero .post-date {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.post-content-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.post-body {
+    font-size: 16px;
+    color: #cbd5e1;
+    line-height: 1.8;
+}
+
+.post-body p {
+    margin-bottom: 20px;
+}
+
+.post-body a {
+    color: #818cf8;
+}
+
+.post-body code {
+    background: rgba(99,102,241,0.1);
+    color: #818cf8;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.post-body strong {
+    color: #e2e8f0;
+}
+
+.post-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(99,102,241,0.08);
+}
+
+.post-nav a {
+    font-size: 14px;
+    font-weight: 600;
+    color: #818cf8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.post-nav a:hover {
+    color: #a5b4fc;
+}
+
+.post-nav .prev-label,
+.post-nav .next-label {
+    font-size: 11px;
+    color: #64748b;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #818cf8;
+    margin-bottom: 32px;
+}
+
+.back-link:hover {
+    color: #a5b4fc;
+}
+
+@media (max-width: 768px) {
+    .post-hero h1 { font-size: 24px; }
+    .post-nav { flex-direction: column; gap: 16px; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="post-hero">
+    <span class="post-tag tag-{{ post.tag }}">{{ post.tag_label }}</span>
+    <h1>{{ post.title }}</h1>
+    <div class="post-date">{{ post.date }}</div>
+</div>
+
+<div class="post-content-wrap">
+    <a href="/bot/blog" class="back-link"><i class="fas fa-arrow-left"></i> Back to all posts</a>
+    <div class="post-body">
+        {{ post.content|safe }}
+    </div>
+
+    <div class="post-nav">
+        <div>
+            {% if prev_post %}
+            <span class="prev-label">Previous</span>
+            <a href="/bot/blog/{{ prev_post.slug }}"><i class="fas fa-chevron-left"></i> {{ prev_post.title }}</a>
+            {% endif %}
+        </div>
+        <div style="text-align: right;">
+            {% if next_post %}
+            <span class="next-label">Next</span>
+            <a href="/bot/blog/{{ next_post.slug }}">{{ next_post.title }} <i class="fas fa-chevron-right"></i></a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

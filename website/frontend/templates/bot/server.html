@@ -1,0 +1,2920 @@
+{% extends "bot/base.html" %}
+{% block title %}{{ guild.name }} - Nexus Bot{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_styles %}
+.server-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.server-header img {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+}
+
+.server-header .sh-init {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: #1e1e28;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #818cf8;
+}
+
+.server-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.server-header p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.bot-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+.bot-status.online {
+    background: rgba(16,185,129,0.1);
+    color: #10b981;
+}
+
+.bot-status.offline {
+    background: rgba(148,163,184,0.1);
+    color: #64748b;
+}
+
+.bot-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.bot-status.online .bot-status-dot { background: #10b981; }
+.bot-status.offline .bot-status-dot { background: #64748b; }
+
+.bot-power-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #16161d 0%, #1a1a2e 100%);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+}
+
+.bot-power-banner .power-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.bot-power-banner .power-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.bot-power-banner .power-icon.on {
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+}
+
+.bot-power-banner .power-icon.off {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+}
+
+.bot-power-banner .power-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.bot-power-banner .power-desc {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+    padding-bottom: 0;
+    overflow-x: auto;
+}
+
+.settings-tabs button {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.settings-tabs button:hover { color: #e2e8f0; }
+
+.settings-tabs button.active {
+    color: #818cf8;
+    border-bottom-color: #6366f1;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.section-card {
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.1);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.section-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-card h2 i {
+    font-size: 14px;
+    color: #818cf8;
+}
+
+.section-card .section-desc {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(99,102,241,0.08);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.back-link:hover { color: #94a3b8; }
+
+.separator {
+    border: none;
+    border-top: 1px solid rgba(99,102,241,0.08);
+    margin: 20px 0;
+}
+
+.yt-channel-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.yt-channel-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0f0f14;
+    border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+.yt-channel-item img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.yt-channel-item span {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.nexus-link-box {
+    background: #0f0f14;
+    border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+}
+
+.nexus-link-box p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.read-only-field {
+    background: #0f0f14;
+    border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #64748b;
+    font-family: monospace;
+}
+
+.meta-info {
+    font-size: 12px;
+    color: #475569;
+    margin-top: 4px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.feature-card {
+    background: #0f0f14;
+    border: 1px solid rgba(148,163,184,0.08);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.feature-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feature-card h3 i {
+    font-size: 13px;
+    color: #818cf8;
+}
+
+.feature-card .feat-desc {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 14px;
+}
+
+.color-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-input-wrap input[type="color"] {
+    width: 40px;
+    height: 36px;
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 8px;
+    background: #0f0f14;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.color-input-wrap input[type="text"] {
+    width: 90px;
+}
+
+.saved-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 999;
+    animation: fadeInOut 3s ease forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes livePulse { 0%,100% { box-shadow: 0 0 4px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 12px rgba(239,68,68,0.7); } }
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.coming-soon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15));
+    color: #818cf8;
+    border: 1px solid rgba(99,102,241,0.2);
+}
+
+.feature-card.coming-soon {
+    position: relative;
+    opacity: 0.7;
+}
+
+.feature-card.coming-soon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 10px,
+        rgba(99,102,241,0.02) 10px,
+        rgba(99,102,241,0.02) 20px
+    );
+    pointer-events: none;
+}
+
+.feature-card.coming-soon input,
+.feature-card.coming-soon select,
+.feature-card.coming-soon textarea,
+.feature-card.coming-soon .switch {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.quick-stat {
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.quick-stat .qs-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #818cf8;
+    line-height: 1;
+}
+
+.quick-stat .qs-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin-top: 6px;
+}
+
+.section-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+    .form-row, .form-row-3, .feature-grid { grid-template-columns: 1fr; }
+    .settings-tabs { overflow-x: auto; }
+    .yt-channel-list { grid-template-columns: 1fr; }
+    .bot-power-banner { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .quick-stats { grid-template-columns: 1fr 1fr; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if request.args.get('saved') %}
+    <div class="saved-toast"><i class="fas fa-check-circle"></i> Settings saved successfully</div>
+    {% endif %}
+
+    <a href="/bot/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to servers</a>
+
+    <div class="server-header">
+        {% if guild.icon %}
+        <img src="{{ guild.icon }}" alt="{{ guild.name }}">
+        {% else %}
+        <div class="sh-init">{{ guild.name[0]|upper }}</div>
+        {% endif %}
+        <div>
+            <h1>
+                {{ guild.name }}
+                {% if bot_online %}
+                <span class="bot-status online"><span class="bot-status-dot"></span> Connected</span>
+                {% else %}
+                <span class="bot-status offline"><span class="bot-status-dot"></span> Not Connected</span>
+                {% endif %}
+            </h1>
+            <p>
+                Server ID: {{ guild.id }}
+                {% if bot_online and bot_avatar_url %}
+                &middot;
+                <img src="{{ bot_avatar_url }}" alt="Bot" style="width: 16px; height: 16px; border-radius: 50%; vertical-align: middle;">
+                <span style="font-size: 12px; color: #94a3b8;">{{ bot_username or 'Nexus Bot' }}</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <form method="POST" action="/bot/server/{{ guild.id }}/save">
+
+        <div class="bot-power-banner">
+            <div class="power-info">
+                <div class="power-icon {{ 'on' if config.bot_enabled else 'off' }}">
+                    <i class="fas fa-power-off"></i>
+                </div>
+                <div>
+                    <div class="power-label">Bot Power</div>
+                    <div class="power-desc">Enable or disable the bot for this server</div>
+                </div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" name="bot_enabled" {{ 'checked' if config.bot_enabled != False }}>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="qs-value">{{ text_channels | length }}</div>
+                <div class="qs-label">Text Channels</div>
+            </div>
+            <div class="quick-stat">
+                <div class="qs-value">{{ voice_channels | length }}</div>
+                <div class="qs-label">Voice Channels</div>
+            </div>
+            <div class="quick-stat">
+                <div class="qs-value">{{ guild_roles | length }}</div>
+                <div class="qs-label">Roles</div>
+            </div>
+            <div class="quick-stat">
+                <div class="qs-value" style="color: {{ '#10b981' if config.bot_enabled != False else '#ef4444' }};">{{ 'ON' if config.bot_enabled != False else 'OFF' }}</div>
+                <div class="qs-label">Bot Status</div>
+            </div>
+            <div class="quick-stat">
+                <div class="qs-value">{{ config.prefix or '!' }}</div>
+                <div class="qs-label">Prefix</div>
+            </div>
+        </div>
+
+        <div class="settings-tabs" id="settingsTabs">
+            <button type="button" class="active" data-tab="general">General</button>
+            <button type="button" data-tab="roles">Roles & Permissions</button>
+            <button type="button" data-tab="welcome">Welcome & Goodbye</button>
+            <button type="button" data-tab="moderation">Moderation</button>
+            <button type="button" data-tab="logging">Logging</button>
+            <button type="button" data-tab="features">Features</button>
+            <button type="button" data-tab="automation">Automation</button>
+            <button type="button" data-tab="channels">Channels</button>
+            <button type="button" data-tab="youtube">YouTube</button>
+            <button type="button" data-tab="advanced">Advanced</button>
+            <button type="button" data-tab="messenger" style="background:rgba(88,101,242,0.12);color:#818cf8;border-color:rgba(88,101,242,0.3);">
+                <i class="fab fa-discord" style="margin-right:4px;"></i> Messenger
+            </button>
+        </div>
+
+        <div class="tab-panel active" id="tab-general">
+            <div class="section-card">
+                <h2><i class="fas fa-cog"></i> General Settings</h2>
+                <div class="section-desc">Core bot configuration for this server. Set the command prefix, bot nickname, embed color, and timezone for all bot interactions.</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Command Prefix</label>
+                        <input type="text" name="prefix" class="form-input" value="{{ config.prefix or '!' }}" maxlength="10" style="max-width: 120px;">
+                        <div class="desc">The character(s) that trigger bot commands</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bot Nickname</label>
+                        <input type="text" name="bot_nickname" class="form-input" value="{{ config.bot_nickname or '' }}" maxlength="32">
+                        <div class="desc">Leave blank to use default</div>
+                    </div>
+                </div>
+
+                <hr class="separator">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Embed Color</label>
+                        <div class="color-input-wrap">
+                            <input type="color" id="embedColorPicker" value="{{ config.custom_embed_color or '#6366f1' }}" onchange="document.getElementById('embedColorText').value=this.value">
+                            <input type="text" id="embedColorText" name="custom_embed_color" class="form-input" value="{{ config.custom_embed_color or '#6366f1' }}" maxlength="7" onchange="document.getElementById('embedColorPicker').value=this.value">
+                        </div>
+                        <div class="desc">Color used for bot embeds in Discord</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Timezone</label>
+                        <select name="timezone" class="form-input">
+                            {% for tz in ['UTC','US/Eastern','US/Central','US/Mountain','US/Pacific','Europe/London','Europe/Paris','Europe/Berlin','Asia/Tokyo','Asia/Shanghai','Australia/Sydney','America/Toronto','America/Chicago','America/Denver','America/Los_Angeles','America/New_York','America/Sao_Paulo','Asia/Kolkata','Asia/Dubai','Pacific/Auckland'] %}
+                            <option value="{{ tz }}" {{ 'selected' if (config.timezone or 'UTC') == tz }}>{{ tz }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Timezone for scheduled messages and logs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-roles">
+            <div class="section-card">
+                <h2><i class="fas fa-user-shield"></i> Role Configuration</h2>
+                <div class="section-desc">Assign Discord roles that control bot permissions. Admin roles get full access, Moderator roles can use moderation commands, and the Mute role is applied to silenced members.</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Admin Role</label>
+                        <select name="admin_role_id" class="form-input">
+                            <option value="">Select a role</option>
+                            {% for role in guild_roles %}
+                            <option value="{{ role.id }}" {{ 'selected' if config.admin_role_id == role.id }} style="color: {{ role.color }};">
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Full access to all bot admin commands</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Moderator Role</label>
+                        <select name="mod_role_id" class="form-input">
+                            <option value="">Select a role</option>
+                            {% for role in guild_roles %}
+                            <option value="{{ role.id }}" {{ 'selected' if config.mod_role_id == role.id }} style="color: {{ role.color }};">
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Moderation commands (kick, ban, mute, etc.)</div>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 16px;">
+                    <div class="form-group">
+                        <label>Mute Role</label>
+                        <select name="mute_role_id" class="form-input">
+                            <option value="">Select a role</option>
+                            {% for role in guild_roles %}
+                            <option value="{{ role.id }}" {{ 'selected' if config.mute_role_id == role.id }} style="color: {{ role.color }};">
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Applied to muted members (should deny Send Messages)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>DJ Role</label>
+                        <select name="dj_role_id" class="form-input">
+                            <option value="">Select a role</option>
+                            {% for role in guild_roles %}
+                            <option value="{{ role.id }}" {{ 'selected' if config.dj_role_id == role.id }} style="color: {{ role.color }};">
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Control music and voice features</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-user-check"></i> Verification</h2>
+                <div class="section-desc">Require new members to verify their identity before gaining full access. Members must react or click a button in the verification channel to receive the verified role.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Verification System</div>
+                        <div class="desc">New members must verify in a designated channel to get a role</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="verify_enabled" {{ 'checked' if config.verify_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-row" style="margin-top: 16px;">
+                    <div class="form-group">
+                        <label>Verification Channel</label>
+                        <select name="verify_channel_id" class="form-input">
+                            <option value="">Select a channel</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}" {{ 'selected' if config.verify_channel_id == ch.id }}>
+                                #{{ ch.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Channel where members verify themselves</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Verified Role</label>
+                        <select name="verify_role_id" class="form-input">
+                            <option value="">Select a role</option>
+                            {% for role in guild_roles %}
+                            <option value="{{ role.id }}" {{ 'selected' if config.verify_role_id == role.id }} style="color: {{ role.color }};">
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="desc">Role given after verification</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-arrows-alt-v"></i> Role Hierarchy</h2>
+                <div class="section-desc">Drag roles to reorder them. Higher roles have more authority. Managed roles (bot integrations) cannot be moved.</div>
+
+                {% if guild_roles %}
+                <div id="role-reorder-list" style="display: grid; gap: 6px; max-height: 500px; overflow-y: auto; padding: 4px;">
+                    {% for role in guild_roles %}
+                    <div class="role-drag-item{% if role.managed %} role-managed{% endif %}"
+                         data-role-id="{{ role.id }}" data-role-position="{{ role.position }}" data-managed="{{ 'true' if role.managed else 'false' }}"
+                         {% if not role.managed %}draggable="true"{% endif %}
+                         style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #0f0f14; border-radius: 8px; border: 1px solid rgba(148,163,184,0.08); cursor: {% if role.managed %}not-allowed{% else %}grab{% endif %}; transition: border-color 0.15s, background 0.15s, opacity 0.15s, transform 0.15s;">
+                        <i class="fas fa-grip-vertical" style="color: {% if role.managed %}#2a2a3a{% else %}#475569{% endif %}; font-size: 12px; flex-shrink: 0;"></i>
+                        <span style="width: 14px; height: 14px; border-radius: 50%; background: {{ role.color }}; flex-shrink: 0;"></span>
+                        <span style="font-size: 14px; font-weight: 600; color: #e2e8f0; flex: 1;">{{ role.name }}</span>
+                        <span style="font-size: 11px; color: #475569; font-family: monospace;">pos {{ role.position }}</span>
+                        {% if role.managed %}
+                        <span style="font-size: 10px; padding: 2px 8px; background: rgba(148,163,184,0.1); color: #64748b; border-radius: 10px;">Managed</span>
+                        {% endif %}
+                        {% if role.hoist %}
+                        <span style="font-size: 10px; padding: 2px 8px; background: rgba(99,102,241,0.1); color: #818cf8; border-radius: 10px;">Hoisted</span>
+                        {% endif %}
+                        {% if role.mentionable %}
+                        <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Mentionable</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top: 16px; display: flex; align-items: center; gap: 12px;">
+                    <button type="button" id="save-role-order-btn" onclick="saveRoleOrder()" style="padding: 10px 24px; background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+                        <i class="fas fa-save"></i> Save Role Order
+                    </button>
+                    <span id="role-save-status" style="font-size: 13px; color: #64748b;"></span>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 24px; color: #64748b;">
+                    <i class="fas fa-shield-alt" style="font-size: 24px; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
+                    <p style="font-size: 13px;">Roles will appear here when the bot token is configured and the bot has access to this server.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-welcome">
+            <div class="section-card">
+                <h2><i class="fas fa-hand-wave"></i> Welcome Messages</h2>
+                <div class="section-desc">Greet new members with a customized message when they join your server. Use variables like {user} for the member's name, {server} for the server name, and {count} for the member count.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Welcome Messages</div>
+                        <div class="desc">Send a message when someone joins the server</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="welcome_enabled" {{ 'checked' if config.welcome_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Welcome Channel</label>
+                    <select name="welcome_channel_id" class="form-input" style="max-width: 300px;">
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.welcome_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Welcome Message</label>
+                    <textarea name="welcome_message" class="form-input" rows="3" placeholder="Welcome to the server, {user}!">{{ config.welcome_message or '' }}</textarea>
+                    <div class="desc">{user} = mention, {server} = server name, {count} = member count</div>
+                </div>
+
+                <div class="form-toggle" style="margin-top:16px;">
+                    <div class="toggle-info">
+                        <div class="label">Send as Rich Embed</div>
+                        <div class="desc">Wrap the welcome message in a styled Discord embed</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="welcome_embed_enabled" id="welcomeEmbedToggle" {{ 'checked' if config.welcome_embed_enabled }} onchange="toggleWelcomeEmbed()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="welcomeEmbedFields" style="margin-top:16px;display:{% if config.welcome_embed_enabled %}block{% else %}none{% endif %};">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Embed Title <span style="color:#64748b;font-weight:400;">(optional)</span></label>
+                            <input type="text" name="welcome_embed_title" class="form-input" value="{{ config.welcome_embed_title or '' }}" placeholder="Welcome to {server}!" maxlength="256">
+                        </div>
+                        <div class="form-group">
+                            <label>Embed Color</label>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="color" id="welcomeColorPicker" value="{{ config.welcome_embed_color or '#6366f1' }}" onchange="document.getElementById('welcomeColorText').value=this.value" style="width:44px;height:38px;border:none;padding:0;cursor:pointer;border-radius:6px;">
+                                <input type="text" id="welcomeColorText" name="welcome_embed_color" class="form-input" value="{{ config.welcome_embed_color or '#6366f1' }}" maxlength="7" onchange="document.getElementById('welcomeColorPicker').value=this.value" style="max-width:120px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Thumbnail URL <span style="color:#64748b;font-weight:400;">(optional — leave blank to use the joining member's avatar)</span></label>
+                        <input type="text" name="welcome_embed_thumbnail" class="form-input" value="{{ config.welcome_embed_thumbnail or '' }}" placeholder="https://...">
+                    </div>
+                    <div class="welcome-embed-preview" id="welcomeEmbedPreview" style="background:#2b2d31;border-radius:8px;border-left:4px solid {{ config.welcome_embed_color or '#6366f1' }};padding:14px 16px;margin-top:8px;">
+                        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;" id="wepTitle">{{ config.welcome_embed_title or '' }}</div>
+                        <div style="font-size:13px;color:#b5bac1;line-height:1.5;" id="wepDesc">{{ config.welcome_message or 'Welcome to the server, {user}!' }}</div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:10px;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;">
+                            <img src="/static/img/logo.png" style="width:14px;height:14px;border-radius:50%;" alt="" onerror="this.style.display='none'">
+                            <span style="font-size:11px;color:#87909e;">Nexus Bot • nexusbeta.vercel.app</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="separator">
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Welcome DM</div>
+                        <div class="desc">Send the new member a direct message on join</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="welcome_dm_enabled" {{ 'checked' if config.welcome_dm_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Welcome DM Message</label>
+                    <textarea name="welcome_dm_message" class="form-input" rows="3" placeholder="Thanks for joining {server}!">{{ config.welcome_dm_message or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-door-open"></i> Goodbye Messages</h2>
+                <div class="section-desc">Post a farewell message when a member leaves your server. This helps your community stay informed about departures.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Goodbye Messages</div>
+                        <div class="desc">Send a message when someone leaves the server</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="goodbye_enabled" {{ 'checked' if config.goodbye_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Goodbye Channel</label>
+                    <select name="goodbye_channel_id" class="form-input" style="max-width: 300px;">
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.goodbye_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Goodbye Message</label>
+                    <textarea name="goodbye_message" class="form-input" rows="3" placeholder="{user} has left the server.">{{ config.goodbye_message or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-user-plus"></i> Auto Role</h2>
+                <div class="section-desc">Automatically assign a role to new members</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Auto Role on Join</div>
+                        <div class="desc">Give new members a role when they join</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="auto_role_enabled" {{ 'checked' if config.auto_role_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Auto Role</label>
+                    {% if guild_roles %}
+                    <select name="auto_role_id" class="form-input" style="max-width: 300px;">
+                        <option value="">Select a role</option>
+                        {% for role in guild_roles %}
+                        <option value="{{ role.id }}" {{ 'selected' if config.auto_role_id == role.id }} style="color: {{ role.color }};">
+                            {{ role.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <input type="text" name="auto_role_name" class="form-input" value="{{ config.auto_role_name or '' }}" style="max-width: 300px;">
+                    {% endif %}
+                    <div class="desc">The role assigned to new members on join</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-moderation">
+            <div class="section-card">
+                <h2><i class="fas fa-shield-alt"></i> Auto Moderation</h2>
+                <div class="section-desc">Protect your server with automated content moderation. Configure spam detection, link filtering, word blacklists, and more to keep your community safe without manual intervention.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Auto Moderation</div>
+                        <div class="desc">Master toggle for all automated moderation</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="auto_mod_enabled" {{ 'checked' if config.auto_mod_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Anti-Spam</div>
+                            <div class="desc">Detect and remove spam</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="anti_spam_enabled" {{ 'checked' if config.anti_spam_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Link Filter</div>
+                            <div class="desc">Block messages with links</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="anti_link_enabled" {{ 'checked' if config.anti_link_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Caps Filter</div>
+                            <div class="desc">Flag mostly uppercase msgs</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="anti_caps_enabled" {{ 'checked' if config.anti_caps_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Emoji Spam</div>
+                            <div class="desc">Block excessive emojis</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="anti_emoji_spam_enabled" {{ 'checked' if config.anti_emoji_spam_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <hr class="separator">
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Bad Words Filter</div>
+                        <div class="desc">Block messages containing specific words</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="bad_words_enabled" {{ 'checked' if config.bad_words_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Bad Words List</label>
+                    <textarea name="bad_words_list" class="form-input" rows="4" placeholder="One word per line">{{ config.bad_words_list or '' }}</textarea>
+                    <div class="desc">One word per line</div>
+                </div>
+
+                <div class="form-row" style="margin-top: 16px;">
+                    <div class="form-group">
+                        <label>Max Warnings Before Mute</label>
+                        <input type="number" name="max_warnings" class="form-input" value="{{ config.max_warnings or 3 }}" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Mute Duration (minutes)</label>
+                        <input type="number" name="mute_duration" class="form-input" value="{{ config.mute_duration or 10 }}" min="1" max="1440">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-gate-open"></i> Join Gate</h2>
+                <div class="section-desc">Restrict new accounts from joining</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Join Gate</div>
+                        <div class="desc">Require accounts to be a certain age to join</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="join_gate_enabled" {{ 'checked' if config.join_gate_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Minimum Account Age (days)</label>
+                    <input type="number" name="join_gate_days" class="form-input" value="{{ config.join_gate_days or 7 }}" min="1" max="365" style="max-width: 160px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-logging">
+            <div class="section-card">
+                <h2><i class="fas fa-clipboard-list"></i> Mod Log</h2>
+                <div class="section-desc">Track server events and moderation actions</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Mod Log</div>
+                        <div class="desc">Log events to a channel and the web dashboard</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="mod_log_enabled" {{ 'checked' if config.mod_log_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Log Channel</label>
+                    <select name="mod_log_channel_id" class="form-input" style="max-width: 300px;">
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.mod_log_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-stream"></i> Event Logging</h2>
+                <div class="section-desc">Track server activity by logging specific events to a designated channel. Enable individual event types to keep a comprehensive audit trail of what happens in your server.</div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Join Events</div>
+                            <div class="desc">Log member joins</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="log_joins_enabled" {{ 'checked' if config.log_joins_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Leave Events</div>
+                            <div class="desc">Log member leaves</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="log_leaves_enabled" {{ 'checked' if config.log_leaves_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Message Edits</div>
+                            <div class="desc">Log edited messages</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="log_message_edits_enabled" {{ 'checked' if config.log_message_edits_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Message Deletes</div>
+                            <div class="desc">Log deleted messages</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="log_message_deletes_enabled" {{ 'checked' if config.log_message_deletes_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-toggle" style="background: #0f0f14; padding: 14px; border-radius: 10px;">
+                        <div class="toggle-info">
+                            <div class="label">Bans & Kicks</div>
+                            <div class="desc">Log ban/kick actions</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="log_bans_enabled" {{ 'checked' if config.log_bans_enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-search"></i> Audit Log</h2>
+                <div class="section-desc">Extended audit log for all server changes</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Audit Log</div>
+                        <div class="desc">Log role changes, channel edits, server settings changes, and more</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="audit_log_enabled" {{ 'checked' if config.audit_log_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Audit Log Channel</label>
+                    <select name="audit_log_channel_id" class="form-input" style="max-width: 300px;">
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.audit_log_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="desc">Separate channel for detailed audit logs</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <a href="/bot/server/{{ guild.id }}/logs" class="btn btn-outline"><i class="fas fa-list"></i> View Mod Logs</a>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-features">
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><i class="fas fa-bullhorn"></i> Announcements</h3>
+                    <div class="feat-desc">Set a dedicated channel where the bot posts announcements, changelogs, and important updates</div>
+                    <div class="form-group">
+                        <label>Announcement Channel</label>
+                        <select name="announcement_channel_id" class="form-input">
+                            <option value="">Select a channel</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}" {{ 'selected' if config.announcement_channel_id == ch.id }}>
+                                #{{ ch.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="feature-card" style="opacity:0.5;pointer-events:none;">
+                    <h3><i class="fas fa-star"></i> Starboard <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h3>
+                    <div class="feat-desc">Highlight the best messages when they receive enough ⭐ reactions from your community</div>
+                    <div class="form-toggle">
+                        <div class="toggle-info">
+                            <div class="label">Enable Starboard</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="starboard_enabled" {{ 'checked' if config.starboard_enabled }} disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <select name="starboard_channel_id" class="form-input" disabled>
+                            <option value="">Select a channel</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}" {{ 'selected' if config.starboard_channel_id == ch.id }}>
+                                #{{ ch.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Threshold</label>
+                        <input type="number" name="starboard_threshold" class="form-input" value="{{ config.starboard_threshold or 3 }}" min="1" max="50" style="max-width: 80px;" disabled>
+                    </div>
+                </div>
+
+                <div class="feature-card" style="opacity:0.5;pointer-events:none;">
+                    <h3><i class="fas fa-smile"></i> Reaction Roles <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h3>
+                    <div class="feat-desc">Let members self-assign roles by reacting to a message. Use /post-roles command to create the role picker panel.</div>
+                    <div class="form-toggle">
+                        <div class="toggle-info">
+                            <div class="label">Enable Reaction Roles</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="reaction_roles_enabled" {{ 'checked' if config.reaction_roles_enabled }} disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>Reaction Roles Channel</label>
+                        <select name="reaction_roles_channel_id" class="form-input" disabled>
+                            <option value="">Select a channel</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}" {{ 'selected' if config.reaction_roles_channel_id == ch.id }}>
+                                #{{ ch.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="margin-top: 12px; padding: 12px; background: #0f0f14; border-radius: 8px; border: 1px solid rgba(148,163,184,0.08);">
+                        <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 8px;">Available Role Mappings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                            <div style="font-size: 12px; color: #64748b; padding: 4px 0;">Notifications</div>
+                            <div style="font-size: 12px; color: #64748b; padding: 4px 0;">Announcement Pings</div>
+                            <div style="font-size: 12px; color: #64748b; padding: 4px 0;">Website Updates</div>
+                            <div style="font-size: 12px; color: #64748b; padding: 4px 0;">Updates</div>
+                        </div>
+                        <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin: 8px 0;">Color Roles</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(231,76,60,0.15); color: #e74c3c;">Red</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(52,152,219,0.15); color: #3498db;">Blue</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(46,204,113,0.15); color: #2ecc71;">Green</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(155,89,182,0.15); color: #9b59b6;">Purple</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(230,126,34,0.15); color: #e67e22;">Orange</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(253,121,168,0.15); color: #fd79a8;">Pink</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(241,196,15,0.15); color: #f1c40f;">Yellow</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(26,188,156,0.15); color: #1abc9c;">Teal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card" style="opacity:0.5;pointer-events:none;">
+                    <h3><i class="fas fa-ticket-alt"></i> Ticket System <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h3>
+                    <div class="feat-desc">Members can open private support tickets that create a new channel visible only to them and your support team</div>
+                    <div class="form-toggle">
+                        <div class="toggle-info">
+                            <div class="label">Enable Tickets</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="ticket_system_enabled" {{ 'checked' if config.ticket_system_enabled }} disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>Category</label>
+                        <select name="ticket_category_id" class="form-input" disabled>
+                            <option value="">Select a category</option>
+                            {% for cat in category_channels %}
+                            <option value="{{ cat.id }}" {{ 'selected' if config.ticket_category_id == cat.id }}>
+                                {{ cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Support Role</label>
+                        <select name="ticket_support_role_id" class="form-input" disabled>
+                            <option value="">Select a role</option>
+                            {% for role in guild_roles %}
+                            <option value="{{ role.id }}" {{ 'selected' if config.ticket_support_role_id == role.id }} style="color: {{ role.color }};">
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="feature-card" style="opacity:0.5;pointer-events:none;">
+                    <h3><i class="fas fa-lightbulb"></i> Suggestions <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h3>
+                    <div class="feat-desc">Allow members to submit ideas with an organized voting system using 👍 and 👎 reactions</div>
+                    <div class="form-toggle">
+                        <div class="toggle-info">
+                            <div class="label">Enable Suggestions</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="suggestion_enabled" {{ 'checked' if config.suggestion_enabled }} disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <select name="suggestion_channel_id" class="form-input" disabled>
+                            <option value="">Select a channel</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}" {{ 'selected' if config.suggestion_channel_id == ch.id }}>
+                                #{{ ch.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="feature-card" style="opacity:0.5;pointer-events:none;">
+                    <h3><i class="fas fa-sort-numeric-up"></i> Counting <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h3>
+                    <div class="feat-desc">A fun community counting game — members take turns counting up, and the bot resets if someone breaks the sequence</div>
+                    <div class="form-toggle">
+                        <div class="toggle-info">
+                            <div class="label">Enable Counting</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="counting_enabled" {{ 'checked' if config.counting_enabled }} disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <select name="counting_channel_id" class="form-input" disabled>
+                            <option value="">Select a channel</option>
+                            {% for ch in text_channels %}
+                            <option value="{{ ch.id }}" {{ 'selected' if config.counting_channel_id == ch.id }}>
+                                #{{ ch.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-automation">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-robot"></i> Custom Status Message</h2>
+                    <span class="coming-soon-badge"><i class="fas fa-clock" style="font-size: 8px;"></i> Coming Soon</span>
+                </div>
+                <div class="section-desc">Set a custom status message that the bot displays in Discord. Use variables like {members} for member count and {server} for server name.</div>
+
+                <div class="feature-card coming-soon">
+                    <div class="form-group">
+                        <label>Status Type</label>
+                        <select class="form-input" disabled>
+                            <option selected>Playing</option>
+                            <option>Watching</option>
+                            <option>Listening to</option>
+                            <option>Competing in</option>
+                        </select>
+                        <div class="desc">The activity type shown on the bot's profile</div>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>Status Text</label>
+                        <input type="text" class="form-input" value="with {members} members" disabled placeholder="e.g. with {members} members">
+                        <div class="desc">Available variables: {members}, {server}, {channels}, {roles}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-reply"></i> Auto-Responder</h2>
+                    <span class="coming-soon-badge"><i class="fas fa-clock" style="font-size: 8px;"></i> Coming Soon</span>
+                </div>
+                <div class="section-desc">Set up automatic responses to specific keywords or phrases. The bot will reply when it detects matching messages in your server.</div>
+
+                <div class="feature-card coming-soon">
+                    <div style="display: grid; gap: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; padding: 12px; background: #0f0f14; border-radius: 8px; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Trigger</div>
+                                <div style="font-size: 13px; color: #e2e8f0;">hello</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Response</div>
+                                <div style="font-size: 13px; color: #e2e8f0;">Hey there! Welcome to {server} 👋</div>
+                            </div>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Active</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; padding: 12px; background: #0f0f14; border-radius: 8px; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Trigger</div>
+                                <div style="font-size: 13px; color: #e2e8f0;">how to verify</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Response</div>
+                                <div style="font-size: 13px; color: #e2e8f0;">Go to #verify and click the ✅ button!</div>
+                            </div>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Active</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; text-align: center; padding: 16px; border: 1px dashed rgba(148,163,184,0.2); border-radius: 8px; color: #64748b; font-size: 13px;">
+                        <i class="fas fa-plus" style="margin-right: 6px;"></i> Add auto-responder rules when this feature launches
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Scheduled Announcements</h2>
+                    <span class="coming-soon-badge"><i class="fas fa-clock" style="font-size: 8px;"></i> Coming Soon</span>
+                </div>
+                <div class="section-desc">Schedule recurring or one-time announcements to be posted automatically by the bot at specific times.</div>
+
+                <div class="feature-card coming-soon">
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; padding: 12px; background: #0f0f14; border-radius: 8px; align-items: center;">
+                            <i class="fas fa-bullhorn" style="color: #818cf8; font-size: 14px;"></i>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: #e2e8f0;">Weekly Update</div>
+                                <div style="font-size: 11px; color: #64748b;">Every Monday at 9:00 AM</div>
+                            </div>
+                            <span style="font-size: 11px; color: #64748b;">#announcements</span>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(59,130,246,0.1); color: #3b82f6; border-radius: 10px;">Recurring</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; padding: 12px; background: #0f0f14; border-radius: 8px; align-items: center;">
+                            <i class="fas fa-bell" style="color: #f59e0b; font-size: 14px;"></i>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: #e2e8f0;">Event Reminder</div>
+                                <div style="font-size: 11px; color: #64748b;">One-time: Dec 31 at 11:00 PM</div>
+                            </div>
+                            <span style="font-size: 11px; color: #64748b;">#general</span>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(245,158,11,0.1); color: #f59e0b; border-radius: 10px;">One-time</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; text-align: center; padding: 16px; border: 1px dashed rgba(148,163,184,0.2); border-radius: 8px; color: #64748b; font-size: 13px;">
+                        <i class="fas fa-plus" style="margin-right: 6px;"></i> Schedule announcements when this feature launches
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-trophy"></i> Member Milestones</h2>
+                    <span class="coming-soon-badge"><i class="fas fa-clock" style="font-size: 8px;"></i> Coming Soon</span>
+                </div>
+                <div class="section-desc">Automatically celebrate when your server reaches member count milestones. Post a congratulatory message in a chosen channel.</div>
+
+                <div class="feature-card coming-soon">
+                    <div class="form-group">
+                        <label>Milestone Channel</label>
+                        <select class="form-input" disabled>
+                            <option>Select a channel</option>
+                        </select>
+                        <div class="desc">Channel where milestone celebrations are posted</div>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <div style="font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 8px;">Milestone Thresholds</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.1); color: #818cf8; border-radius: 8px; font-weight: 600;">50 members</span>
+                            <span style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.1); color: #818cf8; border-radius: 8px; font-weight: 600;">100 members</span>
+                            <span style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.1); color: #818cf8; border-radius: 8px; font-weight: 600;">250 members</span>
+                            <span style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.1); color: #818cf8; border-radius: 8px; font-weight: 600;">500 members</span>
+                            <span style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.1); color: #818cf8; border-radius: 8px; font-weight: 600;">1,000 members</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>Celebration Message</label>
+                        <textarea class="form-input" rows="2" disabled placeholder="🎉 We just hit {count} members! Thank you all for being part of {server}!"></textarea>
+                        <div class="desc">Use {count} for member count and {server} for server name</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h2><i class="fas fa-chart-bar"></i> Server Stats Channels</h2>
+                    <span class="coming-soon-badge"><i class="fas fa-clock" style="font-size: 8px;"></i> Coming Soon</span>
+                </div>
+                <div class="section-desc">Create voice channels that automatically display live server statistics like member count, online count, and boost level.</div>
+
+                <div class="feature-card coming-soon">
+                    <div style="display: grid; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #0f0f14; border-radius: 8px;">
+                            <i class="fas fa-users" style="font-size: 13px; color: #818cf8;"></i>
+                            <span style="font-size: 13px; color: #e2e8f0; flex: 1;">📊 Members: {count}</span>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Auto-update</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #0f0f14; border-radius: 8px;">
+                            <i class="fas fa-circle" style="font-size: 13px; color: #10b981;"></i>
+                            <span style="font-size: 13px; color: #e2e8f0; flex: 1;">🟢 Online: {online}</span>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Auto-update</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #0f0f14; border-radius: 8px;">
+                            <i class="fas fa-gem" style="font-size: 13px; color: #f472b6;"></i>
+                            <span style="font-size: 13px; color: #e2e8f0; flex: 1;">💎 Boosts: {boosts}</span>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Auto-update</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #0f0f14; border-radius: 8px;">
+                            <i class="fas fa-hashtag" style="font-size: 13px; color: #f59e0b;"></i>
+                            <span style="font-size: 13px; color: #e2e8f0; flex: 1;">📂 Channels: {channels}</span>
+                            <span style="font-size: 10px; padding: 2px 8px; background: rgba(16,185,129,0.1); color: #10b981; border-radius: 10px;">Auto-update</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 14px; font-size: 12px; color: #64748b;">
+                        <i class="fas fa-info-circle" style="margin-right: 4px;"></i> Stats channels update every 10 minutes to respect Discord rate limits
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-channels">
+            <div class="section-card" style="opacity:0.5;pointer-events:none;">
+                <h2><i class="fas fa-comments"></i> Auto-Thread <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h2>
+                <div class="section-desc">Automatically create a discussion thread for every new message posted in the selected channel. Great for feedback channels, showcase galleries, and Q&A sections.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Auto-Thread</div>
+                        <div class="desc">Every new message in the selected channel creates a discussion thread</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="auto_thread_enabled" {{ 'checked' if config.auto_thread_enabled }} disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Auto-Thread Channel</label>
+                    <select name="auto_thread_channel_id" class="form-input" style="max-width: 300px;" disabled>
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.auto_thread_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-card" style="opacity:0.5;pointer-events:none;">
+                <h2><i class="fas fa-image"></i> Media-Only Channel <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h2>
+                <div class="section-desc">Enforce a media-only rule where text-only messages are automatically deleted. Only messages with images, videos, or file attachments are allowed through.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Media-Only Mode</div>
+                        <div class="desc">Text-only messages are deleted; only attachments/embeds are allowed</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="media_only_enabled" {{ 'checked' if config.media_only_enabled }} disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Media-Only Channel</label>
+                    <select name="media_only_channel_id" class="form-input" style="max-width: 300px;" disabled>
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.media_only_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-hashtag"></i> Server Channels</h2>
+                <div class="section-desc">All text channels in this server (read-only view)</div>
+
+                {% if text_channels %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; max-height: 300px; overflow-y: auto;">
+                    {% for ch in text_channels %}
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0f0f14; border-radius: 8px; border: 1px solid rgba(148,163,184,0.08);">
+                        <i class="fas fa-hashtag" style="font-size: 12px; color: #64748b;"></i>
+                        <span style="font-size: 13px; color: #e2e8f0;">{{ ch.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 24px; color: #64748b;">
+                    <i class="fas fa-hashtag" style="font-size: 24px; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
+                    <p style="font-size: 13px;">Channels will appear when the bot has access to this server.</p>
+                </div>
+                {% endif %}
+
+                {% if voice_channels %}
+                <h2 style="margin-top: 20px;"><i class="fas fa-volume-up"></i> Voice Channels</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; max-height: 200px; overflow-y: auto;">
+                    {% for ch in voice_channels %}
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0f0f14; border-radius: 8px; border: 1px solid rgba(148,163,184,0.08);">
+                        <i class="fas fa-volume-up" style="font-size: 12px; color: #64748b;"></i>
+                        <span style="font-size: 13px; color: #e2e8f0;">{{ ch.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if category_channels %}
+                <h2 style="margin-top: 20px;"><i class="fas fa-folder"></i> Categories</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px;">
+                    {% for cat in category_channels %}
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0f0f14; border-radius: 8px; border: 1px solid rgba(148,163,184,0.08);">
+                        <i class="fas fa-folder" style="font-size: 12px; color: #64748b;"></i>
+                        <span style="font-size: 13px; color: #e2e8f0;">{{ cat.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-youtube">
+            {% if not nexus_linked %}
+            <div class="section-card">
+                <div class="nexus-link-box">
+                    <i class="fab fa-youtube" style="font-size: 32px; color: #ef4444; margin-bottom: 12px;"></i>
+                    <p>Link your Nexus account to enable YouTube notifications. Go to Account to connect.</p>
+                    <a href="/bot/account" class="btn btn-primary">Go to Account</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="section-card">
+                <h2><i class="fab fa-youtube" style="color: #ef4444;"></i> YouTube Notifications</h2>
+                <div class="section-desc">When you go live on YouTube, the bot will post a notification in the selected channel.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">YouTube Notifications</div>
+                        <div class="desc">Post a message when a linked channel goes live</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="youtube_notify_enabled" {{ 'checked' if config.youtube_notify_enabled }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Notification Channel</label>
+                    <select name="youtube_notify_channel_id" class="form-input" style="max-width: 300px;">
+                        <option value="">Select a channel</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.youtube_notify_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if nexus_channels %}
+                <div class="form-group">
+                    <label>Linked YouTube Channels</label>
+                    <div class="yt-channel-list">
+                        {% for yc in nexus_channels %}
+                        <div class="yt-channel-item" style="position:relative;">
+                            {% if yc.thumbnail %}
+                            <img src="{{ yc.thumbnail }}" alt="{{ yc.name }}">
+                            {% endif %}
+                            <div style="flex:1;min-width:0;">
+                                <span>{{ yc.name }}</span>
+                                {% if yc.is_live %}
+                                <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                                    <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;box-shadow:0 0 6px rgba(239,68,68,0.7);animation:livePulse 1.5s ease-in-out infinite;"></span>
+                                    <span style="font-size:11px;font-weight:600;color:#ef4444;">LIVE</span>
+                                    {% if yc.stream_title %}
+                                    <span style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">{{ yc.stream_title }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if yc.messages_processed %}
+                                <div style="font-size:11px;color:#475569;margin-top:2px;">{{ yc.messages_processed }} chat messages processed</div>
+                                {% endif %}
+                                {% else %}
+                                <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                                    <span style="width:7px;height:7px;border-radius:50%;background:#334155;display:inline-block;"></span>
+                                    <span style="font-size:11px;color:#475569;">{{ 'Bot running, not live' if yc.running else 'Not streaming' }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-panel" id="tab-advanced">
+            <div class="section-card">
+                <h2><i class="fas fa-terminal"></i> Available Commands</h2>
+                <div class="section-desc">Complete reference of all slash commands available to your server. Commands are organized by category and require appropriate permissions based on your role configuration.</div>
+
+                <div style="display: grid; gap: 6px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 0 4px;">General</div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/help</span>
+                        <span style="font-size: 12px; color: #64748b;">Show all bot commands</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/info</span>
+                        <span style="font-size: 12px; color: #64748b;">About Nexus</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/stats</span>
+                        <span style="font-size: 12px; color: #64748b;">Server statistics</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/userinfo</span>
+                        <span style="font-size: 12px; color: #64748b;">Look up a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/serverinfo</span>
+                        <span style="font-size: 12px; color: #64748b;">Server details</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/avatar</span>
+                        <span style="font-size: 12px; color: #64748b;">Show a user's avatar</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/poll</span>
+                        <span style="font-size: 12px; color: #64748b;">Create a poll with up to 4 options</span>
+                    </div>
+
+                    <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 0 4px;">Moderation</div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/kick</span>
+                        <span style="font-size: 12px; color: #64748b;">Kick a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/ban</span>
+                        <span style="font-size: 12px; color: #64748b;">Ban a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/unban</span>
+                        <span style="font-size: 12px; color: #64748b;">Unban a user by ID</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/banlist</span>
+                        <span style="font-size: 12px; color: #64748b;">View banned users</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/timeout</span>
+                        <span style="font-size: 12px; color: #64748b;">Timeout a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/untimeout</span>
+                        <span style="font-size: 12px; color: #64748b;">Remove timeout from a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/warn</span>
+                        <span style="font-size: 12px; color: #64748b;">Warn a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/clear</span>
+                        <span style="font-size: 12px; color: #64748b;">Delete messages (1-100)</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/slowmode</span>
+                        <span style="font-size: 12px; color: #64748b;">Set channel slowmode</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/lock</span>
+                        <span style="font-size: 12px; color: #64748b;">Lock a channel</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/unlock</span>
+                        <span style="font-size: 12px; color: #64748b;">Unlock a channel</span>
+                    </div>
+
+                    <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 0 4px;">Role & Member Management</div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/role</span>
+                        <span style="font-size: 12px; color: #64748b;">Add or remove a role from a member</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/nick</span>
+                        <span style="font-size: 12px; color: #64748b;">Change a member's nickname</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/moveall</span>
+                        <span style="font-size: 12px; color: #64748b;">Move all members between voice channels</span>
+                    </div>
+
+                    <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 0 4px;">Notifications</div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/announce</span>
+                        <span style="font-size: 12px; color: #64748b;">Post an announcement</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/embed</span>
+                        <span style="font-size: 12px; color: #64748b;">Create a custom embed message</span>
+                    </div>
+
+                    <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 0 4px;">Admin</div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/setup-server</span>
+                        <span style="font-size: 12px; color: #64748b;">Build the full server structure</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/reset-server</span>
+                        <span style="font-size: 12px; color: #64748b;">Remove all bot-created content</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/post-roles</span>
+                        <span style="font-size: 12px; color: #64748b;">Post role picker panels</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/post-verify</span>
+                        <span style="font-size: 12px; color: #64748b;">Post verification button</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 8px; padding: 6px 12px; background: #0f0f14; border-radius: 6px; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 600; color: #818cf8; font-family: monospace;">/post-faq</span>
+                        <span style="font-size: 12px; color: #64748b;">Post FAQ dashboard panels</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" style="opacity:0.5;pointer-events:none;">
+                <h2><i class="fas fa-chart-line"></i> Level System <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></h2>
+                <div class="section-desc">Gamify your server by tracking member activity. Members earn XP from chatting and level up over time. Assign role rewards at specific levels to incentivize participation.</div>
+
+                <div class="form-toggle">
+                    <div class="toggle-info">
+                        <div class="label">Level System</div>
+                        <div class="desc">Members earn XP by chatting and level up over time</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="level_system_enabled" {{ 'checked' if config.level_system_enabled }} disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Level-Up Announcement Channel</label>
+                    <select name="level_announce_channel_id" class="form-input" style="max-width: 300px;" disabled>
+                        <option value="">Same channel (default)</option>
+                        {% for ch in text_channels %}
+                        <option value="{{ ch.id }}" {{ 'selected' if config.level_announce_channel_id == ch.id }}>
+                            #{{ ch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="desc">Channel where level-up messages are posted</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Level Role Rewards</label>
+                    <textarea name="level_role_rewards" class="form-input" rows="4" placeholder="5:Role Name&#10;10:Another Role&#10;25:VIP" disabled>{{ config.level_role_rewards or '' }}</textarea>
+                    <div class="desc">Format: level:role name (one per line). Members get the role when they reach the level.</div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-info-circle"></i> Server Info</h2>
+                <div class="section-desc">Server information and metadata</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Server ID</label>
+                        <div class="read-only-field">{{ guild.id }}</div>
+                    </div>
+
+                    {% if config.updated_at %}
+                    <div class="form-group">
+                        <label>Last Updated</label>
+                        <div class="read-only-field">{{ config.updated_at.strftime('%B %d, %Y at %H:%M UTC') if config.updated_at else 'Never' }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if config.created_at %}
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Config Created</label>
+                    <div class="meta-info">{{ config.created_at.strftime('%B %d, %Y at %H:%M UTC') }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-messenger">
+
+            {% if not bot_online %}
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:13px 18px;font-size:13px;color:#f87171;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+                <i class="fas fa-circle-xmark" style="font-size:16px;"></i>
+                <span>The bot is offline. Messages cannot be sent until the bot reconnects.</span>
+            </div>
+            {% endif %}
+
+            <div class="section-card" style="padding:0;overflow:hidden;">
+                <div style="padding:20px 24px 0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <h2 style="margin:0 0 4px;"><i class="fab fa-discord" style="color:#5865f2;"></i> Message Builder</h2>
+                            <div style="font-size:13px;color:#64748b;">Compose and send rich messages to any channel in this server — with embeds, role pings, and more.</div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" onclick="clearMsgForm()" style="font-size:12px;padding:6px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:7px;color:#818cf8;cursor:pointer;font-weight:600;"><i class="fas fa-eraser"></i> Clear</button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:0;border-bottom:2px solid rgba(99,102,241,0.1);margin-top:18px;">
+                        <button type="button" id="msgtab-builder" onclick="setMsgerTab('builder')" style="font-size:13px;font-weight:600;padding:8px 18px;background:transparent;border:none;cursor:pointer;color:#818cf8;border-bottom:2px solid #6366f1;margin-bottom:-2px;transition:color 0.15s;">
+                            <i class="fas fa-pencil-alt"></i> Builder
+                        </button>
+                        <button type="button" id="msgtab-presets" onclick="setMsgerTab('presets')" style="font-size:13px;font-weight:600;padding:8px 18px;background:transparent;border:none;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color 0.15s;">
+                            <i class="fas fa-bolt"></i> Presets
+                        </button>
+                        <button type="button" id="msgtab-changelog" onclick="setMsgerTab('changelog')" style="font-size:13px;font-weight:600;padding:8px 18px;background:transparent;border:none;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color 0.15s;">
+                            <i class="fas fa-clock-rotate-left"></i> Changelogs
+                        </button>
+                        <button type="button" id="msgtab-chat" onclick="setMsgerTab('chat')" style="font-size:13px;font-weight:600;padding:8px 18px;background:transparent;border:none;cursor:pointer;color:#64748b;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color 0.15s;">
+                            <i class="fas fa-comments"></i> Chat View
+                        </button>
+                    </div>
+                </div>
+
+                <div id="msgerpanel-builder" style="padding:20px 24px 24px;">
+                    <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;">
+
+                        <div>
+                            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;">
+                                <div class="form-group" style="flex:1;min-width:180px;margin:0;">
+                                    <label>Target Channel</label>
+                                    <select id="msgChannelId" class="form-input" onchange="updateMsgPreview()">
+                                        <option value="">Select a channel…</option>
+                                        {% for ch in text_channels %}
+                                        <option value="{{ ch.id }}">#{{ ch.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div style="display:flex;gap:6px;">
+                                    <button type="button" id="msgTypeText" onclick="setMsgType('text')" style="padding:9px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:#6366f1;color:#fff;border:none;white-space:nowrap;">
+                                        <i class="fas fa-comment-lines"></i> Text
+                                    </button>
+                                    <button type="button" id="msgTypeEmbed" onclick="setMsgType('embed')" style="padding:9px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:#1e1e2a;color:#94a3b8;border:1px solid rgba(99,102,241,0.2);white-space:nowrap;">
+                                        <i class="fas fa-layer-group"></i> Embed
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label id="msgContentLabel">Message Content</label>
+                                <textarea id="msgContent" class="form-input" rows="3" placeholder="Type your message here…" oninput="updateMsgPreview()"></textarea>
+                                <div class="desc" id="msgContentDesc">Sent as plain text. **bold**, *italic*, `code`, > quote are all supported.</div>
+                            </div>
+
+                            <div id="embedFields" style="display:none;">
+                                <div style="height:1px;background:rgba(99,102,241,0.08);margin:16px 0;"></div>
+                                <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px;">Embed Options</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Title</label>
+                                        <input type="text" id="embedTitle" class="form-input" placeholder="Embed title…" maxlength="256" oninput="updateMsgPreview()">
+                                    </div>
+                                    <div class="form-group" style="flex:0 0 auto;">
+                                        <label>Accent Color</label>
+                                        <div style="display:flex;gap:6px;align-items:center;">
+                                            <input type="color" id="embedColorPickerMsg" value="#6366f1" onchange="document.getElementById('embedColorTextMsg').value=this.value;updateMsgPreview();" style="width:40px;height:38px;border:none;padding:0;cursor:pointer;border-radius:6px;flex-shrink:0;">
+                                            <input type="text" id="embedColorTextMsg" class="form-input" value="#6366f1" maxlength="7" style="width:96px;" onchange="document.getElementById('embedColorPickerMsg').value=this.value;updateMsgPreview();">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea id="embedDesc" class="form-input" rows="5" placeholder="Main body text (markdown supported)…" maxlength="4096" oninput="updateMsgPreview()"></textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Thumbnail URL <span style="color:#64748b;font-weight:400;font-size:11px;">(top-right small)</span></label>
+                                        <input type="text" id="embedThumb" class="form-input" placeholder="https://…" oninput="updateMsgPreview()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Image URL <span style="color:#64748b;font-weight:400;font-size:11px;">(full-width bottom)</span></label>
+                                        <input type="text" id="embedImage" class="form-input" placeholder="https://…" oninput="updateMsgPreview()">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                        <label style="margin:0;">Fields <span style="font-size:11px;color:#64748b;font-weight:400;">(max 25)</span></label>
+                                        <button type="button" onclick="addEmbedField()" style="font-size:12px;padding:4px 10px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:6px;color:#818cf8;cursor:pointer;font-weight:600;">
+                                            <i class="fas fa-plus"></i> Add Field
+                                        </button>
+                                    </div>
+                                    <div id="embedFieldsList" style="display:flex;flex-direction:column;gap:7px;"></div>
+                                </div>
+                                <div class="form-toggle">
+                                    <div class="toggle-info">
+                                        <div class="label"><i class="fas fa-robot" style="color:#818cf8;margin-right:4px;font-size:12px;"></i> Nexus Footer</div>
+                                        <div class="desc">Append "Nexus Bot • nexusbeta.vercel.app" + send time</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="nexusFooter" checked onchange="updateMsgPreview()">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="height:1px;background:rgba(99,102,241,0.08);margin:16px 0;"></div>
+                            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;">Role Mentions</div>
+                            {% if guild_roles %}
+                            <div style="display:flex;flex-wrap:wrap;gap:7px;" id="rolePingsContainer">
+                                {% for role in guild_roles %}
+                                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;background:#1e1e2a;border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;user-select:none;transition:border-color 0.15s,background 0.15s;" onmouseover="this.style.borderColor='rgba(99,102,241,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">
+                                    <input type="checkbox" name="role_ping_{{ role.id }}" value="{{ role.id }}" onchange="updateMsgPreview()" style="accent-color:#6366f1;">
+                                    <span style="width:8px;height:8px;border-radius:50%;background:{{ role.color }};display:inline-block;flex-shrink:0;"></span>
+                                    <span style="color:{{ role.color }};">@{{ role.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div style="font-size:13px;color:#64748b;font-style:italic;">No roles available — the bot may lack permission to read roles.</div>
+                            {% endif %}
+
+                            <div id="sendMsgStatus" style="margin-top:14px;display:none;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+
+                            <div style="display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap;">
+                                <button type="button" id="sendMsgBtn" onclick="sendDiscordMessage()" style="display:inline-flex;align-items:center;gap:7px;background:#5865F2;color:#fff;border:none;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s,transform 0.1s;" {% if not bot_online %}disabled{% endif %}>
+                                    <i class="fab fa-discord"></i> Send to Discord
+                                </button>
+                                <span style="font-size:12px;color:#475569;" id="sendMsgHint">Pick a channel, write your message, hit Send.</span>
+                            </div>
+                        </div>
+
+                        <div style="position:sticky;top:80px;">
+                            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;">Live Preview</div>
+                            <div style="background:#313338;border-radius:10px;padding:16px;font-family:'gg sans','Noto Sans',Arial,sans-serif;min-height:120px;">
+                                <div style="display:flex;align-items:flex-start;gap:12px;">
+                                    <img src="{{ bot_avatar_url or '/static/img/logo.png' }}" style="width:38px;height:38px;border-radius:50%;flex-shrink:0;" alt="" onerror="this.src='/static/img/logo.png'">
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+                                            <span style="font-size:14px;font-weight:700;color:#fff;">{{ bot_username or 'Nexus Bot' }}</span>
+                                            <span style="font-size:10px;background:#5865f2;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:0.3px;">APP</span>
+                                            <span style="font-size:11px;color:#949ba4;" id="previewTimestamp">Today at 12:00 PM</span>
+                                        </div>
+                                        <div id="previewPings" style="font-size:13px;color:#c9cdfb;margin-bottom:4px;display:none;font-weight:600;"></div>
+                                        <div id="previewTextContent" style="font-size:14px;color:#dbdee1;line-height:1.5;white-space:pre-wrap;word-break:break-word;"></div>
+                                        <div id="previewEmbed" style="display:none;border-radius:4px;overflow:hidden;margin-top:6px;">
+                                            <div id="previewEmbedInner" style="border-left:4px solid #6366f1;background:#2b2d31;padding:12px 14px;border-radius:0 4px 4px 0;">
+                                                <div id="previewEmbedTitle" style="font-size:14px;font-weight:700;color:#00a8fc;margin-bottom:5px;display:none;"></div>
+                                                <div id="previewEmbedDesc" style="font-size:13px;color:#b5bac1;line-height:1.55;white-space:pre-wrap;word-break:break-word;display:none;"></div>
+                                                <div id="previewEmbedFieldsRow" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+                                                <div id="previewEmbedThumbWrap" style="position:absolute;display:none;"></div>
+                                                <div id="previewEmbedImage" style="margin-top:10px;display:none;"><img id="previewEmbedImageEl" src="" style="max-width:100%;border-radius:4px;" alt=""></div>
+                                                <div id="previewEmbedFooter" style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);">
+                                                    <img src="/static/img/logo.png" style="width:14px;height:14px;border-radius:50%;" alt="" onerror="this.style.display='none'">
+                                                    <span style="font-size:11px;color:#87909e;">Nexus Bot • nexusbeta.vercel.app</span>
+                                                    <span style="font-size:11px;color:#636669;">•</span>
+                                                    <span style="font-size:11px;color:#87909e;" id="previewFooterTs"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top:10px;padding:10px 12px;background:#0f0f14;border-radius:8px;border:1px solid rgba(99,102,241,0.1);">
+                                <div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px;">SENDING TO</div>
+                                <div style="font-size:13px;color:#94a3b8;" id="previewChannelName">No channel selected</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="msgerpanel-presets" style="display:none;padding:20px 24px 24px;">
+                    <div style="font-size:13px;color:#64748b;margin-bottom:16px;">Click a preset to load it into the builder. You can edit it before sending.</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+
+                        <button type="button" onclick="loadPreset('announcement')" class="preset-card" style="border-left-color:#6366f1;">
+                            <div class="preset-icon" style="background:rgba(99,102,241,0.15);color:#818cf8;">📢</div>
+                            <div class="preset-name">Announcement</div>
+                            <div class="preset-desc">Official server announcement with clean purple styling</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('update')" class="preset-card" style="border-left-color:#10b981;">
+                            <div class="preset-icon" style="background:rgba(16,185,129,0.15);color:#34d399;">🆕</div>
+                            <div class="preset-name">Update Notice</div>
+                            <div class="preset-desc">Tell your community about a new feature or change</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('warning')" class="preset-card" style="border-left-color:#f59e0b;">
+                            <div class="preset-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24;">⚠️</div>
+                            <div class="preset-name">Warning / Alert</div>
+                            <div class="preset-desc">Amber-colored alert for rule violations or heads-up</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('giveaway')" class="preset-card" style="border-left-color:#ec4899;">
+                            <div class="preset-icon" style="background:rgba(236,72,153,0.15);color:#f472b6;">🎉</div>
+                            <div class="preset-name">Giveaway</div>
+                            <div class="preset-desc">Eye-catching giveaway post with entry instructions</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('maintenance')" class="preset-card" style="border-left-color:#ef4444;">
+                            <div class="preset-icon" style="background:rgba(239,68,68,0.15);color:#f87171;">🛠️</div>
+                            <div class="preset-name">Maintenance</div>
+                            <div class="preset-desc">Downtime or maintenance window notice</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('rules')" class="preset-card" style="border-left-color:#8b5cf6;">
+                            <div class="preset-icon" style="background:rgba(139,92,246,0.15);color:#a78bfa;">📋</div>
+                            <div class="preset-name">Rules Reminder</div>
+                            <div class="preset-desc">Short rule summary embed with numbered list format</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('event')" class="preset-card" style="border-left-color:#06b6d4;">
+                            <div class="preset-icon" style="background:rgba(6,182,212,0.15);color:#22d3ee;">🗓️</div>
+                            <div class="preset-name">Event Invite</div>
+                            <div class="preset-desc">Invite members to a stream, gaming session, or event</div>
+                        </button>
+
+                        <button type="button" onclick="loadPreset('nexus')" class="preset-card" style="border-left-color:#6366f1;">
+                            <div class="preset-icon" style="background:rgba(99,102,241,0.15);color:#818cf8;"><img src="/static/img/logo.png" style="width:20px;height:20px;border-radius:4px;" onerror="this.outerHTML='N'"></div>
+                            <div class="preset-name">Nexus Promo</div>
+                            <div class="preset-desc">Promote your Nexus setup to your Discord community</div>
+                        </button>
+
+                    </div>
+
+                    <style>
+                    .preset-card {
+                        display:flex;flex-direction:column;align-items:flex-start;text-align:left;
+                        background:#1e1e2a;border:1px solid rgba(99,102,241,0.1);border-left-width:4px;
+                        border-radius:10px;padding:16px;cursor:pointer;
+                        transition:background 0.15s,transform 0.1s,box-shadow 0.15s;
+                    }
+                    .preset-card:hover { background:#252533;transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+                    .preset-icon { width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;flex-shrink:0; }
+                    .preset-name { font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px; }
+                    .preset-desc { font-size:12px;color:#64748b;line-height:1.45; }
+                    </style>
+                </div>
+
+                <div id="msgerpanel-changelog" style="display:none;padding:20px 24px 24px;">
+                    <div style="font-size:13px;color:#64748b;margin-bottom:16px;">Load a changelog into the builder and send it to your Discord community. Edit before sending.</div>
+                    {% if changelog_data %}
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        {% for entry in changelog_data %}
+                        {% set type_color = {'feature': '#10b981', 'improvement': '#6366f1', 'fix': '#f59e0b'} %}
+                        {% set type_icon = {'feature': '✨', 'improvement': '⚙️', 'fix': '🔧'} %}
+                        <div style="background:#1e1e2a;border:1px solid rgba(99,102,241,0.1);border-radius:10px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;border-left:4px solid {{ type_color.get(entry.type, '#6366f1') }};">
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                                    <span style="font-size:13px;font-weight:800;color:#fff;">{{ entry.version }}</span>
+                                    <span style="font-size:11px;font-weight:700;color:{{ type_color.get(entry.type, '#6366f1') }};background:{{ type_color.get(entry.type, '#6366f1') }}1a;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">{{ entry.type }}</span>
+                                    <span style="font-size:11px;color:#64748b;">{{ entry.date }}</span>
+                                </div>
+                                <div style="font-size:14px;font-weight:600;color:#e2e8f0;margin-bottom:4px;">{{ entry.title }}</div>
+                                <div style="font-size:12px;color:#64748b;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ entry.description }}</div>
+                            </div>
+                            <button type="button" onclick="loadChangelog({{ loop.index0 }})" style="flex-shrink:0;background:#5865F2;color:#fff;border:none;padding:8px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='#4752c4'" onmouseout="this.style.background='#5865F2'">
+                                <i class="fab fa-discord"></i> Load &amp; Send
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="color:#64748b;font-size:13px;font-style:italic;">No changelog entries found.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+                <div id="msgerpanel-chat" style="display:none;padding:0;overflow:hidden;">
+                    <div style="display:flex;height:540px;min-height:0;">
+
+                        <div style="width:192px;flex-shrink:0;background:#111118;border-right:1px solid rgba(99,102,241,0.1);display:flex;flex-direction:column;overflow:hidden;">
+                            <div style="padding:12px 10px 6px;font-size:10px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:0.8px;flex-shrink:0;">Text Channels</div>
+                            <div style="overflow-y:auto;flex:1;padding-bottom:8px;">
+                                {% if text_channels %}
+                                {% for ch in text_channels %}
+                                <button type="button" id="chatCh-{{ ch.id }}" onclick="selectChatChannel('{{ ch.id }}','{{ ch.name|replace("'","\\'") }}')" style="display:flex;align-items:center;gap:7px;width:100%;padding:5px 10px;background:transparent;border:none;color:#64748b;font-size:13px;cursor:pointer;text-align:left;border-radius:4px;margin:1px 4px;width:calc(100% - 8px);transition:background 0.1s,color 0.1s;" onmouseover="if(!this.classList.contains('chat-ch-active'))this.style.background='rgba(99,102,241,0.07)'" onmouseout="if(!this.classList.contains('chat-ch-active'))this.style.background='transparent'">
+                                    <i class="fas fa-hashtag" style="font-size:11px;flex-shrink:0;opacity:0.55;"></i>
+                                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ch.name }}</span>
+                                </button>
+                                {% endfor %}
+                                {% else %}
+                                <div style="padding:12px 10px;font-size:12px;color:#475569;font-style:italic;">No channels found</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                            <div style="padding:10px 16px;border-bottom:1px solid rgba(99,102,241,0.1);background:#16161d;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                                <i class="fas fa-hashtag" style="color:#818cf8;font-size:13px;flex-shrink:0;"></i>
+                                <span id="chatActiveChannelName" style="font-size:14px;font-weight:700;color:#e2e8f0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">select a channel</span>
+                                <button type="button" id="chatRefreshBtn" onclick="refreshChat()" title="Refresh messages" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.15);color:#818cf8;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                                    <i class="fas fa-arrows-rotate" id="chatRefreshIcon"></i> Refresh
+                                </button>
+                                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#64748b;cursor:pointer;user-select:none;flex-shrink:0;" title="Auto-refresh every 8s">
+                                    <input type="checkbox" id="chatAutoRefresh" onchange="toggleChatAutoRefresh()" style="accent-color:#6366f1;"> Live
+                                </label>
+                                <div id="chatLiveIndicator" style="display:none;align-items:center;gap:4px;font-size:11px;color:#10b981;font-weight:700;flex-shrink:0;">
+                                    <span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;animation:chatPulse 1.5s infinite;"></span> LIVE
+                                </div>
+                            </div>
+
+                            <div id="chatMessagesArea" style="flex:1;overflow-y:auto;background:#1a1a24;position:relative;">
+                                <div id="chatLoadMoreBar" style="display:none;padding:10px;text-align:center;">
+                                    <button type="button" onclick="loadMoreMessages()" style="background:transparent;border:1px solid rgba(99,102,241,0.2);color:#818cf8;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;">
+                                        <i class="fas fa-chevron-up"></i> Load older messages
+                                    </button>
+                                </div>
+                                <div id="chatMessagesInner" style="padding:8px 0;"></div>
+                                <div id="chatLoadingOverlay" style="position:absolute;inset:0;background:rgba(26,26,36,0.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:5;">
+                                    <div style="color:#475569;font-size:13px;text-align:center;">Select a channel from the left<br>to view messages</div>
+                                </div>
+                                <div id="chatErrorState" style="display:none;position:absolute;inset:0;background:#1a1a24;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:4;">
+                                    <i class="fas fa-triangle-exclamation" style="font-size:30px;color:#f59e0b;"></i>
+                                    <div id="chatErrorMsg" style="color:#94a3b8;font-size:13px;text-align:center;max-width:280px;line-height:1.5;"></div>
+                                </div>
+                                <div id="chatEmptyState" style="display:none;position:absolute;inset:0;background:#1a1a24;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:4;">
+                                    <i class="fas fa-comment-slash" style="font-size:30px;color:#334155;"></i>
+                                    <div style="color:#64748b;font-size:13px;">No messages here yet</div>
+                                </div>
+                            </div>
+
+                            <div id="chatReplyBar" style="display:none;padding:7px 16px;background:rgba(99,102,241,0.07);border-top:1px solid rgba(99,102,241,0.12);flex-shrink:0;">
+                                <div style="display:flex;align-items:center;gap:7px;">
+                                    <i class="fas fa-reply" style="color:#818cf8;font-size:11px;flex-shrink:0;"></i>
+                                    <span style="font-size:12px;color:#94a3b8;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Replying to <strong id="chatReplyToUser" style="color:#c7d2fe;"></strong> — <span id="chatReplyToPreview" style="color:#64748b;font-style:italic;"></span></span>
+                                    <button type="button" onclick="cancelChatReply()" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:17px;line-height:1;padding:0 2px;flex-shrink:0;" title="Cancel">&times;</button>
+                                </div>
+                            </div>
+
+                            <div style="padding:10px 14px 14px;border-top:1px solid rgba(99,102,241,0.1);flex-shrink:0;background:#16161d;">
+                                <div style="display:flex;gap:8px;align-items:flex-end;">
+                                    <textarea id="chatInput" rows="2" placeholder="Message… (Enter to send, Shift+Enter for newline)" style="flex:1;resize:none;background:#0f0f14;border:1px solid rgba(99,102,241,0.18);border-radius:8px;color:#e2e8f0;padding:9px 12px;font-size:13px;font-family:inherit;line-height:1.5;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(99,102,241,0.45)'" onblur="this.style.borderColor='rgba(99,102,241,0.18)'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+                                    <button type="button" id="chatSendBtn" onclick="sendChatMessage()" title="Send" style="background:#5865F2;color:#fff;border:none;padding:9px 15px;border-radius:8px;font-size:14px;cursor:pointer;transition:background 0.15s;flex-shrink:0;height:42px;" onmouseover="this.style.background='#4752c4'" onmouseout="this.style.background='#5865F2'" {% if not bot_online %}disabled title="Bot offline"{% endif %}>
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <div id="chatSendStatus" style="font-size:12px;margin-top:5px;display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <style>
+                    .chat-msg { padding:5px 16px; transition:background 0.08s; position:relative; }
+                    .chat-msg:hover { background:rgba(255,255,255,0.025); }
+                    .chat-msg:hover .chat-msg-actions { opacity:1; pointer-events:auto; }
+                    .chat-msg-actions { position:absolute;top:3px;right:12px;display:flex;gap:3px;opacity:0;pointer-events:none;transition:opacity 0.12s;background:#1e1e2e;border:1px solid rgba(99,102,241,0.18);border-radius:7px;padding:3px 5px;z-index:2; }
+                    .chat-action-btn { background:none;border:none;cursor:pointer;color:#64748b;padding:3px 7px;border-radius:4px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;transition:color 0.1s,background 0.1s; }
+                    .chat-action-btn:hover { color:#e2e8f0;background:rgba(99,102,241,0.12); }
+                    .chat-action-btn.del:hover { color:#f87171;background:rgba(239,68,68,0.1); }
+                    .chat-ch-active { background:rgba(99,102,241,0.14) !important; color:#c7d2fe !important; }
+                    .chat-reply-ref { font-size:11px;color:#64748b;margin-bottom:2px;display:flex;align-items:center;gap:5px;border-left:2px solid #475569;padding-left:6px;margin-left:2px; }
+                    .chat-embed { margin-top:4px;border-radius:4px;overflow:hidden;max-width:420px; }
+                    .chat-embed-inner { border-left:4px solid #6366f1;background:#2b2d31;padding:9px 12px; }
+                    .chat-embed-title { font-size:13px;font-weight:700;color:#00a8fc;margin-bottom:3px; }
+                    .chat-embed-desc { font-size:12px;color:#b5bac1;line-height:1.5;white-space:pre-wrap;word-break:break-word; }
+                    .chat-attachment { display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);padding:3px 9px;border-radius:5px;text-decoration:none;margin-top:3px; }
+                    .chat-attachment:hover { background:rgba(99,102,241,0.15); }
+                    @keyframes chatPulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+                    @keyframes chatSpin { to{transform:rotate(360deg)} }
+                    </style>
+                </div>
+
+            <div id="msger-toast" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 24px rgba(0,0,0,0.4);display:none;align-items:center;gap:10px;max-width:340px;"></div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+            <a href="/bot/dashboard" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    var tabs = document.querySelectorAll('#settingsTabs button');
+    var panels = document.querySelectorAll('.tab-panel');
+    var savedTab = sessionStorage.getItem('nexus_server_tab');
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            panels.forEach(function(p) { p.classList.remove('active'); });
+            tab.classList.add('active');
+            var tabId = tab.getAttribute('data-tab');
+            document.getElementById('tab-' + tabId).classList.add('active');
+            sessionStorage.setItem('nexus_server_tab', tabId);
+        });
+        if (savedTab && tab.getAttribute('data-tab') === savedTab) {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            panels.forEach(function(p) { p.classList.remove('active'); });
+            tab.classList.add('active');
+            document.getElementById('tab-' + savedTab).classList.add('active');
+        }
+    });
+
+    var form = document.querySelector('form[action*="/save"]');
+    var toastTimeout = null;
+
+    function showAutoSaveToast(success) {
+        var existing = document.querySelector('.saved-toast');
+        if (existing) existing.remove();
+        var toast = document.createElement('div');
+        toast.className = 'saved-toast';
+        if (!success) {
+            toast.style.background = '#ef4444';
+        }
+        toast.innerHTML = success
+            ? '<i class="fas fa-check-circle"></i> Settings saved'
+            : '<i class="fas fa-times-circle"></i> Save failed';
+        document.body.appendChild(toast);
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(function() { toast.remove(); }, 3000);
+    }
+
+    function autoSave() {
+        var formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            redirect: 'follow'
+        }).then(function(resp) {
+            if (resp.redirected || !resp.ok) {
+                showAutoSaveToast(false);
+                return;
+            }
+            return resp.json().then(function(data) {
+                showAutoSaveToast(data && data.status === 'ok');
+            });
+        }).catch(function() {
+            showAutoSaveToast(false);
+        });
+    }
+
+    form.addEventListener('change', function(e) {
+        var el = e.target;
+        if (el.disabled) return;
+        if (el.closest && el.closest('#tab-messenger')) return;
+        if (el.type === 'checkbox' || el.tagName === 'SELECT') {
+            autoSave();
+        }
+    });
+})();
+
+function toggleWelcomeEmbed() {
+    var on = document.getElementById('welcomeEmbedToggle').checked;
+    document.getElementById('welcomeEmbedFields').style.display = on ? 'block' : 'none';
+}
+
+var _msgType = 'text';
+var _embedFieldCount = 0;
+
+var _PRESETS = {
+    announcement: {
+        type: 'embed', color: '#6366f1', title: '📢 Server Announcement',
+        desc: 'We have an important announcement for the community. Please read carefully and react with ✅ when you have acknowledged this message.',
+        footer: true
+    },
+    update: {
+        type: 'embed', color: '#10b981', title: '🆕 New Update — v?.?.?',
+        desc: '**What\'s new:**\n\n• Feature one\n• Feature two\n• Bug fix\n\nThanks for your continued support!',
+        footer: true
+    },
+    warning: {
+        type: 'embed', color: '#f59e0b', title: '⚠️ Heads Up',
+        desc: 'A reminder to all members: please review our server rules and keep things civil. Continued violations may result in a timeout or ban.',
+        footer: true
+    },
+    giveaway: {
+        type: 'embed', color: '#ec4899', title: '🎉 Giveaway Time!',
+        desc: '**Prize:** Something awesome\n**Ends:** 48 hours from now\n\n**How to enter:**\n1. React with 🎉 below\n2. Follow the instructions\n3. Be an active member\n\nGood luck everyone! 🍀',
+        footer: true
+    },
+    maintenance: {
+        type: 'embed', color: '#ef4444', title: '🛠️ Scheduled Maintenance',
+        desc: 'We will be undergoing maintenance shortly. Some features may be temporarily unavailable.\n\n**Expected downtime:** ~30 minutes\n**Starts:** Soon\n\nApologies for any inconvenience.',
+        footer: true
+    },
+    rules: {
+        type: 'embed', color: '#8b5cf6', title: '📋 Server Rules',
+        desc: '**1.** Be respectful to everyone\n**2.** No spam or self-promotion\n**3.** Keep content relevant to each channel\n**4.** Follow Discord\'s Terms of Service\n**5.** Listen to the moderation team\n\nViolations may result in a warning, timeout, or ban.',
+        footer: true
+    },
+    event: {
+        type: 'embed', color: '#06b6d4', title: '🗓️ Upcoming Event!',
+        desc: '**We\'re going live soon!**\n\n📅 **Date:** TBD\n⏰ **Time:** TBD\n📺 **Where:** [Link here]\n\nDrop a 👋 if you\'re coming! See you there.',
+        footer: true
+    },
+    nexus: {
+        type: 'embed', color: '#6366f1', title: '⚡ Powered by Nexus',
+        desc: 'This server uses **Nexus** — a professional YouTube bot and stream management platform.\n\n✅ Live chat bot\n✅ Discord integration\n✅ Analytics dashboard\n\n🔗 [nexusbeta.vercel.app](https://nexusbeta.vercel.app)',
+        thumb: 'https://nexusbeta.vercel.app/static/img/logo.png',
+        footer: true
+    }
+};
+
+var _CHANGELOGS = {{ changelog_data | tojson }};
+
+function setMsgerTab(tab) {
+    ['builder','presets','changelog','chat'].forEach(function(t) {
+        var btn = document.getElementById('msgtab-'+t);
+        var panel = document.getElementById('msgerpanel-'+t);
+        if (!btn || !panel) return;
+        var active = t === tab;
+        btn.style.color = active ? '#818cf8' : '#64748b';
+        btn.style.borderBottomColor = active ? '#6366f1' : 'transparent';
+        panel.style.display = active ? 'block' : 'none';
+    });
+}
+
+var _chatChannelId = null;
+var _chatGuildId = '{{ guild.id }}';
+var _chatReplyMsgId = null;
+var _chatOldestMsgId = null;
+var _chatAutoRefreshTimer = null;
+var _chatIsLoading = false;
+
+function selectChatChannel(id, name) {
+    if (_chatChannelId) {
+        var prev = document.getElementById('chatCh-' + _chatChannelId);
+        if (prev) { prev.classList.remove('chat-ch-active'); prev.style.background='transparent'; prev.style.color='#64748b'; }
+    }
+    _chatChannelId = id || null;
+    _chatReplyMsgId = null;
+    _chatOldestMsgId = null;
+    document.getElementById('chatMessagesInner').innerHTML = '';
+    document.getElementById('chatReplyBar').style.display = 'none';
+    document.getElementById('chatSendStatus').style.display = 'none';
+    document.getElementById('chatLoadMoreBar').style.display = 'none';
+    document.getElementById('chatActiveChannelName').textContent = name || 'select a channel';
+    if (id) {
+        var btn = document.getElementById('chatCh-' + id);
+        if (btn) { btn.classList.add('chat-ch-active'); btn.style.background=''; btn.style.color=''; }
+    }
+    if (!_chatChannelId) { _showChatState('overlay'); return; }
+    fetchChatMessages(false);
+}
+
+function refreshChat() {
+    if (!_chatChannelId) return;
+    var icon = document.getElementById('chatRefreshIcon');
+    icon.style.animation = 'chatSpin 0.6s linear infinite';
+    setTimeout(function() { icon.style.animation = ''; }, 700);
+    fetchChatMessages(false);
+}
+
+function fetchChatMessages(prepend) {
+    if (_chatIsLoading || !_chatChannelId) return;
+    _chatIsLoading = true;
+    if (!prepend) _showChatState('loading');
+    var url = '/bot/server/' + _chatGuildId + '/channel/' + _chatChannelId + '/messages?limit=50';
+    if (prepend && _chatOldestMsgId) url += '&before=' + _chatOldestMsgId;
+    fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            _chatIsLoading = false;
+            if (data.error) {
+                _showChatState('error', data.error);
+                return;
+            }
+            var msgs = data.messages || [];
+            if (!prepend) {
+                document.getElementById('chatMessagesInner').innerHTML = '';
+                _chatOldestMsgId = null;
+            }
+            if (msgs.length === 0 && !prepend) {
+                _showChatState('empty');
+                return;
+            }
+            _showChatState('none');
+            if (msgs.length > 0) {
+                _chatOldestMsgId = msgs[msgs.length - 1].id;
+            }
+            renderChatMessages(msgs, prepend);
+            document.getElementById('chatLoadMoreBar').style.display = msgs.length >= 50 ? 'block' : 'none';
+            if (!prepend) {
+                var area = document.getElementById('chatMessagesArea');
+                area.scrollTop = area.scrollHeight;
+            }
+        })
+        .catch(function(e) {
+            _chatIsLoading = false;
+            _showChatState('error', 'Network error: ' + e.message);
+        });
+}
+
+function _showChatState(state, msg) {
+    var overlay = document.getElementById('chatLoadingOverlay');
+    var errState = document.getElementById('chatErrorState');
+    var emptyState = document.getElementById('chatEmptyState');
+    overlay.style.display = 'none';
+    errState.style.display = 'none';
+    emptyState.style.display = 'none';
+    if (state === 'loading') {
+        overlay.innerHTML = '<div style="width:28px;height:28px;border:3px solid rgba(99,102,241,0.15);border-top-color:#6366f1;border-radius:50%;animation:chatSpin 0.7s linear infinite;"></div><span style="color:#64748b;font-size:13px;">Loading…</span>';
+        overlay.style.display = 'flex';
+    } else if (state === 'overlay') {
+        overlay.innerHTML = '<span style="color:#64748b;font-size:13px;">Select a channel to view messages</span>';
+        overlay.style.display = 'flex';
+    } else if (state === 'error') {
+        document.getElementById('chatErrorMsg').textContent = msg || 'Something went wrong.';
+        errState.style.display = 'flex';
+    } else if (state === 'empty') {
+        emptyState.style.display = 'flex';
+    }
+}
+
+function renderChatMessages(msgs, prepend) {
+    var inner = document.getElementById('chatMessagesInner');
+    var html = '';
+    var reversed = msgs.slice().reverse();
+    reversed.forEach(function(msg) {
+        html += buildMsgHTML(msg);
+    });
+    if (prepend) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var ref = inner.firstChild;
+        while (tmp.firstChild) {
+            inner.insertBefore(tmp.firstChild, ref);
+        }
+    } else {
+        inner.innerHTML += html;
+    }
+}
+
+function buildMsgHTML(msg) {
+    var author = msg.author || {};
+    var avatarUrl = author.avatar
+        ? 'https://cdn.discordapp.com/avatars/' + author.id + '/' + author.avatar + '.webp?size=64'
+        : 'https://cdn.discordapp.com/embed/avatars/' + ((parseInt(author.discriminator || '0') || 0) % 5) + '.png';
+    var username = _esc(author.username || 'Unknown');
+    var isBot = author.bot ? '<span style="font-size:10px;background:#5865f2;color:#fff;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:3px;">BOT</span>' : '';
+    var ts = '';
+    if (msg.timestamp) {
+        try {
+            var d = new Date(msg.timestamp);
+            ts = d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+        } catch(e) {}
+    }
+    var replyRef = '';
+    if (msg.referenced_message) {
+        var rMsg = msg.referenced_message;
+        var rAuthor = rMsg.author ? _esc(rMsg.author.username) : 'Unknown';
+        var rContent = _esc((rMsg.content || '[embed/attachment]').slice(0, 60));
+        replyRef = '<div class="chat-reply-ref"><i class="fas fa-reply" style="font-size:10px;opacity:0.5;"></i><span style="color:#818cf8;font-weight:600;">@' + rAuthor + '</span><span style="margin-left:4px;">' + rContent + (rContent.length >= 60 ? '…' : '') + '</span></div>';
+    }
+    var content = _formatMsgContent(msg.content || '');
+    var embedsHtml = '';
+    (msg.embeds || []).slice(0,1).forEach(function(emb) {
+        var color = emb.color ? '#' + emb.color.toString(16).padStart(6,'0') : '#6366f1';
+        var eTitle = emb.title ? '<div class="chat-embed-title">' + _esc(emb.title) + '</div>' : '';
+        var eDesc = emb.description ? '<div class="chat-embed-desc">' + _esc(emb.description).slice(0,300) + '</div>' : '';
+        if (eTitle || eDesc) {
+            embedsHtml += '<div class="chat-embed"><div class="chat-embed-inner" style="border-left-color:' + color + ';">' + eTitle + eDesc + '</div></div>';
+        }
+    });
+    var attachsHtml = '';
+    (msg.attachments || []).forEach(function(att) {
+        attachsHtml += '<a class="chat-attachment" href="' + _esc(att.url) + '" target="_blank" rel="noopener"><i class="fas fa-paperclip"></i>' + _esc(att.filename || 'attachment') + '</a>';
+    });
+    var msgId = _esc(msg.id);
+    var channelId = _chatChannelId;
+    var previewText = (msg.content || '').slice(0, 50).replace(/"/g, '&quot;');
+    var actions = '<div class="chat-msg-actions">'
+        + '<button type="button" class="chat-action-btn" onclick="setChatReply(\'' + msgId + '\',\'' + username.replace(/'/g,"\\'")+'\',\'' + previewText.replace(/'/g,"\\'") + '\')" title="Reply"><i class="fas fa-reply"></i> Reply</button>'
+        + '<button type="button" class="chat-action-btn del" onclick="deleteChatMsg(\'' + msgId + '\',\'' + channelId + '\',this)" title="Delete"><i class="fas fa-trash"></i> Delete</button>'
+        + '</div>';
+    return '<div class="chat-msg" id="cmsg-' + msgId + '">'
+        + actions
+        + '<div style="display:flex;align-items:flex-start;gap:10px;">'
+        + '<img src="' + avatarUrl + '" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;margin-top:2px;" onerror="this.src=\'/static/img/logo.png\'">'
+        + '<div style="flex:1;min-width:0;">'
+        + replyRef
+        + '<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px;flex-wrap:wrap;">'
+        + '<span style="font-size:14px;font-weight:700;color:#e2e8f0;">' + username + '</span>'
+        + isBot
+        + '<span style="font-size:11px;color:#4e5360;">' + ts + '</span>'
+        + (msg.edited_timestamp ? '<span style="font-size:10px;color:#4e5360;font-style:italic;">(edited)</span>' : '')
+        + '</div>'
+        + (content ? '<div style="font-size:13.5px;color:#dcddde;line-height:1.55;white-space:pre-wrap;word-break:break-word;">' + content + '</div>' : '')
+        + embedsHtml
+        + attachsHtml
+        + '</div></div></div>';
+}
+
+function _esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _formatMsgContent(text) {
+    var esc = _esc(text);
+    return esc
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/__(.+?)__/g, '<u>$1</u>')
+        .replace(/~~(.+?)~~/g, '<s>$1</s>')
+        .replace(/`([^`]+)`/g, '<code style="background:#1e1e2a;padding:1px 5px;border-radius:3px;font-size:12px;color:#e879f9;">$1</code>')
+        .replace(/&lt;#\d+&gt;/g, '<span style="color:#818cf8;font-weight:600;">#channel</span>')
+        .replace(/&lt;@&amp;\d+&gt;/g, '<span style="color:#818cf8;font-weight:600;">@role</span>')
+        .replace(/&lt;@!?\d+&gt;/g, '<span style="color:#818cf8;font-weight:600;">@user</span>');
+}
+
+function setChatReply(msgId, username, preview) {
+    _chatReplyMsgId = msgId;
+    document.getElementById('chatReplyToUser').textContent = username;
+    document.getElementById('chatReplyToPreview').textContent = preview ? (preview.slice(0,60) + (preview.length>60?'…':'')) : '(no text)';
+    document.getElementById('chatReplyBar').style.display = 'block';
+    document.getElementById('chatInput').focus();
+}
+
+function cancelChatReply() {
+    _chatReplyMsgId = null;
+    document.getElementById('chatReplyBar').style.display = 'none';
+}
+
+function sendChatMessage() {
+    var content = (document.getElementById('chatInput').value || '').trim();
+    if (!content) return;
+    if (!_chatChannelId) { _setChatSendStatus('error', 'Select a channel first'); return; }
+    var btn = document.getElementById('chatSendBtn');
+    btn.disabled = true;
+    var fd = new FormData();
+    fd.append('content', content);
+    if (_chatReplyMsgId) fd.append('message_id', _chatReplyMsgId);
+    fetch('/bot/server/' + _chatGuildId + '/channel/' + _chatChannelId + '/reply', { method:'POST', body:fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            if (data.ok) {
+                document.getElementById('chatInput').value = '';
+                cancelChatReply();
+                _setChatSendStatus('success', 'Sent!');
+                setTimeout(function() {
+                    fetchChatMessages(false);
+                    var area = document.getElementById('chatMessagesArea');
+                    area.scrollTop = area.scrollHeight;
+                }, 400);
+                setTimeout(function() { document.getElementById('chatSendStatus').style.display='none'; }, 3000);
+            } else {
+                _setChatSendStatus('error', data.error || 'Failed to send');
+            }
+        })
+        .catch(function(e) { btn.disabled=false; _setChatSendStatus('error', e.message); });
+}
+
+function _setChatSendStatus(type, msg) {
+    var el = document.getElementById('chatSendStatus');
+    el.style.display = 'block';
+    el.style.color = type === 'error' ? '#f87171' : '#10b981';
+    el.textContent = msg;
+}
+
+function deleteChatMsg(msgId, channelId, btn) {
+    if (!confirm('Delete this message?')) return;
+    btn.disabled = true;
+    var fd = new FormData();
+    fd.append('message_id', msgId);
+    fetch('/bot/server/' + _chatGuildId + '/channel/' + channelId + '/delete-msg', { method:'POST', body:fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.ok) {
+                var el = document.getElementById('cmsg-' + msgId);
+                if (el) { el.style.opacity='0.3'; el.style.transition='opacity 0.3s'; setTimeout(function(){el.remove();},350); }
+            } else {
+                alert(data.error || 'Could not delete message');
+                btn.disabled = false;
+            }
+        })
+        .catch(function(e) { alert(e.message); btn.disabled=false; });
+}
+
+function loadMoreMessages() {
+    fetchChatMessages(true);
+}
+
+function toggleChatAutoRefresh() {
+    var checked = document.getElementById('chatAutoRefresh').checked;
+    var indicator = document.getElementById('chatLiveIndicator');
+    if (checked) {
+        indicator.style.display = 'flex';
+        _chatAutoRefreshTimer = setInterval(function() {
+            if (_chatChannelId) fetchChatMessages(false);
+        }, 8000);
+    } else {
+        indicator.style.display = 'none';
+        if (_chatAutoRefreshTimer) { clearInterval(_chatAutoRefreshTimer); _chatAutoRefreshTimer = null; }
+    }
+}
+
+function setMsgType(type) {
+    _msgType = type;
+    var isEmbed = type === 'embed';
+    document.getElementById('embedFields').style.display = isEmbed ? 'block' : 'none';
+    document.getElementById('msgContentLabel').textContent = isEmbed ? 'Optional Text Above Embed' : 'Message Content';
+    document.getElementById('msgContentDesc').textContent = isEmbed
+        ? 'Appears above the embed as plain text. Leave blank to send the embed only.'
+        : 'Sent as plain text. **bold**, *italic*, `code` are all supported.';
+    document.getElementById('msgTypeText').style.cssText = 'padding:9px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;' + (isEmbed ? 'background:#1e1e2a;color:#94a3b8;border:1px solid rgba(99,102,241,0.2);' : 'background:#6366f1;color:#fff;border:none;');
+    document.getElementById('msgTypeEmbed').style.cssText = 'padding:9px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;' + (isEmbed ? 'background:#6366f1;color:#fff;border:none;' : 'background:#1e1e2a;color:#94a3b8;border:1px solid rgba(99,102,241,0.2);');
+    updateMsgPreview();
+}
+
+function loadPreset(key) {
+    var p = _PRESETS[key];
+    if (!p) return;
+    setMsgType(p.type);
+    if (p.type === 'embed') {
+        document.getElementById('embedTitle').value = p.title || '';
+        document.getElementById('embedDesc').value = p.desc || '';
+        document.getElementById('embedColorTextMsg').value = p.color || '#6366f1';
+        document.getElementById('embedColorPickerMsg').value = p.color || '#6366f1';
+        document.getElementById('embedThumb').value = p.thumb || '';
+        document.getElementById('embedImage').value = p.image || '';
+        document.getElementById('nexusFooter').checked = !!p.footer;
+        document.getElementById('embedFieldsList').innerHTML = '';
+    } else {
+        document.getElementById('msgContent').value = p.text || '';
+    }
+    updateMsgPreview();
+    setMsgerTab('builder');
+    showMsgerToast('success', 'Preset loaded — edit it and hit Send!');
+}
+
+function loadChangelog(idx) {
+    var entry = _CHANGELOGS[idx];
+    if (!entry) return;
+    var colorMap = { feature: '#10b981', improvement: '#6366f1', fix: '#f59e0b' };
+    var color = colorMap[entry.type] || '#6366f1';
+    var typeLabel = (entry.type || 'update').charAt(0).toUpperCase() + (entry.type || 'update').slice(1);
+    var iconMap = { feature: '✨', improvement: '⚙️', fix: '🔧' };
+    var icon = iconMap[entry.type] || '📋';
+    var desc = (entry.description || '') + '\n\n**What\'s new:**\n' + (entry.changes || []).map(function(c) { return '• ' + c; }).join('\n');
+    setMsgType('embed');
+    document.getElementById('embedTitle').value = icon + ' ' + entry.version + ' — ' + entry.title;
+    document.getElementById('embedDesc').value = desc.trim();
+    document.getElementById('embedColorTextMsg').value = color;
+    document.getElementById('embedColorPickerMsg').value = color;
+    document.getElementById('embedThumb').value = '';
+    document.getElementById('embedImage').value = '';
+    document.getElementById('nexusFooter').checked = true;
+    document.getElementById('embedFieldsList').innerHTML = '';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:center;background:#0f0f14;border-radius:8px;padding:10px 12px;';
+    row.innerHTML = '<input type="text" placeholder="Field name" class="form-input" style="min-width:0;" oninput="updateMsgPreview()" data-field-name value="Version">'
+        + '<input type="text" placeholder="Field value" class="form-input" style="min-width:0;" oninput="updateMsgPreview()" data-field-value value="' + entry.version + '">'
+        + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#94a3b8;white-space:nowrap;cursor:pointer;"><input type="checkbox" checked onchange="updateMsgPreview()" data-field-inline style="accent-color:#6366f1;"> Inline</label>'
+        + '<button type="button" onclick="this.closest(\'div\').remove();updateMsgPreview();" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;">✕</button>';
+    var row2 = document.createElement('div');
+    row2.style.cssText = row.style.cssText;
+    row2.innerHTML = '<input type="text" placeholder="Field name" class="form-input" style="min-width:0;" oninput="updateMsgPreview()" data-field-name value="Type">'
+        + '<input type="text" placeholder="Field value" class="form-input" style="min-width:0;" oninput="updateMsgPreview()" data-field-value value="' + typeLabel + '">'
+        + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#94a3b8;white-space:nowrap;cursor:pointer;"><input type="checkbox" checked onchange="updateMsgPreview()" data-field-inline style="accent-color:#6366f1;"> Inline</label>'
+        + '<button type="button" onclick="this.closest(\'div\').remove();updateMsgPreview();" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;">✕</button>';
+    document.getElementById('embedFieldsList').appendChild(row);
+    document.getElementById('embedFieldsList').appendChild(row2);
+    updateMsgPreview();
+    setMsgerTab('builder');
+    showMsgerToast('success', entry.version + ' loaded — select a channel and send!');
+}
+
+function clearMsgForm() {
+    document.getElementById('msgContent').value = '';
+    document.getElementById('embedTitle').value = '';
+    document.getElementById('embedDesc').value = '';
+    document.getElementById('embedColorTextMsg').value = '#6366f1';
+    document.getElementById('embedColorPickerMsg').value = '#6366f1';
+    document.getElementById('embedThumb').value = '';
+    document.getElementById('embedImage').value = '';
+    document.getElementById('embedFieldsList').innerHTML = '';
+    document.getElementById('nexusFooter').checked = true;
+    document.querySelectorAll('#rolePingsContainer input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+    setMsgType('text');
+    updateMsgPreview();
+}
+
+function addEmbedField() {
+    var container = document.getElementById('embedFieldsList');
+    if (container.children.length >= 25) return;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:center;background:#0f0f14;border-radius:8px;padding:10px 12px;';
+    row.innerHTML = '<input type="text" placeholder="Field name" class="form-input" style="min-width:0;" oninput="updateMsgPreview()" data-field-name>'
+        + '<input type="text" placeholder="Field value" class="form-input" style="min-width:0;" oninput="updateMsgPreview()" data-field-value>'
+        + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#94a3b8;white-space:nowrap;cursor:pointer;">'
+        + '<input type="checkbox" onchange="updateMsgPreview()" data-field-inline style="accent-color:#6366f1;"> Inline</label>'
+        + '<button type="button" onclick="this.closest(\'div\').remove();updateMsgPreview();" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;">✕</button>';
+    container.appendChild(row);
+    updateMsgPreview();
+}
+
+function getEmbedFields() {
+    var fields = [];
+    document.querySelectorAll('#embedFieldsList > div').forEach(function(row) {
+        var nameEl = row.querySelector('[data-field-name]');
+        var valueEl = row.querySelector('[data-field-value]');
+        var inlineEl = row.querySelector('[data-field-inline]');
+        if (!nameEl || !valueEl) return;
+        var name = nameEl.value.trim();
+        var value = valueEl.value.trim();
+        if (name && value) fields.push({ name: name, value: value, inline: inlineEl ? inlineEl.checked : false });
+    });
+    return fields;
+}
+
+function updateMsgPreview() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes();
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    var tsStr = 'Today at ' + h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
+    document.getElementById('previewTimestamp').textContent = tsStr;
+    var footerTsEl = document.getElementById('previewFooterTs');
+    if (footerTsEl) footerTsEl.textContent = tsStr;
+
+    var pings = [];
+    document.querySelectorAll('#rolePingsContainer input[type=checkbox]:checked').forEach(function(cb) {
+        var label = cb.closest('label');
+        if (label) { var nameEl = label.querySelector('span:last-child'); if (nameEl) pings.push(nameEl.textContent.trim()); }
+    });
+    var pingEl = document.getElementById('previewPings');
+    if (pings.length) { pingEl.style.display = 'block'; pingEl.textContent = pings.map(function(p) { return '@' + p; }).join(' '); }
+    else { pingEl.style.display = 'none'; }
+
+    var content = document.getElementById('msgContent').value;
+    var contentEl = document.getElementById('previewTextContent');
+    contentEl.textContent = content;
+    contentEl.style.display = content ? 'block' : 'none';
+
+    var chSel = document.getElementById('msgChannelId');
+    var chNameEl = document.getElementById('previewChannelName');
+    if (chNameEl) chNameEl.textContent = chSel && chSel.value ? chSel.options[chSel.selectedIndex].text : 'No channel selected';
+
+    var embedEl = document.getElementById('previewEmbed');
+    if (_msgType === 'embed') {
+        embedEl.style.display = 'block';
+        var color = document.getElementById('embedColorTextMsg').value || '#6366f1';
+        document.getElementById('previewEmbedInner').style.borderLeftColor = color;
+        var title = document.getElementById('embedTitle').value;
+        var titleEl = document.getElementById('previewEmbedTitle');
+        titleEl.textContent = title;
+        titleEl.style.display = title ? 'block' : 'none';
+        var desc = document.getElementById('embedDesc').value;
+        var descEl = document.getElementById('previewEmbedDesc');
+        descEl.textContent = desc;
+        descEl.style.display = desc ? 'block' : 'none';
+        var fields = getEmbedFields();
+        var fieldsRow = document.getElementById('previewEmbedFieldsRow');
+        fieldsRow.innerHTML = '';
+        if (fields.length) {
+            fieldsRow.style.display = 'flex';
+            fields.forEach(function(f) {
+                var fd = document.createElement('div');
+                fd.style.cssText = 'flex:' + (f.inline ? '0 0 calc(33% - 6px)' : '0 0 100%') + ';min-width:' + (f.inline ? '80px' : '100%') + ';';
+                fd.innerHTML = '<div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px;">' + f.name + '</div>'
+                    + '<div style="font-size:12px;color:#b5bac1;">' + f.value + '</div>';
+                fieldsRow.appendChild(fd);
+            });
+        } else { fieldsRow.style.display = 'none'; }
+        var imageEl = document.getElementById('previewEmbedImage');
+        var imageInput = document.getElementById('embedImage');
+        if (imageEl && imageInput) {
+            var imgSrc = imageInput.value.trim();
+            if (imgSrc) { imageEl.style.display = 'block'; document.getElementById('previewEmbedImageEl').src = imgSrc; }
+            else { imageEl.style.display = 'none'; }
+        }
+        var footerEl = document.getElementById('previewEmbedFooter');
+        footerEl.style.display = document.getElementById('nexusFooter').checked ? 'flex' : 'none';
+    } else {
+        embedEl.style.display = 'none';
+    }
+}
+
+function sendDiscordMessage() {
+    var channelId = document.getElementById('msgChannelId').value;
+    if (!channelId) { showMsgerToast('error', 'Select a channel first.'); return; }
+    var content = document.getElementById('msgContent').value.trim();
+    var isEmbed = _msgType === 'embed';
+    if (!isEmbed && !content) { showMsgerToast('error', 'Message content cannot be empty.'); return; }
+    if (isEmbed) {
+        var title = document.getElementById('embedTitle').value.trim();
+        var desc = document.getElementById('embedDesc').value.trim();
+        if (!title && !desc) { showMsgerToast('error', 'Embed needs at least a title or description.'); return; }
+    }
+    var btn = document.getElementById('sendMsgBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+    var formData = new FormData();
+    formData.append('channel_id', channelId);
+    formData.append('message_type', _msgType);
+    formData.append('message_content', content);
+    document.querySelectorAll('#rolePingsContainer input[type=checkbox]:checked').forEach(function(cb) { formData.append('role_pings', cb.value); });
+    if (isEmbed) {
+        formData.append('embed_title', document.getElementById('embedTitle').value.trim());
+        formData.append('embed_description', document.getElementById('embedDesc').value.trim());
+        formData.append('embed_color', document.getElementById('embedColorTextMsg').value);
+        formData.append('embed_thumbnail', document.getElementById('embedThumb').value.trim());
+        formData.append('embed_image', document.getElementById('embedImage').value.trim());
+        formData.append('nexus_footer', document.getElementById('nexusFooter').checked ? '1' : '0');
+        var fields = getEmbedFields();
+        if (fields.length) formData.append('embed_fields_json', JSON.stringify(fields));
+    }
+    fetch('/bot/server/{{ guild.id }}/send', { method: 'POST', body: formData })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+            btn.disabled = false;
+            if (res.ok && res.data.ok) {
+                btn.style.background = '#10b981';
+                btn.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                showMsgerToast('success', '✅ Message sent successfully!');
+                setTimeout(function() { btn.style.background = ''; btn.innerHTML = '<i class="fab fa-discord"></i> Send to Discord'; }, 3000);
+            } else {
+                btn.innerHTML = '<i class="fab fa-discord"></i> Send to Discord';
+                showMsgerToast('error', res.data.error || 'Send failed. Check bot permissions.');
+            }
+        })
+        .catch(function(e) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fab fa-discord"></i> Send to Discord';
+            showMsgerToast('error', 'Network error. Try again.');
+        });
+}
+
+var _msgerToastTimer = null;
+function showMsgerToast(type, msg) {
+    var el = document.getElementById('msger-toast');
+    if (!el) {
+        el = document.getElementById('sendMsgStatus');
+        if (!el) return;
+        el.style.display = 'flex';
+        el.style.background = type === 'success' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
+        el.style.color = type === 'success' ? '#10b981' : '#ef4444';
+        el.style.border = '1px solid ' + (type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)');
+        el.style.alignItems = 'center'; el.style.gap = '8px';
+        el.innerHTML = (type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>') + ' ' + msg;
+        if (_msgerToastTimer) clearTimeout(_msgerToastTimer);
+        _msgerToastTimer = setTimeout(function() { el.style.display = 'none'; }, 5000);
+        return;
+    }
+    el.style.background = type === 'success' ? '#1a3a2a' : '#3a1a1a';
+    el.style.color = type === 'success' ? '#34d399' : '#f87171';
+    el.style.border = '1px solid ' + (type === 'success' ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)');
+    el.innerHTML = (type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>') + ' ' + msg;
+    el.style.display = 'flex';
+    if (_msgerToastTimer) clearTimeout(_msgerToastTimer);
+    _msgerToastTimer = setTimeout(function() { el.style.display = 'none'; }, 5000);
+}
+
+updateMsgPreview();
+</script>
+{% endblock %}

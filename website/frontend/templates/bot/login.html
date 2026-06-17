@@ -1,0 +1,92 @@
+{% extends "bot/base.html" %}
+{% block title %}Sign In - Nexus Bot{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_styles %}
+.login-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 160px);
+    padding: 40px 24px;
+}
+
+.login-card {
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.1);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+}
+
+.login-card .logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    margin: 0 auto 20px;
+}
+
+.login-card h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.login-card p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 28px;
+    line-height: 1.5;
+}
+
+.login-card .btn-discord {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.login-info {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.login-info a {
+    color: #818cf8;
+}
+
+.error-msg {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+    <div class="login-card">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Nexus" class="logo">
+        <h1>Sign in to Nexus Bot</h1>
+        <p>Use your Discord account to sign in. I only request access to your username and server list - nothing else.</p>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <a href="/bot/login" class="btn btn-discord"><i class="fab fa-discord"></i> Continue with Discord</a>
+
+        <div class="login-info">
+            By signing in, you agree to the <a href="/bot/terms">Terms of Service</a> and <a href="/bot/privacy">Privacy Policy</a>.
+        </div>
+    </div>
+</div>
+{% endblock %}

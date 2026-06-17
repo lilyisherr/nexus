@@ -1,0 +1,249 @@
+{% extends "bot/base.html" %}
+{% block title %}Nexus Bot - Discord Server Management{% endblock %}
+
+{% block extra_styles %}
+.hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%);
+}
+
+.hero h1 {
+    font-size: 42px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.hero h1 span {
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    font-size: 18px;
+    color: #94a3b8;
+    max-width: 600px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hero-actions .btn {
+    padding: 12px 28px;
+    font-size: 15px;
+}
+
+.features {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 24px;
+}
+
+.features h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 40px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.08);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.2s;
+}
+
+.feature-card:hover {
+    border-color: rgba(99,102,241,0.2);
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+}
+
+.feature-card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
+.stats-bar {
+    background: #16161d;
+    border-top: 1px solid rgba(99,102,241,0.08);
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+    padding: 32px 24px;
+}
+
+.stats-row {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.stat-item h3 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #818cf8;
+}
+
+.stat-item p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cta-section {
+    text-align: center;
+    padding: 60px 24px;
+}
+
+.cta-section h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.cta-section p {
+    font-size: 16px;
+    color: #94a3b8;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .hero h1 { font-size: 28px; }
+    .hero p { font-size: 15px; }
+    .stats-row { flex-direction: column; gap: 24px; }
+}
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Your server, <span>managed</span></h1>
+    <p>One slash command builds your whole server. Channels, roles, permissions, moderation, logging. Then tweak everything from the dashboard.</p>
+    <div class="hero-actions">
+        {% if bot_session_user %}
+        <a href="/bot/dashboard" class="btn btn-primary"><i class="fas fa-columns"></i> Go to Dashboard</a>
+        {% else %}
+        <a href="/bot/login" class="btn btn-discord"><i class="fab fa-discord"></i> Sign in with Discord</a>
+        {% endif %}
+        <a href="/bot/help" class="btn btn-outline"><i class="fas fa-book"></i> Read the Docs</a>
+    </div>
+</section>
+
+<section class="features">
+    <h2>What it actually does</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(99,102,241,0.1); color: #818cf8;">
+                <i class="fas fa-server"></i>
+            </div>
+            <h3>Server Builder</h3>
+            <p>Run <code style="background: rgba(99,102,241,0.1); color: #818cf8; padding: 2px 6px; border-radius: 4px; font-size: 12px;">/setup-server</code> and get a full server layout. Admin, mod, and member roles. Text and voice channels sorted into categories. Hidden staff channels. AFK channel. Rules, FAQ, and role picker posts.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Auto Moderation</h3>
+            <p>Set warning thresholds and mute durations. The bot catches spam and blocked links, warns the user, and mutes them after too many strikes. Mods are exempt by default.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(16,185,129,0.1); color: #10b981;">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3>Mod Logs</h3>
+            <p>Kicks, bans, timeouts, message deletes, role changes, nickname edits, voice activity. Logged to a #mod-log channel in Discord and to the web dashboard where you can filter and search.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(236,72,153,0.1); color: #ec4899;">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <h3>Welcome System</h3>
+            <p>New member joins, bot posts a welcome message in #welcome. You pick the text and use placeholders like {user} and {server}. Pair it with auto-role to give everyone a default role on join.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+                <i class="fas fa-sliders-h"></i>
+            </div>
+            <h3>Web Dashboard</h3>
+            <p>Every toggle and setting lives here. Pick your server, flip switches, set values, save. No slash commands needed for configuration. View your mod logs from the same place.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">
+                <i class="fas fa-link"></i>
+            </div>
+            <h3>Nexus Integration</h3>
+            <p>Already use Nexus for YouTube? Link your accounts and manage both platforms from one place. Your Discord server and YouTube channel data stay connected.</p>
+        </div>
+    </div>
+</section>
+
+<div class="stats-bar">
+    <div class="stats-row">
+        <div class="stat-item">
+            <h3>Free</h3>
+            <p>During Beta</p>
+        </div>
+        <div class="stat-item">
+            <h3>12</h3>
+            <p>Slash Commands</p>
+        </div>
+        <div class="stat-item">
+            <h3>10+</h3>
+            <p>Log Event Types</p>
+        </div>
+        <div class="stat-item">
+            <h3>Full</h3>
+            <p>Server Setup</p>
+        </div>
+    </div>
+</div>
+
+<section class="cta-section">
+    {% if bot_session_user %}
+    <h2>You're already signed in</h2>
+    <p>Head to your dashboard to configure your servers.</p>
+    <a href="/bot/dashboard" class="btn btn-primary"><i class="fas fa-columns"></i> Open Dashboard</a>
+    {% else %}
+    <h2>Takes about a minute</h2>
+    <p>Sign in with Discord, pick your server, flip some switches. That's it.</p>
+    <a href="/bot/login" class="btn btn-discord"><i class="fab fa-discord"></i> Sign in with Discord</a>
+    {% endif %}
+</section>
+{% endblock %}

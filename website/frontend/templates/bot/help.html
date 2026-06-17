@@ -1,0 +1,323 @@
+{% extends "bot/base.html" %}
+{% block title %}Help - Nexus Bot{% endblock %}
+
+{% block extra_styles %}
+.help-hero {
+    background: linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%);
+    padding: 48px 24px 40px;
+    text-align: center;
+}
+
+.help-hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.help-hero p {
+    font-size: 15px;
+    color: #94a3b8;
+}
+
+.help-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.help-sidebar {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+}
+
+.help-sidebar a {
+    display: block;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #94a3b8;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+}
+
+.help-sidebar a:hover,
+.help-sidebar a.active {
+    color: #e2e8f0;
+    background: rgba(99,102,241,0.1);
+}
+
+.help-section {
+    margin-bottom: 40px;
+}
+
+.help-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+}
+
+.help-item {
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.06);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.help-item summary {
+    padding: 16px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2e8f0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.help-item summary::-webkit-details-marker { display: none; }
+
+.help-item summary::after {
+    content: '+';
+    font-size: 18px;
+    color: #64748b;
+    transition: transform 0.2s;
+}
+
+.help-item[open] summary::after {
+    content: '-';
+}
+
+.help-item .answer {
+    padding: 0 20px 16px;
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+}
+
+.help-item .answer code {
+    background: rgba(99,102,241,0.1);
+    color: #818cf8;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.help-item .answer a {
+    color: #818cf8;
+}
+
+@media (max-width: 768px) {
+    .help-grid {
+        grid-template-columns: 1fr;
+    }
+    .help-sidebar {
+        position: static;
+        display: flex;
+        overflow-x: auto;
+        gap: 4px;
+        padding-bottom: 8px;
+    }
+    .help-sidebar a { white-space: nowrap; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="help-hero">
+    <h1>Help Center</h1>
+    <p>Everything you need to know about setting up and using Nexus Bot</p>
+</div>
+
+<div class="help-grid">
+    <nav class="help-sidebar">
+        <a href="#getting-started" class="active">Getting Started</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#moderation">Moderation</a>
+        <a href="#welcome">Welcome System</a>
+        <a href="#logging">Logging</a>
+        <a href="#nexus-link">Nexus Integration</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+    </nav>
+
+    <div>
+        <div class="help-section" id="getting-started">
+            <h2>Getting Started</h2>
+
+            <details class="help-item">
+                <summary>How do I add Nexus Bot to my server?</summary>
+                <div class="answer">
+                    Sign in with Discord on this site, go to your Dashboard, and select the server you want to configure. You need the <strong>Manage Server</strong> permission in that Discord server to see it listed. The bot needs to be invited to your server separately using the invite link.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>What permissions does the bot need?</summary>
+                <div class="answer">
+                    The bot needs <strong>Administrator</strong> permission to set up channels, roles, and manage moderation. If you want more granular control, the minimum permissions are: Manage Roles, Manage Channels, Kick Members, Ban Members, Manage Messages, View Audit Log, Send Messages, Embed Links, Read Message History, and Manage Nicknames.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>How do I set up my server with one command?</summary>
+                <div class="answer">
+                    Use the <code>/setup-server</code> slash command in your Discord server. This creates all roles (Admin, Moderator, Support Team, etc.), channels (organized into categories), voice channels, posts rules, welcome messages, FAQ, and role picker. Only admins can run this command.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>Can I undo the server setup?</summary>
+                <div class="answer">
+                    Yes. Use <code>/reset-server</code> to remove all bot-created channels and roles. You will need to type <code>CONFIRM</code> within 30 seconds to proceed. This is irreversible.
+                </div>
+            </details>
+        </div>
+
+        <div class="help-section" id="dashboard">
+            <h2>Dashboard</h2>
+
+            <details class="help-item">
+                <summary>Why don't I see my server on the dashboard?</summary>
+                <div class="answer">
+                    You need the <strong>Manage Server</strong> permission or be the owner of the server to see it listed. If you recently changed permissions, try logging out and back in to refresh your server list.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>What does each setting do?</summary>
+                <div class="answer">
+                    <strong>Prefix:</strong> The character that triggers text commands (default: <code>!</code>).<br>
+                    <strong>Welcome Messages:</strong> Sends a message when someone joins. Use <code>{user}</code> to mention them.<br>
+                    <strong>Auto Role:</strong> Automatically gives new members a role on join.<br>
+                    <strong>Anti-Spam:</strong> Detects repeated messages and takes action.<br>
+                    <strong>Link Filter:</strong> Blocks messages with links (mods are exempt).<br>
+                    <strong>Max Warnings:</strong> How many warnings before a mute.<br>
+                    <strong>Mute Duration:</strong> How long mutes last in minutes.<br>
+                    <strong>Mod Log:</strong> Logs all moderation actions to a channel and the web dashboard.<br>
+                    <strong>Level System:</strong> Tracks member message activity for XP and levels.
+                </div>
+            </details>
+        </div>
+
+        <div class="help-section" id="moderation">
+            <h2>Moderation</h2>
+
+            <details class="help-item">
+                <summary>What slash commands are available?</summary>
+                <div class="answer">
+                    <code>/kick</code> - Kick a member<br>
+                    <code>/ban</code> - Ban a member<br>
+                    <code>/timeout</code> - Timeout a member<br>
+                    <code>/clear</code> - Bulk delete messages<br>
+                    <code>/slowmode</code> - Set channel slowmode<br>
+                    <code>/setup-server</code> - Build the full server<br>
+                    <code>/reset-server</code> - Remove bot-created content<br>
+                    <code>/help</code> - Show command list<br>
+                    <code>/info</code> - Server info<br>
+                    <code>/stats</code> - Server statistics<br>
+                    <code>/nexus</code> - About Nexus<br>
+                    <code>/link</code> - Get your Nexus link
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>How does the warning system work?</summary>
+                <div class="answer">
+                    When auto-moderation catches a violation (spam, blocked links), it issues a warning. After the configured number of warnings (default 3), the user is muted for the configured duration (default 10 minutes). Warnings reset after a mute.
+                </div>
+            </details>
+        </div>
+
+        <div class="help-section" id="welcome">
+            <h2>Welcome System</h2>
+
+            <details class="help-item">
+                <summary>How do I customize the welcome message?</summary>
+                <div class="answer">
+                    Go to your server settings on the dashboard and edit the Welcome Message field. You can use these placeholders:<br>
+                    <code>{user}</code> - mentions the new member<br>
+                    <code>{server}</code> - the server name<br>
+                    <code>{count}</code> - current member count
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>Can I change which channel gets welcome messages?</summary>
+                <div class="answer">
+                    The bot posts welcome messages in the channel named <strong>#welcome</strong>. If your server was set up with <code>/setup-server</code>, this channel already exists. You can rename it, but the bot looks for a channel called "welcome" specifically.
+                </div>
+            </details>
+        </div>
+
+        <div class="help-section" id="logging">
+            <h2>Logging</h2>
+
+            <details class="help-item">
+                <summary>What gets logged?</summary>
+                <div class="answer">
+                    Member joins and leaves, bans and unbans, kicks, timeouts, message deletions, message edits, bulk message deletions, role changes, nickname changes, and voice channel activity (join, leave, move). All of these are sent to the <strong>#mod-log</strong> channel and saved to the web dashboard.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>Where can I view logs?</summary>
+                <div class="answer">
+                    Two places: in the <strong>#mod-log</strong> channel in your Discord server, and on the web dashboard under your server's <strong>Mod Logs</strong> tab. The web dashboard lets you filter by action type and paginate through history.
+                </div>
+            </details>
+        </div>
+
+        <div class="help-section" id="nexus-link">
+            <h2>Nexus Integration</h2>
+
+            <details class="help-item">
+                <summary>What is Nexus?</summary>
+                <div class="answer">
+                    Nexus is a YouTube bot and analytics platform. It provides live chat moderation, channel statistics, video management, and a dashboard for YouTube creators. The bot dashboard and the Nexus platform share the same account system, so you can link them together.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>How do I link my Nexus account?</summary>
+                <div class="answer">
+                    First, sign in to your Nexus account at <a href="https://nexusbeta.vercel.app/auth/login" target="_blank">nexusbeta.vercel.app</a> in the same browser. Then go to your <a href="/bot/account">Account page</a> here and click <strong>Link Account</strong>. Both sessions need to be active in the same browser for it to work.
+                </div>
+            </details>
+        </div>
+
+        <div class="help-section" id="troubleshooting">
+            <h2>Troubleshooting</h2>
+
+            <details class="help-item">
+                <summary>The bot isn't responding to commands</summary>
+                <div class="answer">
+                    Make sure the bot has the correct permissions in the channel you're using. Slash commands require the bot to have the <strong>Use Application Commands</strong> permission. If commands don't show up, try kicking and re-inviting the bot, then wait a few minutes for commands to sync.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>I can't see my server on the dashboard</summary>
+                <div class="answer">
+                    You need <strong>Manage Server</strong> permission or to be the server owner. Try logging out and back in to refresh your Discord permissions. If the issue persists, check your Discord role permissions.
+                </div>
+            </details>
+
+            <details class="help-item">
+                <summary>Settings aren't saving</summary>
+                <div class="answer">
+                    Make sure you click <strong>Save Settings</strong> at the bottom of the page. If you get an error, try refreshing the page and saving again. If the problem continues, <a href="/bot/contact">contact me</a>.
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
+{% endblock %}

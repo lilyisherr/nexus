@@ -1,0 +1,70 @@
+{% extends "bot/base.html" %}
+{% block title %}Access Restricted - Nexus Bot{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_styles %}
+.denied-page { min-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+.denied-card { max-width: 480px; width: 100%; background: #16161d; border: 1px solid rgba(239,68,68,0.15); border-radius: 20px; padding: 48px 40px; text-align: center; }
+.denied-icon { width: 72px; height: 72px; border-radius: 18px; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+.denied-icon i { font-size: 28px; color: #ef4444; }
+.denied-card h1 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+.denied-card p { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 28px; }
+.denied-steps { background: #0f0f14; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 28px; }
+.denied-steps h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 14px; }
+.denied-step { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.denied-step:last-child { margin-bottom: 0; }
+.denied-step-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(99,102,241,0.15); color: #818cf8; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.denied-step p { font-size: 13px; color: #94a3b8; margin: 0; line-height: 1.5; }
+.denied-step p strong { color: #e2e8f0; font-weight: 600; }
+.denied-actions { display: flex; flex-direction: column; gap: 10px; }
+.denied-logged-in { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #475569; margin-top: 16px; }
+.denied-logged-in img { width: 20px; height: 20px; border-radius: 50%; }
+{% endblock %}
+
+{% block content %}
+<div class="denied-page">
+    <div class="denied-card">
+        <div class="denied-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h1>Admin Access Only</h1>
+        <p>This panel is restricted to Nexus administrators.<br>You need to have admin access on the Nexus platform to use the Discord bot panel.</p>
+
+        <div class="denied-steps">
+            <h3>How to get access</h3>
+            <div class="denied-step">
+                <div class="denied-step-num">1</div>
+                <p>Sign in to the <strong>Nexus platform</strong> at nexusbeta.vercel.app with your Google account.</p>
+            </div>
+            <div class="denied-step">
+                <div class="denied-step-num">2</div>
+                <p>Go to <strong>Settings</strong> and link your Discord account under Connected Accounts.</p>
+            </div>
+            <div class="denied-step">
+                <div class="denied-step-num">3</div>
+                <p>Ask a Nexus owner to <strong>grant you admin status</strong> in the admin panel.</p>
+            </div>
+            <div class="denied-step">
+                <div class="denied-step-num">4</div>
+                <p>Come back and <strong>log in again</strong> — access will be granted automatically.</p>
+            </div>
+        </div>
+
+        <div class="denied-actions">
+            <a href="https://nexusbeta.vercel.app" target="_blank" class="btn btn-primary"><i class="fas fa-external-link-alt"></i> Go to Nexus Platform</a>
+            {% if bot_session_user %}
+            <a href="/bot/logout" class="btn btn-outline btn-sm">Log Out &amp; Try Another Account</a>
+            {% else %}
+            <a href="/bot/login" class="btn btn-outline btn-sm"><i class="fab fa-discord"></i> Log In with Discord</a>
+            {% endif %}
+        </div>
+
+        {% if bot_session_user %}
+        <div class="denied-logged-in">
+            <img src="{{ bot_session_user.avatar_url }}" alt="">
+            Logged in as {{ bot_session_user.display_name }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

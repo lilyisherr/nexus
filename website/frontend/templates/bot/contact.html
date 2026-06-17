@@ -1,0 +1,245 @@
+{% extends "bot/base.html" %}
+{% block title %}Contact - Nexus Bot{% endblock %}
+
+{% block extra_styles %}
+.contact-wrap {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.contact-wrap h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.contact-wrap .subtitle {
+    font-size: 15px;
+    color: #94a3b8;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.contact-card {
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.08);
+    border-radius: 14px;
+    padding: 32px;
+}
+
+.contact-card .form-group {
+    margin-bottom: 20px;
+}
+
+.contact-card label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+}
+
+.contact-card input,
+.contact-card select,
+.contact-card textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: #0f0f14;
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.contact-card input:focus,
+.contact-card select:focus,
+.contact-card textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.contact-card textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.contact-card select {
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+
+.submit-btn:hover {
+    background: #4f46e5;
+}
+
+.submit-btn:disabled {
+    background: #334155;
+    cursor: not-allowed;
+}
+
+.success-msg {
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.2);
+    color: #10b981;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.error-msg {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #ef4444;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.alt-contact {
+    margin-top: 24px;
+    padding: 20px;
+    background: #16161d;
+    border: 1px solid rgba(99,102,241,0.08);
+    border-radius: 12px;
+}
+
+.alt-contact h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 12px;
+}
+
+.alt-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(99,102,241,0.04);
+}
+
+.alt-item:last-child { border-bottom: none; }
+
+.alt-item i {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.alt-item .alt-text {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.alt-item .alt-text strong {
+    color: #e2e8f0;
+    display: block;
+    margin-bottom: 2px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="contact-wrap">
+    <h1>Get in Touch</h1>
+    <div class="subtitle">Found a bug, have a question, or want to request a feature? Fill out the form below and I will get back to you.</div>
+
+    {% if success %}
+    <div class="success-msg">
+        Your message has been sent. I will review it and get back to you as soon as I can. If you included your Discord username, I may reach out there.
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <div class="contact-card">
+        <form method="POST" action="/bot/contact">
+            <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" name="name" required placeholder="What should I call you?" value="{{ prefill_name or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Discord Username (optional)</label>
+                <input type="text" name="discord_username" placeholder="e.g. username#0000 or just username" value="{{ prefill_discord or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <select name="category" required>
+                    <option value="">Select a category</option>
+                    <option value="bug">Bug Report</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="question">Question</option>
+                    <option value="setup">Setup Help</option>
+                    <option value="account">Account Issue</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" required placeholder="Brief description of your issue" maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label>Message</label>
+                <textarea name="message" required placeholder="Describe what happened, what you expected, or what you need help with. The more detail the better." maxlength="2000"></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Send Message</button>
+        </form>
+    </div>
+
+    <div class="alt-contact">
+        <h3>Other ways to reach me</h3>
+        <div class="alt-item">
+            <i class="fab fa-discord" style="background: rgba(88,101,242,0.1); color: #5865f2;"></i>
+            <div class="alt-text">
+                <strong>Nexus Discord Server</strong>
+                Join the community server and post in #nexus-help or #bug-reports
+            </div>
+        </div>
+        <div class="alt-item">
+            <i class="fas fa-globe" style="background: rgba(99,102,241,0.1); color: #818cf8;"></i>
+            <div class="alt-text">
+                <strong>Nexus Platform</strong>
+                <a href="https://nexusbeta.vercel.app/contact" target="_blank">nexusbeta.vercel.app/contact</a> for YouTube bot related issues
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

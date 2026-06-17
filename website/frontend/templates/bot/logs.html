@@ -1,0 +1,269 @@
+{% extends "bot/base.html" %}
+{% block title %}Mod Logs - {{ guild.name }} - Nexus Bot{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_styles %}
+.server-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.server-header img {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+}
+
+.server-header .sh-init {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #1e1e28;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #818cf8;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+}
+
+.settings-tabs a {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.settings-tabs a:hover { color: #e2e8f0; }
+.settings-tabs a.active {
+    color: #818cf8;
+    border-bottom-color: #6366f1;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    color: #94a3b8;
+    background: #1e1e28;
+    border: 1px solid rgba(148,163,184,0.1);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover, .filter-btn.active {
+    color: #fff;
+    background: rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.3);
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.log-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+}
+
+.log-table td {
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(99,102,241,0.04);
+    vertical-align: top;
+}
+
+.log-table tr:hover td {
+    background: rgba(99,102,241,0.03);
+}
+
+.action-badge {
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.action-ban { background: rgba(239,68,68,0.1); color: #ef4444; }
+.action-kick { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.action-timeout { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.action-warn { background: rgba(59,130,246,0.1); color: #3b82f6; }
+.action-mute { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.action-delete { background: rgba(148,163,184,0.1); color: #94a3b8; }
+.action-join { background: rgba(16,185,129,0.1); color: #10b981; }
+.action-leave { background: rgba(148,163,184,0.1); color: #94a3b8; }
+.action-role { background: rgba(99,102,241,0.1); color: #818cf8; }
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.pagination a, .pagination span {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.pagination a {
+    color: #94a3b8;
+    background: #1e1e28;
+    text-decoration: none;
+}
+
+.pagination a:hover { color: #fff; }
+
+.pagination span.current {
+    color: #fff;
+    background: #6366f1;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.back-link:hover { color: #94a3b8; }
+
+.log-reason {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+    .log-table { font-size: 12px; }
+    .log-table th, .log-table td { padding: 8px 10px; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="/bot/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to servers</a>
+
+    <div class="server-header">
+        {% if guild.icon %}
+        <img src="{{ guild.icon }}" alt="{{ guild.name }}">
+        {% else %}
+        <div class="sh-init">{{ guild.name[0]|upper }}</div>
+        {% endif %}
+        <div>
+            <h1 class="page-title">{{ guild.name }}</h1>
+        </div>
+    </div>
+
+    <div class="settings-tabs">
+        <a href="/bot/server/{{ guild.id }}">Settings</a>
+        <a href="/bot/server/{{ guild.id }}/logs" class="active">Mod Logs</a>
+    </div>
+
+    <div class="filter-bar">
+        <a href="/bot/server/{{ guild.id }}/logs" class="filter-btn {% if not action_filter %}active{% endif %}">All</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=ban" class="filter-btn {% if action_filter == 'ban' %}active{% endif %}">Bans</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=kick" class="filter-btn {% if action_filter == 'kick' %}active{% endif %}">Kicks</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=timeout" class="filter-btn {% if action_filter == 'timeout' %}active{% endif %}">Timeouts</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=warn" class="filter-btn {% if action_filter == 'warn' %}active{% endif %}">Warns</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=delete" class="filter-btn {% if action_filter == 'delete' %}active{% endif %}">Deletes</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=join" class="filter-btn {% if action_filter == 'join' %}active{% endif %}">Joins</a>
+        <a href="/bot/server/{{ guild.id }}/logs?action=leave" class="filter-btn {% if action_filter == 'leave' %}active{% endif %}">Leaves</a>
+    </div>
+
+    <div class="card">
+        {% if logs.items %}
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Moderator</th>
+                    <th>Target</th>
+                    <th>Reason</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs.items %}
+                <tr>
+                    <td><span class="action-badge action-{{ log.action_type }}">{{ log.action_type }}</span></td>
+                    <td>{{ log.moderator_name or 'System' }}</td>
+                    <td>{{ log.target_name or '-' }}</td>
+                    <td>
+                        {{ log.reason or '-' }}
+                        {% if log.details %}
+                        <div class="log-reason">{{ log.details }}</div>
+                        {% endif %}
+                    </td>
+                    <td style="white-space: nowrap; color: #64748b;">{{ log.created_at.strftime('%b %d, %H:%M') if log.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if logs.pages > 1 %}
+        <div class="pagination">
+            {% if logs.has_prev %}
+            <a href="/bot/server/{{ guild.id }}/logs?page={{ logs.prev_num }}{% if action_filter %}&action={{ action_filter }}{% endif %}">Prev</a>
+            {% endif %}
+            {% for p in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                    {% if p == logs.page %}
+                    <span class="current">{{ p }}</span>
+                    {% else %}
+                    <a href="/bot/server/{{ guild.id }}/logs?page={{ p }}{% if action_filter %}&action={{ action_filter }}{% endif %}">{{ p }}</a>
+                    {% endif %}
+                {% else %}
+                <span style="color: #475569;">...</span>
+                {% endif %}
+            {% endfor %}
+            {% if logs.has_next %}
+            <a href="/bot/server/{{ guild.id }}/logs?page={{ logs.next_num }}{% if action_filter %}&action={{ action_filter }}{% endif %}">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>No logs yet</h3>
+            <p>Moderation actions will appear here when the bot is active in this server.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
