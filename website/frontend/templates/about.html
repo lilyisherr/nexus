@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Nexus</title>
+    <meta name="description" content="Learn about Nexus, the free YouTube bot and analytics platform built to help content creators manage their channels, automate moderation, and grow their audience.">
+      <meta name="keywords" content="about Nexus, YouTube bot platform, content creator tools, stream management platform">
+      <meta name="author" content="Nexus">
+      <meta name="robots" content="index, follow">
+      <meta name="theme-color" content="#6366f1">
+      <link rel="canonical" href="https://nexusbeta.vercel.app/about">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://nexusbeta.vercel.app/about">
+      <meta property="og:title" content="About - Nexus">
+      <meta property="og:description" content="Learn about Nexus, the free YouTube bot and analytics platform built to help content creators manage their channels, automate moderation, and grow their audience.">
+      <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+      <meta property="og:image:width" content="1024">
+      <meta property="og:image:height" content="1024">
+      <meta property="og:site_name" content="Nexus">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="About - Nexus">
+      <meta name="twitter:description" content="Learn about Nexus, the free YouTube bot and analytics platform built to help content creators manage their channels, automate moderation, and grow their audience.">
+      <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .about-hero {
+            background: #1e293b;
+            color: white;
+            padding: 70px 20px;
+            text-align: left;
+        }
+        .about-hero-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .about-hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 16px; }
+        .about-hero p { font-size: 18px; opacity: 0.85; max-width: 560px; line-height: 1.7; }
+
+        .about-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px 80px;
+        }
+
+        .about-section {
+            margin-bottom: 60px;
+        }
+        .about-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        .about-section p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .mission-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+        }
+        .mission-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .mission-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .mission-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .mission-card-icon svg { width: 24px; height: 24px; }
+        .mission-card-icon.purple { background: rgba(99, 102, 241, 0.1); color: var(--primary-color); }
+        .mission-card-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .mission-card-icon.blue { background: rgba(59, 130, 246, 0.1); color: var(--info-color); }
+        .mission-card-icon.amber { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .mission-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .mission-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 32px;
+            margin-top: 32px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--border-color);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 32px;
+        }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        .timeline-date {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .timeline-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 40px 0;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .stat-item { text-align: center; }
+        .stat-item .stat-num {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-item .stat-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .about-cta {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 50px 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .about-cta h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+        .about-cta p { font-size: 16px; opacity: 0.9; margin-bottom: 24px; }
+
+        @media (max-width: 768px) {
+            .mission-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        }
+
+        body.dark-theme .mission-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .stats-row {
+            border-top-color: #334155;
+            border-bottom-color: #334155;
+        }
+        body.dark-theme .stat-item .stat-text {
+            color: #94a3b8;
+        }
+        body.dark-theme .timeline::before {
+            background: #334155;
+        }
+        body.dark-theme .timeline-item::before {
+            border-color: #0f172a;
+        }
+        body.dark-theme .timeline-desc {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="about-hero">
+        <div class="about-hero-inner">
+            <h1>About Nexus</h1>
+            <p>A YouTube bot and analytics tool built by someone who got tired of the existing options.</p>
+        </div>
+    </div>
+
+    <div class="about-container">
+        <div class="about-section">
+            <h2>What is Nexus?</h2>
+            <p>Nexus started because I couldn't find a decent YouTube stream management tool that wasn't either overpriced, half-broken, or clearly designed for Twitch first with YouTube support tacked on as an afterthought. So I built one.</p>
+            <p>It's a bot and analytics platform made specifically for YouTube. Live chat moderation, custom commands, stream analytics, per-channel settings -- all in one dashboard. You sign in with Google, connect your channel, and it just works. No third-party accounts, no complicated setup, no monthly fees during beta.</p>
+            <p>The whole thing runs on Flask and Python, talks to the YouTube Data API, and uses polling to read live chat in near real-time. It's not perfect yet, but it's been in active development for close to a year and it's getting better every week.</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-num">11</div>
+                <div class="stat-text">Months in Development</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">5</div>
+                <div class="stat-text">Core Features</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">$0</div>
+                <div class="stat-text">Cost During Beta</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">1</div>
+                <div class="stat-text">Dashboard for Everything</div>
+            </div>
+        </div>
+
+        <div class="about-section">
+            <h2>What drives Nexus</h2>
+            <div class="mission-grid">
+                <div class="mission-card">
+                    <div class="mission-card-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    </div>
+                    <h3>YouTube-First</h3>
+                    <p>Built around YouTube's API from day one. Not a Twitch tool with a YouTube checkbox. The polling, the OAuth flow, the chat handling -- all of it is designed for how YouTube actually works.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-card-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3>Privacy by Default</h3>
+                    <p>Google OAuth handles authentication, so Nexus never touches your password. I store what's needed to make the bot work and nothing more. No trackers, no data selling.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-card-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <h3>Feedback-Driven</h3>
+                    <p>Features get built because someone actually asked for them. The roadmap is shaped by the people using Nexus, not by whatever sounds good on a landing page.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-card-icon amber">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <h3>No Bloat</h3>
+                    <p>If a feature doesn't make streaming or managing your channel easier, it doesn't get built. The goal is a tool that's fast, focused, and actually useful.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-section">
+            <h2>How It Started</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">April 2025</div>
+                    <div class="timeline-title">Project Started</div>
+                    <div class="timeline-desc">Initial research into YouTube's Data API and Live Streaming API. Set up the Flask project structure, started figuring out OAuth scopes and quota limits. Mostly just reading docs and prototyping API calls.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">June 2025</div>
+                    <div class="timeline-title">First Prototype</div>
+                    <div class="timeline-desc">Got basic YouTube API integration working. Could pull channel data, list live broadcasts, and read chat messages. Everything was held together with duct tape and print statements, but it proved the concept was viable.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">August 2025</div>
+                    <div class="timeline-title">Bot System Working</div>
+                    <div class="timeline-desc">Live chat polling was stable enough to actually use. The bot could join a stream, read messages, and respond to basic commands. Spent a lot of time tuning the polling interval to stay under YouTube's quota limits without missing messages.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">October 2025</div>
+                    <div class="timeline-title">Moderation Filters</div>
+                    <div class="timeline-desc">Added the moderation system -- spam detection, excessive caps filtering, link filtering, and a configurable blocked words list. Each filter can be toggled and configured per channel. This was the first feature that made Nexus feel like a real product.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">December 2025</div>
+                    <div class="timeline-title">Analytics and Per-Channel Settings</div>
+                    <div class="timeline-desc">Rebuilt the analytics dashboard from scratch after the first version turned out to be a mess. Added per-channel settings so creators managing multiple channels could configure each one independently. Migrated from SQLite to Postgres for production.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">February 2026</div>
+                    <div class="timeline-title">Custom Commands and Webhooks</div>
+                    <div class="timeline-desc">Shipped custom commands with cooldown support, so creators can set up their own chat commands without writing code. Also added webhook integrations for external notifications. The command system went through three rewrites before it felt right.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">March 2026</div>
+                    <div class="timeline-title">Public Beta Launch</div>
+                    <div class="timeline-desc">Nexus opened up to the public. Core features are stable: bot management, moderation filters, custom commands, analytics, and per-channel configuration. Still a lot to build, but the foundation is solid and people can finally try it out.</div>
+                </div>
+            </div>
+            <div style="margin-top: 40px; text-align: center;">
+                <a href="/changelog" class="btn btn-outline" style="padding: 10px 24px;">Read the Full Changelog</a>
+            </div>
+        </div>
+
+        <div class="about-cta">
+            {% if current_user %}
+            <h2>You're already in</h2>
+            <p>Head to your dashboard to manage your channels and configure your bot.</p>
+            <a href="/dashboard" class="btn btn-white" style="padding: 14px 40px; font-size: 16px;">Open Dashboard</a>
+            {% else %}
+            <h2>Want to give it a try?</h2>
+            <p>Sign in with Google, connect your channel, and you're up and running. Free while it's in beta.</p>
+            <a href="/auth/login" class="btn btn-white" style="padding: 14px 40px; font-size: 16px;">Get Started Free</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

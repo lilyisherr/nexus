@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - Nexus Blog</title>
+    <meta name="description" content="{{ post.summary }}">
+    <meta name="author" content="Nexus">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="canonical" href="https://nexusbeta.vercel.app/blog/{{ post.slug }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://nexusbeta.vercel.app/blog/{{ post.slug }}">
+    <meta property="og:title" content="{{ post.title }} - Nexus Blog">
+    <meta property="og:description" content="{{ post.summary }}">
+    <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <meta property="og:site_name" content="Nexus">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ post.title }} - Nexus Blog">
+    <meta name="twitter:description" content="{{ post.summary }}">
+    <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .post-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 20px 50px;
+            text-align: center;
+        }
+        .post-hero .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .post-hero .back-link:hover { color: white; }
+        .post-hero .back-link svg { width: 16px; height: 16px; }
+        .post-hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.2;
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+        .post-tag {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .post-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 50px 20px 80px;
+        }
+        .post-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        .post-content p:last-child {
+            margin-bottom: 0;
+        }
+        .post-content strong {
+            font-weight: 600;
+        }
+        .post-content code {
+            background: var(--light-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .post-nav {
+            border-top: 1px solid var(--border-color);
+            margin-top: 50px;
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .post-nav a {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .post-nav a:hover { text-decoration: underline; }
+        .post-nav a svg { width: 16px; height: 16px; }
+        .post-nav .nav-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .post-hero h1 { font-size: 26px; }
+            .post-container { padding: 30px 16px 60px; }
+            .post-content { font-size: 15px; }
+            .post-nav { flex-direction: column; }
+        }
+
+        body.dark-theme .post-content code {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+        body.dark-theme .post-nav {
+            border-top-color: #334155;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="post-hero">
+        <a href="/blog" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to all posts
+        </a>
+        <h1>{{ post.title }}</h1>
+        <div class="post-meta">
+            <span class="post-tag">{{ post.tag_label }}</span>
+            <span>{{ post.date }}</span>
+        </div>
+    </div>
+
+    <div class="post-container">
+        <div class="post-content">
+            {{ post.content | safe }}
+        </div>
+
+        <div class="post-nav">
+            {% if prev_post %}
+            <a href="/blog/{{ prev_post.slug }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <div>
+                    <span class="nav-label">Previous</span>
+                    {{ prev_post.title }}
+                </div>
+            </a>
+            {% else %}
+            <div></div>
+            {% endif %}
+
+            {% if next_post %}
+            <a href="/blog/{{ next_post.slug }}" style="text-align: right;">
+                <div>
+                    <span class="nav-label">Next</span>
+                    {{ next_post.title }}
+                </div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            {% else %}
+            <div></div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

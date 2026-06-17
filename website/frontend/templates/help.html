@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center - Nexus</title>
+    <meta name="description" content="Guides, setup instructions, and troubleshooting for Nexus YouTube bot and analytics.">
+      <meta name="keywords" content="Nexus help, YouTube bot guide, setup tutorial, troubleshooting">
+      <meta name="author" content="Nexus">
+      <meta name="robots" content="index, follow">
+      <meta name="theme-color" content="#6366f1">
+      <link rel="canonical" href="https://nexusbeta.vercel.app/help">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://nexusbeta.vercel.app/help">
+      <meta property="og:title" content="Help Center - Nexus">
+      <meta property="og:description" content="Guides, setup instructions, and troubleshooting for Nexus YouTube bot and analytics.">
+      <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+      <meta property="og:image:width" content="1024">
+      <meta property="og:image:height" content="1024">
+      <meta property="og:site_name" content="Nexus">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="Help Center - Nexus">
+      <meta name="twitter:description" content="Guides, setup instructions, and troubleshooting for Nexus YouTube bot and analytics.">
+      <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .help-hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .help-hero h1 {
+            font-size: 34px;
+            margin-bottom: 12px;
+        }
+        .help-hero p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .help-search {
+            max-width: 500px;
+            margin: 0 auto 10px;
+            position: relative;
+        }
+        .help-search input {
+            width: 100%;
+            padding: 14px 20px 14px 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            background: white;
+        }
+        .help-search input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .help-search svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        .help-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+        .help-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .help-category {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .help-category-header {
+            padding: 20px 24px;
+            background: var(--light-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .help-category-header .cat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .help-category-header .cat-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+        }
+        .help-category-header .cat-icon.blue { background: #6366f1; }
+        .help-category-header .cat-icon.green { background: #10b981; }
+        .help-category-header .cat-icon.orange { background: #f59e0b; }
+        .help-category-header .cat-icon.red { background: #ef4444; }
+        .help-category-header .cat-icon.purple { background: #8b5cf6; }
+        .help-category-header .cat-icon.teal { background: #14b8a6; }
+        .help-category-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .help-category-header .article-count {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .help-article {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .help-article:last-child {
+            border-bottom: none;
+        }
+        .help-article-title {
+            width: 100%;
+            padding: 15px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: inherit;
+            text-align: left;
+            transition: background 0.15s;
+        }
+        .help-article-title:hover {
+            background: var(--light-bg);
+        }
+        .help-article-title .arrow {
+            font-size: 18px;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        .help-article-title.active .arrow {
+            transform: rotate(45deg);
+        }
+        .help-article-content {
+            display: none;
+            padding: 0 24px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .help-article-content p {
+            margin-bottom: 12px;
+        }
+        .help-article-content ol,
+        .help-article-content ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        .help-article-content li {
+            margin-bottom: 6px;
+        }
+        .help-article-content code {
+            background: var(--light-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .help-article-content .tip {
+            background: #f0f0ff;
+            border-left: 3px solid var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        .help-article-content .warning {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        .help-bottom {
+            background: var(--light-bg);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .help-bottom h3 {
+            margin-bottom: 10px;
+        }
+        .help-bottom p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .no-results {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+        .no-results svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--text-secondary);
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        body.dark-theme .help-search input {
+            background: #0f172a;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+        body.dark-theme .help-category {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .help-category-header {
+            background: #0f172a;
+            border-bottom-color: #334155;
+        }
+        body.dark-theme .help-category-header .article-count {
+            background: #1e293b;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+        body.dark-theme .help-article {
+            border-bottom-color: #334155;
+        }
+        body.dark-theme .help-article-title {
+            color: #f1f5f9;
+        }
+        body.dark-theme .help-article-title:hover {
+            background: #334155;
+        }
+        body.dark-theme .help-article-title .arrow {
+            color: #94a3b8;
+        }
+        body.dark-theme .help-article-content {
+            color: #94a3b8;
+        }
+        body.dark-theme .help-article-content code {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+        body.dark-theme .help-article-content .tip {
+            background: rgba(99, 102, 241, 0.1);
+            color: #94a3b8;
+        }
+        body.dark-theme .help-article-content .warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #94a3b8;
+        }
+        body.dark-theme .help-bottom {
+            background: #1e293b;
+        }
+        body.dark-theme .help-bottom h3 {
+            color: #f1f5f9;
+        }
+        body.dark-theme .help-bottom p {
+            color: #94a3b8;
+        }
+        body.dark-theme .no-results p {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="help-hero">
+        <h1>Help Center</h1>
+        <p>Answers to common questions and step-by-step setup guides</p>
+
+        <div class="help-search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="helpSearch" placeholder="Search for a topic..." oninput="filterArticles(this.value)">
+        </div>
+    </div>
+
+    <div class="help-container">
+        <div class="help-categories" id="helpCategories">
+
+            <div class="help-category" data-category="getting-started">
+                <div class="help-category-header">
+                    <div class="cat-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <h3>Getting Started</h3>
+                    <span class="article-count">5 articles</span>
+                </div>
+
+                <div class="help-article" data-keywords="account create sign up register google login">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Creating your account <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Nexus uses Google sign-in, so there's no password to set up or remember.</p>
+                        <ol>
+                            <li>Click <strong>Get Started</strong> on the homepage or go to the <a href="/auth/login">login page</a>.</li>
+                            <li>Click <strong>Sign in with Google</strong>.</li>
+                            <li>Pick the Google account connected to your YouTube channel.</li>
+                            <li>Approve the permissions Nexus asks for (public YouTube data and basic profile info).</li>
+                            <li>Done. You land on your dashboard.</li>
+                        </ol>
+                        <div class="tip">Nexus only asks for access to public YouTube data and your basic Google profile. Your Google password is never seen or stored by Nexus.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="channel add youtube connect link first setup">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Adding a YouTube channel <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Once you're logged in, add channels from your dashboard.</p>
+                        <ol>
+                            <li>Go to your <strong>Dashboard</strong>.</li>
+                            <li>Click <strong>Add Channel</strong>.</li>
+                            <li>Paste your YouTube Channel ID (the string starting with <code>UC</code>).</li>
+                            <li>Click <strong>Add</strong>. Nexus pulls in your channel name, thumbnail, subscriber count, views, and video count.</li>
+                        </ol>
+                        <p>You can add multiple channels. Each one gets its own analytics and bot settings, completely independent from the others.</p>
+                        <div class="tip">Not sure where to find your Channel ID? Go to YouTube, click your profile picture, then <strong>Settings</strong> > <strong>Advanced settings</strong>. The Channel ID is listed there.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="dashboard overview stats statistics home main">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Your dashboard <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>The dashboard is where you see all your connected channels at a glance. Each channel card shows:</p>
+                        <ul>
+                            <li><strong>Channel thumbnail and name</strong></li>
+                            <li><strong>Subscriber count</strong></li>
+                            <li><strong>Total views</strong> across all videos</li>
+                            <li><strong>Video count</strong></li>
+                            <li><strong>Last synced</strong> timestamp</li>
+                        </ul>
+                        <p>Click any channel card to open its detailed analytics page with growth data and video performance.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="videos page browse uploads thumbnails performance">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Browsing your videos <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>The Videos page shows all uploaded videos for a channel, laid out similar to how YouTube itself displays them. Each video card includes:</p>
+                        <ul>
+                            <li>Thumbnail, title, and upload date</li>
+                            <li>View count, like count, and comment count</li>
+                            <li>Video duration</li>
+                        </ul>
+                        <p>You can sync your latest videos by clicking the <strong>Sync Videos</strong> button on the channel page. Nexus fetches the data from YouTube's API, so it stays up to date.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="google oauth setup authentication api key credentials self host">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Setting up Google OAuth (self-hosting) <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Only relevant if you're running your own instance of Nexus. Regular users don't need to do this.</p>
+                        <ol>
+                            <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.</li>
+                            <li>Create a new project or select an existing one.</li>
+                            <li>Navigate to <strong>APIs & Services > Credentials</strong>.</li>
+                            <li>Click <strong>Create Credentials > OAuth client ID</strong>.</li>
+                            <li>Select <strong>Web application</strong>.</li>
+                            <li>Add your domain under <strong>Authorized JavaScript origins</strong>.</li>
+                            <li>Add <code>https://yourdomain.com/auth/callback</code> under <strong>Authorized redirect URIs</strong>.</li>
+                            <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> into your environment variables: <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code>.</li>
+                        </ol>
+                        <div class="tip">Getting a "redirect_uri_mismatch" error? The redirect URI in Google Cloud Console has to exactly match your site URL, including https:// and the /auth/callback path.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-category" data-category="bot">
+                <div class="help-category-header">
+                    <div class="cat-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                    </div>
+                    <h3>Bot Setup</h3>
+                    <span class="article-count">5 articles</span>
+                </div>
+
+                <div class="help-article" data-keywords="nexusbetabot moderator setup required prerequisite before bot works">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Adding nexusbetabot as a moderator (required) <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>This is the one step you have to do before the bot can work. YouTube requires that any account posting in your live chat has moderator permissions. Without it, the bot can read messages but can't respond, delete spam, or do anything useful.</p>
+                        <ol>
+                            <li>Open <a href="https://studio.youtube.com" target="_blank">YouTube Studio</a> and sign in with the account that owns your channel.</li>
+                            <li>Click <strong>Settings</strong> in the left sidebar (gear icon near the bottom).</li>
+                            <li>Click <strong>Community</strong> on the left side of the Settings popup.</li>
+                            <li>Under <strong>Automated Filters</strong>, find the <strong>Moderators</strong> section.</li>
+                            <li>Type <code>nexusbetabot</code> in the moderator field and select the matching account.</li>
+                            <li>Click <strong>Save</strong>.</li>
+                        </ol>
+                        <p>You only need to do this once per channel. The bot stays as a moderator until you remove it.</p>
+                        <div class="tip">If nexusbetabot doesn't show up in the search, try searching for the full YouTube channel URL instead. Make sure you're in the Community tab, not General.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="bot enable turn on activate start configure">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Turning the bot on <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>After adding nexusbetabot as a moderator on YouTube:</p>
+                        <ol>
+                            <li>Go to your <strong>Dashboard</strong> and click on a channel.</li>
+                            <li>Click the <strong>Settings</strong> button.</li>
+                            <li>Toggle <strong>Bot Enabled</strong> to on.</li>
+                            <li>Set your chat prefix (default is <code>!</code>), response delay, and join message if you want one.</li>
+                            <li>Save your settings.</li>
+                        </ol>
+                        <p>The bot joins your live chat automatically when you go live. It runs on its own, so you don't need to keep any page open.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="nexusbetabot permissions what can moderator access safety trust security">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        What permissions does the bot get? <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Adding nexusbetabot as a moderator gives it the same permissions as any human moderator:</p>
+                        <ul>
+                            <li><strong>Send messages</strong> in live chat (command responses, join message)</li>
+                            <li><strong>Delete messages</strong> that break your moderation rules</li>
+                            <li><strong>Temporarily hide users</strong> who keep breaking rules</li>
+                        </ul>
+                        <p>Moderators <strong>cannot</strong>:</p>
+                        <ul>
+                            <li>Upload, edit, or delete your videos</li>
+                            <li>Change channel settings, branding, or monetization</li>
+                            <li>Access your YouTube Studio or revenue data</li>
+                            <li>Permanently ban users (only channel owners can do that)</li>
+                        </ul>
+                        <p>You can remove nexusbetabot anytime from YouTube Studio > Settings > Community.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="bot not working troubleshoot fix broken silent no response chat debug">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Bot not responding? <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>If the bot is enabled but not doing anything in your chat, go through this list:</p>
+                        <ol>
+                            <li><strong>Is nexusbetabot added as a moderator?</strong> Most common issue. Check YouTube Studio > Settings > Community.</li>
+                            <li><strong>Is the bot toggled on in Nexus?</strong> Go to channel settings and check the Bot Enabled switch.</li>
+                            <li><strong>Are you actually live?</strong> The bot only works during live streams. It doesn't appear in Premieres or regular video comments.</li>
+                            <li><strong>Did you save your settings?</strong> Changes don't apply until you hit Save.</li>
+                            <li><strong>Give it a minute.</strong> There can be a short delay between going live and the bot connecting.</li>
+                        </ol>
+                        <p>If none of that fixes it, try removing nexusbetabot as a moderator in YouTube Studio, save, then add it back. Still stuck? Use the <a href="/contact">contact page</a> to let me know.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="moderation settings configure options prefix delay join message">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Bot settings explained <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Each channel has its own bot settings. Here's what each one does:</p>
+                        <ul>
+                            <li><strong>Chat Prefix</strong> - The character that triggers commands. Default is <code>!</code>, so commands look like <code>!discord</code> or <code>!socials</code>.</li>
+                            <li><strong>Response Delay</strong> - How many seconds the bot waits before replying. Keeps it from feeling too instant and robotic. Default is 2 seconds.</li>
+                            <li><strong>Join Message</strong> - A message the bot sends when it first connects to your chat. Leave it blank if you don't want one.</li>
+                            <li><strong>Welcome Message</strong> - A greeting sent to new viewers when they first chat. Uses <code>{user}</code> as a placeholder for the viewer's name.</li>
+                        </ul>
+                        <div class="tip">All settings are per-channel. If you manage multiple channels, each one can have completely different rules.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-category" data-category="moderation">
+                <div class="help-category-header">
+                    <div class="cat-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <h3>Moderation & Filters</h3>
+                    <span class="article-count">3 articles</span>
+                </div>
+
+                <div class="help-article" data-keywords="spam filter link block url whitelist domain moderation">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Spam, link, and caps filters <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Nexus has three built-in chat filters. Each one can be toggled on or off independently.</p>
+                        <p><strong>Spam Filter</strong></p>
+                        <ul>
+                            <li>Catches repetitive spam messages</li>
+                            <li><strong>Max repeat characters</strong> limits stuff like "AAAAAA" or "!!!!!!"</li>
+                            <li><strong>Max message length</strong> blocks excessively long messages</li>
+                        </ul>
+                        <p><strong>Link Filter</strong></p>
+                        <ul>
+                            <li>Blocks all links in chat by default</li>
+                            <li>Add trusted domains to the <strong>whitelist</strong> to let specific links through (your website, Discord invite, etc.)</li>
+                            <li>Enter one domain per line: <code>youtube.com</code>, <code>discord.gg</code></li>
+                        </ul>
+                        <p><strong>Caps Filter</strong></p>
+                        <ul>
+                            <li>Removes messages that are mostly ALL CAPS</li>
+                            <li><strong>Max caps percentage</strong> sets the threshold (default 70%)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="commands custom create add trigger response chat command">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Custom commands <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Custom commands let viewers type something like <code>!discord</code> in chat and get an automatic response from the bot.</p>
+                        <ol>
+                            <li>Go to your channel <strong>Settings</strong>.</li>
+                            <li>Open the <strong>Commands</strong> tab.</li>
+                            <li>Type a trigger word (like <code>discord</code>, <code>socials</code>, <code>schedule</code>).</li>
+                            <li>Type the response the bot should send.</li>
+                            <li>Click <strong>Add Command</strong>.</li>
+                        </ol>
+                        <p>The bot uses your chat prefix (default <code>!</code>) plus the trigger word. So if the trigger is <code>discord</code>, viewers type <code>!discord</code>.</p>
+                        <p>Each channel has its own commands. You can edit or delete them anytime.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="timed messages auto automatic interval timer repeat">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Timed messages <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Timed messages are messages the bot sends automatically on a schedule during your stream. Useful for reminders like "Follow the channel!" or "Join the Discord" without you having to type them manually.</p>
+                        <ol>
+                            <li>Go to your channel <strong>Settings</strong>.</li>
+                            <li>Open the <strong>Timers</strong> tab.</li>
+                            <li>Add a message and set the interval (in minutes).</li>
+                            <li>Toggle it on.</li>
+                        </ol>
+                        <p>The bot cycles through your timed messages during the stream. You can have multiple timed messages running at different intervals.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-category" data-category="integrations">
+                <div class="help-category-header">
+                    <div class="cat-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </div>
+                    <h3>Integrations</h3>
+                    <span class="article-count">3 articles</span>
+                </div>
+
+                <div class="help-article" data-keywords="discord webhook notification alert stream live milestone">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Discord webhook notifications <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>You can have Nexus send messages to a Discord channel when things happen, like going live or hitting a subscriber milestone.</p>
+                        <p><strong>Setting it up:</strong></p>
+                        <ol>
+                            <li>In Discord, go to your server's <strong>Server Settings > Integrations > Webhooks</strong>.</li>
+                            <li>Click <strong>New Webhook</strong>, pick the channel you want notifications in, and copy the webhook URL.</li>
+                            <li>In Nexus, go to your channel <strong>Settings > Integrations</strong> tab.</li>
+                            <li>Paste the webhook URL.</li>
+                            <li>Toggle on the notification types you want (stream start, milestones).</li>
+                            <li>Click <strong>Send Test Message</strong> to make sure it works.</li>
+                        </ol>
+                        <p>The test message sends a sample notification that looks exactly like what your viewers would see when you go live.</p>
+                        <div class="tip">The webhook URL starts with <code>https://discord.com/api/webhooks/</code>. If yours looks different, double-check that you copied the right thing from Discord.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="nightbot import commands migrate switch transfer">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Importing commands from Nightbot <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>If you're switching from Nightbot, you can import your existing commands instead of recreating them one by one.</p>
+                        <ol>
+                            <li>In Nightbot, go to your <strong>Commands</strong> page and export or copy your commands.</li>
+                            <li>In Nexus, go to your channel <strong>Settings > Commands</strong> tab.</li>
+                            <li>Click <strong>Import from Nightbot</strong>.</li>
+                            <li>Paste your commands in the format: <code>!command response text</code>, one per line.</li>
+                            <li>Click <strong>Import</strong>.</li>
+                        </ol>
+                        <p>Nexus reads each line, pulls out the trigger and response, and creates the commands for you. If a command already exists with the same trigger, it gets skipped.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="more integrations coming soon twitch streamelements obs kick twitter">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Upcoming integrations <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>I'm working on adding more integrations. These are planned but not ready yet:</p>
+                        <ul>
+                            <li><strong>Twitch</strong> - Link your Twitch channel and manage it from the same dashboard. Track followers, subs, and viewer stats alongside YouTube. Your bot commands, filters, and timers carry over.</li>
+                            <li><strong>Kick</strong> - Connect your Kick channel to Nexus. Same idea as Twitch: analytics, chat moderation, and custom commands across both platforms from one place.</li>
+                            <li><strong>Twitter/X</strong> - Auto-post to Twitter when you go live on YouTube. Nexus sends a tweet with your stream title and link so your followers know you're streaming.</li>
+                        </ul>
+                        <p>No timeline on these yet. They'll show up in the Integrations tab of your channel settings as they become available.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-category" data-category="analytics">
+                <div class="help-category-header">
+                    <div class="cat-icon teal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </div>
+                    <h3>Analytics & Data</h3>
+                    <span class="article-count">4 articles</span>
+                </div>
+
+                <div class="help-article" data-keywords="analytics read understand data numbers metrics channel">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Reading your channel analytics <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Click on any channel from your dashboard to open its analytics page. You'll see:</p>
+                        <ul>
+                            <li><strong>Current Stats</strong> - Subscriber count, total views, and total videos pulled from YouTube.</li>
+                            <li><strong>Growth Charts</strong> - How your subscribers and views have changed over the last 30 days.</li>
+                            <li><strong>Recent Videos</strong> - Your latest uploads with view counts, likes, and performance data.</li>
+                        </ul>
+                        <p>The "Last Synced" timestamp shows when Nexus last pulled fresh data from YouTube.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="growth tracking subscribers views trend chart history">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Growth tracking <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Nexus takes daily snapshots of your channel's numbers and stores them so you can see trends over time. Tracked daily:</p>
+                        <ul>
+                            <li>Subscriber count</li>
+                            <li>Total view count</li>
+                            <li>Total video count</li>
+                        </ul>
+                        <p>This data helps you spot patterns. Maybe subscriber growth spikes after certain types of content, or views go up on specific days of the week.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="historical data retention months old past storage how long">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        How long is data stored? <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Nexus keeps up to <strong>24 months</strong> of analytics data per channel. That includes daily snapshots of subscribers, views, and video counts.</p>
+                        <p>Data older than 24 months gets cleaned up automatically.</p>
+                        <p>If you connect a channel today, tracking starts from that point forward. Nexus can't pull historical data from before you added the channel.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="export data download csv json backup">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Exporting your data <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>You can download all your Nexus data from the <a href="/settings">Settings</a> page.</p>
+                        <ol>
+                            <li>Go to <strong>Settings > Data Management</strong>.</li>
+                            <li>Click <strong>Export All Data</strong>.</li>
+                            <li>You'll get a JSON file with your account info, channel data, commands, and growth history.</li>
+                        </ol>
+                        <p>The export includes everything Nexus has stored for your account. You can open the JSON file in any text editor or import it into a spreadsheet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-category" data-category="account">
+                <div class="help-category-header">
+                    <div class="cat-icon red">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <h3>Account & Privacy</h3>
+                    <span class="article-count">4 articles</span>
+                </div>
+
+                <div class="help-article" data-keywords="account manage profile settings email name google">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Managing your account <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Your Nexus account is tied to your Google account. Profile name, email, and picture come from Google when you sign in.</p>
+                        <p>From the <a href="/settings">Settings</a> page you can:</p>
+                        <ul>
+                            <li>See your connected Google account and linked channels</li>
+                            <li>Change your theme (dark/light/system)</li>
+                            <li>Adjust privacy settings (profile visibility, public stats)</li>
+                            <li>Export or delete your data</li>
+                        </ul>
+                        <p>To change your profile name or picture, update them on your Google account. The changes sync next time you log in.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="privacy data security safe information collected stored">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Privacy and data handling <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Short version of how Nexus handles your data:</p>
+                        <ul>
+                            <li>Nexus only accesses <strong>publicly available</strong> YouTube data (subscribers, views, etc.)</li>
+                            <li>Your Google password is <strong>never</strong> stored. Authentication goes through Google OAuth.</li>
+                            <li>Nexus does <strong>not</strong> read your private messages, DMs, or emails</li>
+                            <li>Your data is <strong>not</strong> sold to anyone</li>
+                            <li>Chat messages from your streams are <strong>not</strong> stored</li>
+                        </ul>
+                        <p>Full details are in the <a href="/privacy">Privacy Policy</a>.</p>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="delete account remove data erase cancel">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Deleting your account <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>You can delete your account directly from the <a href="/settings">Settings</a> page:</p>
+                        <ol>
+                            <li>Go to <strong>Settings > Data Management</strong>.</li>
+                            <li>Scroll to the bottom and click <strong>Delete Account</strong>.</li>
+                            <li>Confirm the deletion.</li>
+                        </ol>
+                        <p>This permanently removes your account, all channel data, analytics history, bot settings, and commands. It cannot be undone.</p>
+                        <div class="warning">You can also revoke Nexus's access to your Google account at any time from <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a>.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="report bug issue problem error broken feedback">
+                    <button class="help-article-title" onclick="toggleArticle(this)">
+                        Reporting a bug <span class="arrow">+</span>
+                    </button>
+                    <div class="help-article-content">
+                        <p>Found something broken or not working right? I want to hear about it. When reporting a bug, include:</p>
+                        <ul>
+                            <li>What you were trying to do</li>
+                            <li>What happened instead</li>
+                            <li>What browser you're using</li>
+                            <li>A screenshot if you can grab one</li>
+                        </ul>
+                        <p>Use the <a href="/contact">contact page</a> to send it over. Nexus is still in beta, so bug reports genuinely help make it better.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="noResults" class="no-results">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <p>No articles match your search. Try different keywords or <a href="/faq">check the FAQ</a>.</p>
+        </div>
+
+        <div class="help-bottom">
+            <h3>Still have questions?</h3>
+            <p>Check the FAQ for quick answers or reach out directly</p>
+            <a href="/faq" class="btn btn-primary" style="margin-right: 10px;">View FAQ</a>
+            <a href="/contact" class="btn btn-outline">Get in Touch</a>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+        function toggleArticle(button) {
+            var content = button.nextElementSibling;
+            var isOpen = content.style.display === 'block';
+            content.style.display = isOpen ? 'none' : 'block';
+            button.classList.toggle('active', !isOpen);
+        }
+
+        function filterArticles(query) {
+            query = query.toLowerCase().trim();
+            var articles = document.querySelectorAll('.help-article');
+            var categories = document.querySelectorAll('.help-category');
+            var noResults = document.getElementById('noResults');
+            var anyVisible = false;
+
+            if (!query) {
+                articles.forEach(function(a) { a.style.display = ''; });
+                categories.forEach(function(c) { c.style.display = ''; });
+                noResults.style.display = 'none';
+                return;
+            }
+
+            categories.forEach(function(cat) {
+                var hasVisible = false;
+                var catArticles = cat.querySelectorAll('.help-article');
+                catArticles.forEach(function(article) {
+                    var title = article.querySelector('.help-article-title').textContent.toLowerCase();
+                    var keywords = (article.getAttribute('data-keywords') || '').toLowerCase();
+                    var content = article.querySelector('.help-article-content').textContent.toLowerCase();
+                    var match = title.indexOf(query) !== -1 || keywords.indexOf(query) !== -1 || content.indexOf(query) !== -1;
+                    article.style.display = match ? '' : 'none';
+                    if (match) { hasVisible = true; anyVisible = true; }
+                });
+                cat.style.display = hasVisible ? '' : 'none';
+            });
+
+            noResults.style.display = anyVisible ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>

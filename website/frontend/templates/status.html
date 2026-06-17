@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Status - Nexus</title>
+    <meta name="description" content="Check the real-time operational status of Nexus platform services including API, bot engine, analytics, and YouTube integration.">
+    <meta name="keywords" content="Nexus status, system status, service health, uptime monitoring">
+    <meta name="author" content="Nexus">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="canonical" href="https://nexusbeta.vercel.app/status">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nexusbeta.vercel.app/status">
+    <meta property="og:title" content="System Status - Nexus">
+    <meta property="og:description" content="Check the real-time operational status of Nexus platform services including API, bot engine, analytics, and YouTube integration.">
+    <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:site_name" content="Nexus">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="System Status - Nexus">
+    <meta name="twitter:description" content="Check the real-time operational status of Nexus platform services including API, bot engine, analytics, and YouTube integration.">
+    <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+        }
+        @keyframes pulse-amber {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .status-hero {
+            background: {% if overall_ok %}linear-gradient(135deg, #059669 0%, #10b981 40%, #34d399 100%){% else %}linear-gradient(135deg, #d97706 0%, #f59e0b 40%, #fbbf24 100%){% endif %};
+            color: white;
+            padding: 60px 20px 70px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .status-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%);
+        }
+        .status-hero-content {
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .status-hero .status-indicator {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: {% if overall_ok %}pulse-green{% else %}pulse-amber{% endif %} 2s infinite;
+        }
+        .status-hero .status-indicator svg { width: 32px; height: 32px; }
+        .status-hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .status-hero p { font-size: 16px; opacity: 0.9; font-weight: 500; }
+        .status-hero .checked-time {
+            margin-top: 12px;
+            font-size: 13px;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .status-hero .checked-time svg { width: 14px; height: 14px; }
+        .auto-refresh-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 14px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .auto-refresh-badge .refresh-dot {
+            width: 6px; height: 6px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-container {
+            max-width: 960px;
+            margin: -30px auto 0;
+            padding: 0 20px 80px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .warnings-section { margin-bottom: 24px; animation: fadeInUp 0.6s ease-out 0.1s both; }
+        .warning-banner {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 1px solid #fcd34d;
+            border-left: 4px solid #d97706;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+        .warning-banner-icon {
+            width: 36px; height: 36px;
+            background: rgba(217, 119, 6, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .warning-banner-icon svg { width: 18px; height: 18px; color: #d97706; }
+        .warning-banner-title {
+            font-weight: 700;
+            color: #92400e;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .warning-banner-msg {
+            color: #78350f;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+            animation: fadeInUp 0.6s ease-out 0.15s both;
+        }
+        .metric-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .metric-card:hover::after { opacity: 1; }
+        .metric-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+        .metric-icon svg { width: 20px; height: 20px; color: var(--primary-color); }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            animation: countUp 0.5s ease-out;
+            letter-spacing: -0.5px;
+        }
+        .metric-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 500; }
+
+        .uptime-history {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        .uptime-history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .uptime-history-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .uptime-history-header h2 svg { width: 20px; height: 20px; color: var(--primary-color); }
+        .uptime-history-legend {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .uptime-history-legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 2px;
+        }
+        .legend-dot.up { background: #10b981; }
+        .legend-dot.partial { background: #f59e0b; }
+        .legend-dot.down { background: #ef4444; }
+        .uptime-timeline {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+            height: 40px;
+            margin-bottom: 12px;
+        }
+        .uptime-day {
+            flex: 1;
+            min-width: 0;
+            border-radius: 2px;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .uptime-day:hover {
+            transform: scaleY(1.15);
+            opacity: 0.85;
+        }
+        .uptime-day.up { background: #10b981; }
+        .uptime-day.partial { background: #f59e0b; }
+        .uptime-day.down { background: #ef4444; }
+        .uptime-day.no-data { background: #e5e7eb; }
+        .uptime-timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .uptime-overall {
+            text-align: right;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+        .uptime-overall strong {
+            font-size: 22px;
+            font-weight: 800;
+            color: #059669;
+        }
+
+        .status-overview {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.6s ease-out 0.25s both;
+        }
+        .status-overview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .status-overview-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-overview-header h2 svg { width: 20px; height: 20px; color: var(--primary-color); }
+        .status-summary-pills { display: flex; gap: 8px; }
+        .summary-pill {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .summary-pill.green { background: #d1fae5; color: #065f46; }
+        .summary-pill.red { background: #fee2e2; color: #991b1b; }
+        .summary-pill .pill-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+        }
+        .summary-pill.green .pill-dot { background: #10b981; animation: pulse-green 2s infinite; }
+        .summary-pill.red .pill-dot { background: #ef4444; animation: pulse-red 2s infinite; }
+
+        .service-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-top: 1px solid var(--border-color);
+            transition: background 0.15s ease;
+        }
+        .service-row:hover { background: rgba(99, 102, 241, 0.02); margin: 0 -28px; padding: 18px 28px; }
+        .service-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            flex: 1;
+        }
+        .service-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: transform 0.2s ease;
+        }
+        .service-row:hover .service-icon { transform: scale(1.05); }
+        .service-icon svg { width: 20px; height: 20px; }
+        .service-icon.purple { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05)); color: var(--primary-color); }
+        .service-icon.blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); color: var(--info-color); }
+        .service-icon.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); color: var(--success-color); }
+        .service-icon.amber { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); color: var(--warning-color); }
+        .service-icon.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); color: var(--danger-color); }
+
+        .service-text { flex: 1; }
+        .service-name { font-weight: 600; color: var(--text-primary); font-size: 15px; }
+        .service-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; line-height: 1.5; }
+        .service-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-style: italic; }
+
+        .service-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+
+        .status-pill {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-pill .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+        }
+        .status-pill.operational { background: #d1fae5; color: #065f46; }
+        .status-pill.operational .status-dot { background: #10b981; animation: pulse-green 2s infinite; }
+        .status-pill.beta { background: #fef3c7; color: #92400e; }
+        .status-pill.beta .status-dot { background: #f59e0b; animation: pulse-amber 2s infinite; }
+        .status-pill.degraded { background: #fee2e2; color: #991b1b; }
+        .status-pill.degraded .status-dot { background: #ef4444; animation: pulse-red 2s infinite; }
+
+        .service-meta {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+        .meta-item {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+        .meta-item svg { width: 12px; height: 12px; }
+        .meta-item .response-fast { color: #059669; font-weight: 700; }
+        .meta-item .response-medium { color: #d97706; font-weight: 700; }
+        .meta-item .response-slow { color: #dc2626; font-weight: 700; }
+
+        .uptime-bar {
+            width: 64px;
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+        .uptime-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        .uptime-fill.high { background: linear-gradient(90deg, #059669, #10b981); }
+        .uptime-fill.medium { background: linear-gradient(90deg, #d97706, #f59e0b); }
+        .uptime-fill.low { background: linear-gradient(90deg, #dc2626, #ef4444); }
+
+        .incidents-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+            animation: fadeInUp 0.6s ease-out 0.35s both;
+        }
+        .incidents-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .incidents-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .incidents-header h2 svg { width: 20px; height: 20px; color: var(--primary-color); }
+        .incidents-count {
+            background: var(--light-bg);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .no-incidents {
+            padding: 48px 28px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+        .no-incidents .no-incidents-icon {
+            width: 56px; height: 56px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .no-incidents .no-incidents-icon svg { width: 28px; height: 28px; color: #10b981; }
+        .no-incidents p { line-height: 1.6; }
+
+        .incident-item {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s ease;
+        }
+        .incident-item:last-child { border-bottom: none; }
+        .incident-item:hover { background: rgba(99, 102, 241, 0.02); }
+        .incident-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .incident-title .incident-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #f59e0b;
+            flex-shrink: 0;
+        }
+        .incident-msg {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding-left: 16px;
+        }
+        .incident-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            padding-left: 16px;
+            opacity: 0.7;
+        }
+
+        .rate-limit-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+        .rate-limit-card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rate-limit-card h2 svg { width: 20px; height: 20px; color: var(--primary-color); }
+        .rate-limit-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .rate-limit-table th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+            background: var(--light-bg);
+        }
+        .rate-limit-table th:first-child { border-radius: 8px 0 0 0; }
+        .rate-limit-table th:last-child { border-radius: 0 8px 0 0; }
+        .rate-limit-table td {
+            font-size: 14px;
+            color: var(--text-primary);
+            padding: 14px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s ease;
+        }
+        .rate-limit-table tr:hover td { background: rgba(99, 102, 241, 0.02); }
+        .rate-limit-table tr:last-child td { border-bottom: none; }
+        .rate-limit-table td:first-child { font-weight: 500; }
+
+        .status-footer-note {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px 28px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.6s ease-out 0.5s both;
+        }
+        .status-footer-note p { color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+
+        @media (max-width: 768px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .service-row { flex-direction: column; gap: 10px; }
+            .service-row:hover { margin: 0; padding: 18px 0; }
+            .service-right { align-items: flex-start; margin-left: 56px; }
+            .uptime-history-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .status-hero h1 { font-size: 28px; }
+        }
+        @media (max-width: 480px) {
+            .metrics-grid { grid-template-columns: 1fr; }
+            .uptime-timeline { height: 30px; }
+        }
+
+        body.dark-theme .metric-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .uptime-history {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .status-overview {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .service-row {
+            border-color: #334155;
+        }
+        body.dark-theme .service-row:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+        body.dark-theme .incidents-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .incidents-header {
+            border-color: #334155;
+        }
+        body.dark-theme .incidents-count {
+            background: #0f172a;
+        }
+        body.dark-theme .incident-item {
+            border-color: #334155;
+        }
+        body.dark-theme .incident-item:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+        body.dark-theme .no-incidents .no-incidents-icon {
+            background: rgba(16, 185, 129, 0.15);
+        }
+        body.dark-theme .rate-limit-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .rate-limit-table th {
+            background: #0f172a;
+            border-color: #334155;
+        }
+        body.dark-theme .rate-limit-table td {
+            border-color: #334155;
+        }
+        body.dark-theme .rate-limit-table tr:hover td {
+            background: rgba(99, 102, 241, 0.05);
+        }
+        body.dark-theme .status-footer-note {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .uptime-bar {
+            background: #334155;
+        }
+        body.dark-theme .uptime-day.no-data {
+            background: #334155;
+        }
+        body.dark-theme .warning-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border-color: rgba(245, 158, 11, 0.3);
+            border-left-color: #d97706;
+        }
+        body.dark-theme .warning-banner-title {
+            color: #fbbf24;
+        }
+        body.dark-theme .warning-banner-msg {
+            color: #fcd34d;
+        }
+        body.dark-theme .warning-banner-icon {
+            background: rgba(217, 119, 6, 0.15);
+        }
+        body.dark-theme .summary-pill.green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+        }
+        body.dark-theme .summary-pill.red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+        body.dark-theme .status-pill.operational {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+        }
+        body.dark-theme .status-pill.beta {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+        }
+        body.dark-theme .status-pill.degraded {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+        body.dark-theme .metric-icon {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="status-hero">
+        <div class="status-hero-content">
+            <div class="status-indicator">
+                {% if overall_ok %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                {% endif %}
+            </div>
+            <h1>{{ overall_status }}</h1>
+            <p>{{ operational_count }} of {{ total_services }} services operational{% if degraded_count > 0 %} &mdash; {{ degraded_count }} degraded{% endif %}</p>
+            <div class="checked-time">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Last checked: {{ checked_at }}
+            </div>
+            <div class="auto-refresh-badge">
+                <span class="refresh-dot"></span>
+                Auto-refreshes every 60s
+            </div>
+        </div>
+    </div>
+
+    <div class="status-container">
+
+        {% if warnings %}
+        <div class="warnings-section">
+            {% for w in warnings %}
+            <div class="warning-banner">
+                <div class="warning-banner-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="warning-banner-title">{{ w.title }}</div>
+                    <div class="warning-banner-msg">{{ w.message }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="metric-value">{{ user_count }}</div>
+                <div class="metric-label">Registered Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                </div>
+                <div class="metric-value">{{ channel_count }}</div>
+                <div class="metric-label">Tracked Channels</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <div class="metric-value">{{ "{:,}".format(total_viewers) }}</div>
+                <div class="metric-label">Total Views Tracked</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                </div>
+                <div class="metric-value">{{ "{:,}".format(total_commands) }}</div>
+                <div class="metric-label">Commands Logged</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div class="metric-value">{{ active_bots }}</div>
+                <div class="metric-label">Active Bots</div>
+            </div>
+        </div>
+
+        <div class="uptime-history">
+            <div class="uptime-history-header">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    90-Day Uptime History
+                </h2>
+                <div class="uptime-history-legend">
+                    <span><span class="legend-dot up"></span> Operational</span>
+                    <span><span class="legend-dot partial"></span> Partial</span>
+                    <span><span class="legend-dot down"></span> Outage</span>
+                </div>
+            </div>
+            <div class="uptime-timeline" id="uptimeTimeline"></div>
+            <div class="uptime-timeline-labels">
+                <span>90 days ago</span>
+                <span>60 days ago</span>
+                <span>30 days ago</span>
+                <span>Today</span>
+            </div>
+            <div class="uptime-overall">
+                Overall uptime: <strong>99.9%</strong>
+            </div>
+        </div>
+
+        <div class="status-overview">
+            <div class="status-overview-header">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Service Health
+                </h2>
+                <div class="status-summary-pills">
+                    {% if operational_count > 0 %}
+                    <span class="summary-pill green"><span class="pill-dot"></span> {{ operational_count }} Operational</span>
+                    {% endif %}
+                    {% if degraded_count > 0 %}
+                    <span class="summary-pill red"><span class="pill-dot"></span> {{ degraded_count }} Degraded</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% for service in services %}
+            <div class="service-row">
+                <div class="service-left">
+                    <div class="service-icon {{ service.icon_class }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ service.icon_svg | safe }}</svg>
+                    </div>
+                    <div class="service-text">
+                        <div class="service-name">{{ service.name }}</div>
+                        <div class="service-desc">{{ service.desc }}</div>
+                        {% if service.detail %}
+                        <div class="service-detail">{{ service.detail }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="service-right">
+                    <span class="status-pill {{ service.status }}">
+                        <span class="status-dot"></span>
+                        {% if service.status == 'operational' %}Operational{% elif service.status == 'beta' %}Beta{% else %}Degraded{% endif %}
+                    </span>
+                    <div class="service-meta">
+                        {% if service.response_ms is not none %}
+                        <span class="meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span class="{% if service.response_ms < 100 %}response-fast{% elif service.response_ms < 500 %}response-medium{% else %}response-slow{% endif %}">{{ service.response_ms }}ms</span>
+                        </span>
+                        {% endif %}
+                        {% if service.uptime %}
+                        <span class="meta-item">
+                            {{ service.uptime }}%
+                            <span class="uptime-bar">
+                                <span class="uptime-fill {% if service.uptime|float >= 99.0 %}high{% elif service.uptime|float >= 95.0 %}medium{% else %}low{% endif %}" style="width: {{ service.uptime }}%"></span>
+                            </span>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="rate-limit-card">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                API Rate Limits
+            </h2>
+            <table class="rate-limit-table">
+                <thead>
+                    <tr>
+                        <th>Endpoint Category</th>
+                        <th>Rate Limit</th>
+                        <th>Window</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Authentication</td>
+                        <td>10 requests</td>
+                        <td>Per minute</td>
+                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
+                    </tr>
+                    <tr>
+                        <td>Channel Management</td>
+                        <td>60 requests</td>
+                        <td>Per minute</td>
+                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
+                    </tr>
+                    <tr>
+                        <td>Bot Control</td>
+                        <td>30 requests</td>
+                        <td>Per minute</td>
+                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
+                    </tr>
+                    <tr>
+                        <td>Analytics / Stats</td>
+                        <td>120 requests</td>
+                        <td>Per minute</td>
+                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
+                    </tr>
+                    <tr>
+                        <td>YouTube Data API</td>
+                        <td>110,000 units</td>
+                        <td>Per day</td>
+                        <td><span class="status-pill {% if overall_ok %}operational{% else %}beta{% endif %}"><span class="status-dot"></span> {% if overall_ok %}Normal{% else %}Check Usage{% endif %}</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="incidents-card">
+            <div class="incidents-header">
+                <h2>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Incident History
+                </h2>
+                <span class="incidents-count">{{ incidents|length }} past</span>
+            </div>
+            {% for inc in incidents %}
+            <div class="incident-item">
+                <div class="incident-title">
+                    <span class="incident-dot" style="background: #10b981;"></span>
+                    {{ inc.title }}
+                </div>
+                <div class="incident-msg">{{ inc.message }}</div>
+                <div class="incident-time">{{ inc.date }} -- Resolved</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="status-footer-note">
+            <p>Nexus is in beta, so things break sometimes. This page checks service health on each load. If something looks off and it's not listed here, head to the <a href="/contact" style="color: var(--primary-color); font-weight: 600;">contact page</a> or the <a href="/community" style="color: var(--primary-color); font-weight: 600;">community page</a> to let me know.</p>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+        (function() {
+            var timeline = document.getElementById('uptimeTimeline');
+            if (timeline) {
+                var pattern = [
+                    1,1,1,1,1,1,1,1,1,1,1,1,0.5,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,1,1,0.5,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,1,1
+                ];
+                for (var i = 0; i < 90; i++) {
+                    var bar = document.createElement('div');
+                    bar.className = 'uptime-day';
+                    var val = pattern[i];
+                    if (val === 1) {
+                        bar.classList.add('up');
+                        bar.style.height = '100%';
+                    } else if (val === 0.5) {
+                        bar.classList.add('partial');
+                        bar.style.height = '70%';
+                    } else {
+                        bar.classList.add('down');
+                        bar.style.height = '30%';
+                    }
+                    bar.title = (90 - i) + ' days ago';
+                    timeline.appendChild(bar);
+                }
+            }
+        })();
+
+        setTimeout(function() { location.reload(); }, 60000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - Nexus</title>
+    <meta name="description" content="Frequently asked questions about Nexus YouTube bot and analytics platform. Get answers about setup, bot commands, moderation, analytics, and troubleshooting.">
+      <meta name="keywords" content="Nexus FAQ, YouTube bot help, stream bot questions, channel analytics help, bot setup guide">
+      <meta name="author" content="Nexus">
+      <meta name="robots" content="index, follow">
+      <meta name="theme-color" content="#6366f1">
+      <link rel="canonical" href="https://nexusbeta.vercel.app/faq">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://nexusbeta.vercel.app/faq">
+      <meta property="og:title" content="FAQ - Nexus">
+      <meta property="og:description" content="Frequently asked questions about Nexus YouTube bot and analytics platform. Get answers about setup, bot commands, moderation, analytics, and troubleshooting.">
+      <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+      <meta property="og:image:width" content="1024">
+      <meta property="og:image:height" content="1024">
+      <meta property="og:site_name" content="Nexus">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="FAQ - Nexus">
+      <meta name="twitter:description" content="Frequently asked questions about Nexus YouTube bot and analytics platform. Get answers about setup, bot commands, moderation, analytics, and troubleshooting.">
+      <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .faq-hero {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .faq-hero h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+        .faq-hero p { font-size: 15px; opacity: 0.9; max-width: 450px; margin: 0 auto; }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px 80px;
+        }
+
+        .faq-category {
+            margin-bottom: 40px;
+        }
+        .faq-category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .faq-category-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .faq-category-icon svg { width: 18px; height: 18px; }
+        .faq-category-icon.purple { background: rgba(99, 102, 241, 0.1); color: var(--primary-color); }
+        .faq-category-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .faq-category-icon.blue { background: rgba(59, 130, 246, 0.1); color: var(--info-color); }
+        .faq-category-icon.amber { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .faq-category-icon.red { background: rgba(239, 68, 68, 0.1); color: var(--danger-color, #ef4444); }
+        .faq-category-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .faq-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: box-shadow 0.2s ease;
+        }
+        .faq-item:hover { box-shadow: var(--shadow); }
+
+        .faq-question {
+            width: 100%;
+            padding: 18px 22px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-primary);
+            text-align: left;
+            transition: color 0.2s ease;
+            font-family: inherit;
+        }
+        .faq-question:hover { color: var(--primary-color); }
+        .faq-question .faq-toggle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.3s ease, background 0.2s ease;
+        }
+        .faq-question .faq-toggle svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-secondary);
+        }
+        .faq-item.open .faq-toggle {
+            transform: rotate(45deg);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .faq-item.open .faq-toggle svg { color: var(--primary-color); }
+
+        .faq-answer {
+            display: none;
+            padding: 0 22px 18px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: -2px;
+        }
+        .faq-item.open .faq-answer { display: block; }
+
+        .faq-answer ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        .faq-answer ul li { margin-bottom: 6px; }
+
+        .faq-answer code {
+            background: var(--light-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: monospace;
+        }
+
+        .faq-cta {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 50px 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .faq-cta h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+        .faq-cta p { font-size: 16px; opacity: 0.9; margin-bottom: 24px; }
+
+        .faq-contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        .faq-contact-link a { color: white; font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .faq-hero { padding: 40px 16px; }
+            .faq-hero h1 { font-size: 28px; }
+            .faq-hero p { font-size: 15px; }
+            .faq-container { padding: 30px 16px 60px; }
+            .faq-cta { padding: 36px 24px; }
+            .faq-cta h2 { font-size: 22px; }
+        }
+
+        body.dark-theme .faq-item {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .faq-question {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+        body.dark-theme .faq-question:hover {
+            color: var(--primary-color);
+        }
+        body.dark-theme .faq-question .faq-toggle {
+            background: #334155;
+        }
+        body.dark-theme .faq-question .faq-toggle svg {
+            color: #94a3b8;
+        }
+        body.dark-theme .faq-item.open .faq-toggle {
+            background: rgba(99, 102, 241, 0.2);
+        }
+        body.dark-theme .faq-item.open .faq-toggle svg {
+            color: var(--primary-color);
+        }
+        body.dark-theme .faq-answer {
+            color: #94a3b8;
+            border-top-color: #334155;
+        }
+        body.dark-theme .faq-answer code {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+        body.dark-theme .faq-category-header {
+            border-bottom-color: #334155;
+        }
+        body.dark-theme .faq-category-header h2 {
+            color: #f1f5f9;
+        }
+        body.dark-theme .faq-category-icon.purple {
+            background: rgba(99, 102, 241, 0.2);
+        }
+        body.dark-theme .faq-category-icon.green {
+            background: rgba(16, 185, 129, 0.2);
+        }
+        body.dark-theme .faq-category-icon.blue {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        body.dark-theme .faq-category-icon.amber {
+            background: rgba(245, 158, 11, 0.2);
+        }
+        body.dark-theme .faq-category-icon.red {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        body.dark-theme .faq-container {
+            background: #0f172a;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="faq-hero">
+        <h1>Frequently Asked Questions</h1>
+        <p>Everything you need to know about Nexus</p>
+    </div>
+
+    <div class="faq-container">
+
+        <div class="faq-category">
+            <div class="faq-category-header">
+                <div class="faq-category-icon purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h2>General</h2>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What is Nexus?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Nexus is a YouTube bot and analytics tool. It handles live chat moderation, tracks your channel stats over time, and lets you set up custom commands -- all from one dashboard. It's built specifically for YouTube, not bolted on as an afterthought like most multi-platform tools.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Is Nexus really free?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yep, 100% free while it's in beta. Everything's unlocked, no credit card, no time limit. I haven't figured out pricing for later yet, but beta users won't get screwed over.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What platforms does Nexus support?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    YouTube only. Everything is built around the YouTube Live Streaming API. No Twitch, no Kick -- just YouTube done right.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Is my data safe with Nexus?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes. Nexus only pulls publicly available channel stats (sub count, views, etc). Chat messages aren't stored. Your YouTube password never touches Nexus servers -- login goes through Google's own OAuth. Everything's encrypted.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I use multiple bots on different channels?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes. Add as many channels as you want. Each one gets its own bot config, commands, and moderation rules. They all run independently.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What happens during the beta period?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Everything's free and unlocked. Things might break occasionally as I push updates, but your data and settings carry over when beta ends. If you run into bugs, that's expected -- let me know and I'll fix them.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How do I get started with Nexus?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Pretty quick:
+                    <ul>
+                        <li>Sign in with Google</li>
+                        <li>Authorize Nexus to access your YouTube channel</li>
+                        <li>Your channel data gets pulled in automatically</li>
+                        <li>Set up your bot from the dashboard</li>
+                        <li>Go live and the bot joins your chat</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-category">
+            <div class="faq-category-header">
+                <div class="faq-category-icon green" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                </div>
+                <h2>Important: Bot Setup Requirements</h2>
+            </div>
+
+            <div class="faq-item open">
+                <button class="faq-question" aria-expanded="true" onclick="toggleFaq(this)">
+                    <span>How do I set up nexusbetabot as a moderator on my channel?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    <strong style="color: #ef4444;">You have to do this or the bot won't work.</strong> Add <code>nexusbetabot</code> as a Managing Moderator on your YouTube channel.
+                    <br><br>
+                    <strong>Here's how:</strong>
+                    <ul>
+                        <li>Open YouTube Studio</li>
+                        <li>Go to <strong>Settings</strong> > <strong>Community</strong></li>
+                        <li>Under <strong>Moderators</strong>, add <code>nexusbetabot</code></li>
+                        <li>Give it Managing Moderator permissions</li>
+                        <li>Hit <strong>Save</strong></li>
+                    </ul>
+                    Without this, the bot can't send messages, delete spam, or do anything in your chat.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Why does nexusbetabot need Managing Moderator permissions?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Short version: regular mod permissions aren't enough. The bot needs Managing Moderator to:
+                    <ul>
+                        <li>Send messages in chat</li>
+                        <li>Delete spam and rule-breaking messages</li>
+                        <li>Timeout and ban users</li>
+                    </ul>
+                    Without the highest role, some actions just silently fail. YouTube's API is picky about this.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-category">
+            <div class="faq-category-header">
+                <div class="faq-category-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h2>Bot Identity and Configuration</h2>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How does the bot appear in my chat?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    The bot shows up in chat as the YouTube account it's logged into (currently <code>nexusbetabot</code>). Viewers see that account's name and profile picture when the bot responds.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What are client credentials and how do they relate to the bot?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    The OAuth credentials on the server determine which YouTube account the bot acts as. Whatever YouTube channel those credentials belong to -- that's the bot. Messages appear under that channel's name. It's not a special "bot user," it's just a regular YouTube account with API access.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I change the bot's name?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Not through Nexus. The bot's name in chat is whatever the YouTube account is called. To change it, you'd change the name on that YouTube channel directly.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I customize the bot for each channel?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes. Each channel has its own settings -- commands, moderation rules, timed messages, everything. Nothing is shared between channels unless you set them up the same way.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What commands are available out of the box?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    These work right away:
+                    <ul>
+                        <li><code>!help</code> - Lists commands</li>
+                        <li><code>!uptime</code> - How long the stream's been live</li>
+                        <li><code>!stats</code> - Channel stats</li>
+                        <li><code>!socials</code> - Your social links</li>
+                        <li><code>!followage</code> - How long someone's been subscribed</li>
+                    </ul>
+                    You can also make your own custom commands with whatever trigger and response you want.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How do I set up custom commands?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Go to your channel settings, find the Commands section, and hit "Add Command." Pick a trigger (like <code>!discord</code>), type the response, and save. You can add cooldowns and restrict who can use it if you want.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What moderation features are available?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    <ul>
+                        <li><strong>Spam filter</strong> - catches and deletes spam automatically</li>
+                        <li><strong>Link blocking</strong> - block links, whitelist specific domains</li>
+                        <li><strong>Caps filter</strong> - deals with ALL CAPS messages</li>
+                        <li><strong>Message length limits</strong></li>
+                        <li><strong>Auto-ban patterns</strong> - ban specific words/phrases automatically</li>
+                        <li><strong>First-time chatter rules</strong> - stricter filtering for new viewers</li>
+                        <li><strong>Raid slow mode</strong> - auto-enables slow mode during raids</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What are moderation best practices for live streams?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    What works for most people:
+                    <ul>
+                        <li>Start with medium spam sensitivity, adjust from there</li>
+                        <li>Block links by default, whitelist your own socials</li>
+                        <li>Caps filter at ~70% threshold</li>
+                        <li>Turn on first-time chatter restrictions for busy streams</li>
+                        <li>Set up auto-ban for obvious slurs/offensive stuff</li>
+                        <li>Enable raid slow mode so your chat doesn't get flooded</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can the bot auto-start when I go live?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes. Turn on auto-start in your bot settings and it'll detect when you go live and join automatically. You can also start/stop it manually from the dashboard whenever.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-category">
+            <div class="faq-category-header">
+                <div class="faq-category-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <h2>Analytics and Channels</h2>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I manage multiple channels?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes. Add as many as you need -- each one has its own bot settings and analytics. Works well if you run multiple channels or manage someone else's.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How far back does historical data go?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Up to 24 months. Data starts collecting from when you first connect your channel. Most similar tools only keep 6 months.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What analytics does Nexus provide?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    <ul>
+                        <li>Live sub/view counts and engagement</li>
+                        <li>Stream stats (peak viewers, average, duration, chat activity)</li>
+                        <li>Growth tracking with trend indicators</li>
+                        <li>Best-performing streams</li>
+                        <li>When your audience is most active</li>
+                        <li>24-month historical data</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What is the difference between real-time and historical data?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Real-time = updates every few seconds while you're live (viewer count, chat activity). Historical = stored over time so you can look at trends across days, weeks, months. Real-time shows on the dashboard during streams. Historical is always available in the analytics section.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I export my analytics data?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes, you can export your data from the settings page. Includes subscriber history, views, and growth data. Works with any spreadsheet app.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How accurate are the analytics?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    It's as accurate as the YouTube Data API, which is where everything comes from. Real-time might be a few seconds behind. You might see tiny differences from YouTube Studio since Nexus samples at different intervals, but it's the same underlying data.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-category">
+            <div class="faq-category-header">
+                <div class="faq-category-icon amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h2>Security and Privacy</h2>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Do you need my YouTube password?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    No. You log in through Google directly and grant Nexus access. Your password never touches Nexus servers.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How does OAuth 2.0 work in simple terms?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    You click "Sign in with Google," get sent to Google's login page, approve the permissions, and Google gives Nexus a token. That token only works for the specific things you approved. You can revoke it anytime from your Google account settings.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How are my tokens stored?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Encrypted in the database. Never exposed in URLs, logs, or client-side code. Access tokens expire and refresh automatically. If you revoke access from Google, the tokens stop working immediately.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Is my data encrypted?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes. Everything's over HTTPS, database is encrypted, and OAuth tokens get extra encryption on top of that.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>What permissions does Nexus request and why?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    <ul>
+                        <li><strong>YouTube Read-Only</strong> - pulling your channel stats</li>
+                        <li><strong>YouTube Force SSL</strong> - encrypted API calls</li>
+                        <li><strong>YouTube Live Streaming</strong> - reading and sending chat messages</li>
+                        <li><strong>User Profile</strong> - showing your name/picture in the dashboard</li>
+                    </ul>
+                    That's it. No access to upload videos, delete content, or mess with your account settings.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I revoke Nexus access to my account?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yep. Go to myaccount.google.com, find "Third-party apps with account access," find Nexus, and remove it. Done -- all tokens are immediately invalidated. You can also delete your Nexus account from the settings page.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Can I export or delete all my data?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Yes to both. Export everything from the settings page, or delete your account and all associated data permanently.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-category">
+            <div class="faq-category-header">
+                <div class="faq-category-icon red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h2>Troubleshooting</h2>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>The bot is not responding in my chat. What should I do?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Most common fixes:
+                    <ul>
+                        <li><strong>Did you add <code>nexusbetabot</code> as a Managing Moderator?</strong> This is the #1 reason it doesn't work.</li>
+                        <li>Is the bot actually toggled on in your channel settings?</li>
+                        <li>Is your stream live? The bot only works during active streams.</li>
+                        <li>Check the <a href="/status" style="color: var(--primary-color); font-weight: 600;">status page</a> -- something might be down.</li>
+                        <li>Try toggling the bot off and on again.</li>
+                        <li>Still broken? Re-authenticate your channel from the settings page.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>I see an authentication error. How do I fix it?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Usually means your token expired or got revoked. Try:
+                    <ul>
+                        <li>Log out and log back in</li>
+                        <li>Make sure you approve all permissions during the OAuth flow</li>
+                        <li>Check you haven't revoked Nexus access in your Google account</li>
+                        <li>Clear cookies and try again</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>My analytics data seems incorrect or missing. Why?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    <ul>
+                        <li>Just connected? Data starts from when you sign up, so there's nothing historical yet.</li>
+                        <li>YouTube's API can be slow sometimes, especially for sub counts.</li>
+                        <li>Try refreshing your channel connection in settings.</li>
+                        <li>Check the <a href="/status" style="color: var(--primary-color); font-weight: 600;">status page</a> -- the YouTube API might be having issues.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How do I reconnect my channel if something goes wrong?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Log out and log back in. That refreshes your auth tokens. All your settings, commands, and analytics stay intact.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>The dashboard is loading slowly. What can I do?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Try clearing your browser cache and refreshing. If you have a lot of historical data, it might take a moment to load. Check the <a href="/status" style="color: var(--primary-color); font-weight: 600;">status page</a> to see if anything's going on server-side.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>Is there customer support?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    I'm still setting up proper support channels (no dedicated email yet). For now, check the <a href="/help" style="color: var(--primary-color); font-weight: 600;">Help Center</a> for guides, or head to the <a href="/community" style="color: var(--primary-color); font-weight: 600;">Community page</a> to find ways to reach out.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" aria-expanded="false" onclick="toggleFaq(this)">
+                    <span>How do I report a bug?</span>
+                    <div class="faq-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+                </button>
+                <div class="faq-answer" role="region">
+                    Head to the <a href="/contact" style="color: var(--primary-color); font-weight: 600;">contact page</a> for the best way to reach me. Include what happened, what you expected, and screenshots if you can. Bug reports during beta are genuinely helpful.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-cta">
+            {% if current_user %}
+            <h2>Need more help?</h2>
+            <p>Check your dashboard or reach out through the contact page.</p>
+            <a href="/dashboard" class="btn btn-white" style="padding: 14px 40px; font-size: 16px;">Go to Dashboard</a>
+            {% else %}
+            <h2>Want to try it out?</h2>
+            <p>It's free during beta. Set up takes a couple minutes.</p>
+            <a href="/auth/login" class="btn btn-white" style="padding: 14px 40px; font-size: 16px;">Get Started</a>
+            {% endif %}
+            <div class="faq-contact-link">
+                Something not covered here? <a href="/contact">Reach out</a>
+            </div>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+        function toggleFaq(button) {
+            const item = button.closest('.faq-item');
+            const isOpen = item.classList.toggle('open');
+            button.setAttribute('aria-expanded', isOpen);
+        }
+    </script>
+</body>
+</html>

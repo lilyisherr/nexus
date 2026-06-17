@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - Nexus</title>
+    <meta name="description" content="Full version history for Nexus — every update, fix, and new feature since the project started.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .changelog-hero {
+            background: #1a1a2e;
+            color: white;
+            padding: 70px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .changelog-hero-inner {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        .changelog-hero-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #818cf8;
+            margin-bottom: 14px;
+        }
+        .changelog-hero h1 {
+            font-size: 44px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            line-height: 1.2;
+        }
+        .changelog-hero p {
+            font-size: 17px;
+            opacity: 0.7;
+            max-width: 520px;
+            line-height: 1.7;
+        }
+
+        .discord-box-wrap {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            padding: 28px 20px;
+        }
+        body.dark-theme .discord-box-wrap {
+            background: #0d0d18;
+            border-color: #1e1e30;
+        }
+        .discord-box {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        .discord-box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .discord-box-header h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .discord-box-header h3 svg {
+            color: #5865F2;
+        }
+        .discord-box-header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .discord-copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .discord-copy-btn:hover { background: #4752c4; }
+        .discord-copy-btn.copied { background: #10b981; }
+        .discord-preview {
+            background: #36393f;
+            border-radius: 10px;
+            padding: 18px 20px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            color: #dcddde;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .changelog-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 60px 20px 90px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 44px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+        body.dark-theme .timeline::before { background: #1e1e30; }
+
+        .changelog-entry {
+            position: relative;
+            margin-bottom: 52px;
+        }
+        .changelog-dot {
+            position: absolute;
+            left: -40px;
+            top: 10px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #6366f1;
+            z-index: 1;
+        }
+        body.dark-theme .changelog-dot { background: #0d0d18; }
+        .changelog-dot.dot-feature { border-color: #10b981; }
+        .changelog-dot.dot-improvement { border-color: #6366f1; }
+        .changelog-dot.dot-fix { border-color: #f59e0b; }
+
+        .changelog-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .changelog-version {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            padding: 3px 9px;
+            border-radius: 5px;
+            letter-spacing: 0.3px;
+        }
+        .changelog-date {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .badge {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            color: white;
+        }
+        .badge-feature { background: #10b981; }
+        .badge-improvement { background: #6366f1; }
+        .badge-fix { background: #f59e0b; color: #000; }
+
+        .changelog-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 26px 28px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        body.dark-theme .changelog-card {
+            background: #12121e;
+            border-color: #1e1e30;
+        }
+        .changelog-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .changelog-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.65;
+            margin-bottom: 18px;
+        }
+        .changelog-changes {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .changelog-changes li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.55;
+        }
+        .changelog-changes li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #6366f1;
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+        .changelog-changes.changes-feature li::before { background: #10b981; }
+        .changelog-changes.changes-fix li::before { background: #f59e0b; }
+        .changelog-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 16px 0;
+        }
+        body.dark-theme .changelog-divider { background: #1e1e30; }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="changelog-hero">
+        <div class="changelog-hero-inner">
+            <div class="changelog-hero-label">Version History</div>
+            <h1>Changelog</h1>
+            <p>Every update to Nexus, in order. What shipped, what changed, and what got fixed.</p>
+        </div>
+    </div>
+
+    <div class="changelog-wrap">
+        <div class="timeline">
+            {% for entry in changelog %}
+            <div class="changelog-entry">
+                <div class="changelog-dot dot-{{ entry.type }}"></div>
+                <div class="changelog-meta">
+                    <span class="changelog-version">{{ entry.version }}</span>
+                    <span class="changelog-date">{{ entry.date }}</span>
+                    <span class="badge badge-{{ entry.type }}">{{ entry.type }}</span>
+                </div>
+                <div class="changelog-card">
+                    <h3>{{ entry.title }}</h3>
+                    <p class="changelog-desc">{{ entry.description }}</p>
+                    {% if entry.changes %}
+                    <div class="changelog-divider"></div>
+                    <ul class="changelog-changes changes-{{ entry.type }}">
+                        {% for change in entry.changes %}
+                        <li>{{ change }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+</body>
+</html>

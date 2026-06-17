@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Nexus</title>
+    <meta name="description" content="Dev logs, feature updates, and notes from building Nexus -- a YouTube bot and analytics platform.">
+    <meta name="keywords" content="Nexus blog, YouTube streaming, bot updates, dev log">
+    <meta name="author" content="Nexus">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="canonical" href="https://nexusbeta.vercel.app/blog">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nexusbeta.vercel.app/blog">
+    <meta property="og:title" content="Blog - Nexus">
+    <meta property="og:description" content="Dev logs, feature updates, and notes from building Nexus.">
+    <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1024">
+    <meta property="og:site_name" content="Nexus">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blog - Nexus">
+    <meta name="twitter:description" content="Dev logs, feature updates, and notes from building Nexus.">
+    <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .blog-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .blog-hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 12px; }
+        .blog-hero p { font-size: 17px; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+
+        .blog-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 50px 20px 80px;
+        }
+
+        .blog-featured {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 50px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        .blog-featured:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .blog-featured-visual {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            min-height: 280px;
+        }
+        .blog-featured-visual svg { width: 64px; height: 64px; margin-bottom: 20px; opacity: 0.9; }
+        .blog-featured-visual .featured-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.8;
+        }
+        .blog-featured-content {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .blog-featured-content .post-tag {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            width: fit-content;
+        }
+        .blog-featured-content h2 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        .blog-featured-content .post-date {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        .blog-featured-content p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        .blog-featured-content .read-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 16px;
+            text-decoration: none;
+        }
+        .blog-featured-content .read-link:hover { gap: 8px; }
+
+        .blog-section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .blog-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .blog-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .blog-card-accent {
+            height: 4px;
+        }
+        .blog-card-accent.announcement { background: var(--primary-color); }
+        .blog-card-accent.feature { background: var(--secondary-color); }
+        .blog-card-accent.guide { background: var(--success-color); }
+        .blog-card-accent.update { background: var(--info-color); }
+        .blog-card-accent.devlog { background: #f59e0b; }
+
+        .blog-card-body {
+            padding: 24px;
+        }
+        .blog-card-body .post-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        .post-tag.announcement { background: rgba(99, 102, 241, 0.1); color: var(--primary-color); }
+        .post-tag.feature { background: rgba(139, 92, 246, 0.1); color: var(--secondary-color); }
+        .post-tag.guide { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .post-tag.update { background: rgba(59, 130, 246, 0.1); color: var(--info-color); }
+        .post-tag.devlog { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+
+        .blog-card-body h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .blog-card-body .post-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .blog-card-body p.post-summary {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .blog-card-body .read-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+        }
+        .blog-card-body .read-link:hover { gap: 8px; }
+
+        @media (max-width: 768px) {
+            .blog-featured { grid-template-columns: 1fr; }
+            .blog-featured-visual { min-height: 160px; padding: 30px; }
+            .blog-grid { grid-template-columns: 1fr; }
+        }
+
+        body.dark-theme .blog-featured {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .blog-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .blog-section-title {
+            border-bottom-color: #334155;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="blog-hero">
+        <h1>Blog</h1>
+        <p>Dev logs, feature updates, and notes from building Nexus</p>
+    </div>
+
+    <div class="blog-container">
+        {% if posts %}
+        <a href="/blog/{{ posts[0].slug }}" class="blog-featured">
+            <div class="blog-featured-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                <span class="featured-label">Latest Post</span>
+            </div>
+            <div class="blog-featured-content">
+                <span class="post-tag {{ posts[0].tag }}">{{ posts[0].tag_label }}</span>
+                <h2>{{ posts[0].title }}</h2>
+                <div class="post-date">{{ posts[0].date }}</div>
+                <p>{{ posts[0].summary }}</p>
+                <span class="read-link">Read more &rarr;</span>
+            </div>
+        </a>
+
+        {% if posts|length > 1 %}
+        <h2 class="blog-section-title">All Posts</h2>
+        <div class="blog-grid">
+            {% for post in posts[1:] %}
+            <a href="/blog/{{ post.slug }}" class="blog-card">
+                <div class="blog-card-accent {{ post.tag }}"></div>
+                <div class="blog-card-body">
+                    <span class="post-tag {{ post.tag }}">{{ post.tag_label }}</span>
+                    <h3>{{ post.title }}</h3>
+                    <div class="post-date">{{ post.date_short }}</div>
+                    <p class="post-summary">{{ post.summary }}</p>
+                    <span class="read-link">Read more &rarr;</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

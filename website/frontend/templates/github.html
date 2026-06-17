@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Source - Nexus</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .github-page {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            background: var(--bg-color, #f8fafc);
+        }
+        .github-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 48px 56px;
+            max-width: 560px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+        .github-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #6366f1, #7c3aed);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 28px;
+            color: #fff;
+        }
+        .github-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 12px;
+        }
+        .github-card p {
+            font-size: 15px;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 0 32px;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #6366f1, #7c3aed);
+            color: #fff;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: opacity 0.15s, transform 0.15s;
+        }
+        .download-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            color: #fff;
+            text-decoration: none;
+        }
+        .download-btn:active { transform: translateY(0); }
+        .meta-list {
+            list-style: none;
+            padding: 0;
+            margin: 28px 0 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-list li {
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .meta-list .yes { color: #22c55e; }
+        .meta-list .no  { color: #f87171; }
+        body.dark-theme .github-card {
+            background: #13131a;
+            border-color: #1e293b;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        body.dark-theme .github-card h1 { color: #f1f5f9; }
+        body.dark-theme .github-card p  { color: #94a3b8; }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="github-page">
+        <div class="github-card">
+            <div class="github-icon">
+                <i class="fas fa-code-branch"></i>
+            </div>
+            <h1>Download Source Code</h1>
+            <p>All project files packaged into a single ZIP — ready to upload to GitHub or any version control system.</p>
+
+            <a href="/github/download" class="download-btn" id="dl-btn">
+                <i class="fas fa-download"></i> Download ZIP
+            </a>
+
+            <ul class="meta-list">
+                <li><i class="fas fa-check-circle yes"></i> All source files</li>
+                <li><i class="fas fa-check-circle yes"></i> Hidden config files</li>
+                <li><i class="fas fa-times-circle no"></i> .git excluded</li>
+                <li><i class="fas fa-times-circle no"></i> __pycache__ excluded</li>
+            </ul>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+    document.getElementById('dl-btn').addEventListener('click', function() {
+        var btn = this;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
+        btn.style.pointerEvents = 'none';
+        setTimeout(function() {
+            btn.innerHTML = '<i class="fas fa-download"></i> Download ZIP';
+            btn.style.pointerEvents = '';
+        }, 5000);
+    });
+    </script>
+</body>
+</html>

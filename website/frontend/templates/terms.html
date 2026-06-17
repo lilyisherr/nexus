@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - Nexus</title>
+    <meta name="description" content="Read the Nexus terms of service. Understand the terms and conditions for using our YouTube bot and analytics platform.">
+      <meta name="keywords" content="terms of service, terms and conditions, Nexus terms">
+      <meta name="author" content="Nexus">
+      <meta name="robots" content="index, follow">
+      <meta name="theme-color" content="#6366f1">
+      <link rel="canonical" href="https://nexusbeta.vercel.app/terms">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://nexusbeta.vercel.app/terms">
+      <meta property="og:title" content="Terms of Service - Nexus">
+      <meta property="og:description" content="Read the Nexus terms of service. Understand the terms and conditions for using our YouTube bot and analytics platform.">
+      <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+      <meta property="og:image:width" content="1024">
+      <meta property="og:image:height" content="1024">
+      <meta property="og:site_name" content="Nexus">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="Terms of Service - Nexus">
+      <meta name="twitter:description" content="Read the Nexus terms of service. Understand the terms and conditions for using our YouTube bot and analytics platform.">
+      <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .legal-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+        }
+        .legal-hero h1 { font-size: 38px; font-weight: 700; margin-bottom: 8px; }
+        .legal-hero p { font-size: 15px; opacity: 0.8; }
+
+        .legal-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+        }
+
+        .legal-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 40px;
+        }
+
+        .legal-sidebar {
+            position: sticky;
+            top: 80px;
+            align-self: start;
+        }
+        .legal-sidebar h3 {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .legal-sidebar a {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            border-left: 2px solid transparent;
+            padding-left: 12px;
+            transition: all 0.2s ease;
+        }
+        .legal-sidebar a:hover {
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        .legal-content h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 36px;
+            margin-bottom: 12px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .legal-content h2:first-child {
+            margin-top: 0;
+            border-top: none;
+            padding-top: 0;
+        }
+        .legal-content p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 14px;
+        }
+        .legal-content ul {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 14px;
+            margin-left: 20px;
+        }
+        .legal-content ul li { margin-bottom: 4px; }
+
+        .legal-highlight {
+            background: var(--light-bg);
+            border-left: 3px solid var(--primary-color);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+        .legal-highlight p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .legal-footer {
+            background: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .legal-footer p {
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .legal-layout { grid-template-columns: 1fr; }
+            .legal-sidebar { position: static; display: none; }
+        }
+
+        body.dark-theme .legal-highlight {
+            background: #1e293b;
+        }
+        body.dark-theme .legal-footer {
+            background: #1e293b;
+            border-color: #334155;
+        }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div class="legal-hero">
+        <h1>Terms of Service</h1>
+        <p>Last updated: January 2026</p>
+    </div>
+
+    <div class="legal-container">
+        <div class="legal-layout">
+            <div class="legal-sidebar">
+                <h3>Contents</h3>
+                <a href="#agreement">Agreement to Terms</a>
+                <a href="#services">Description of Services</a>
+                <a href="#user-rights">User Rights</a>
+                <a href="#acceptable-use">Acceptable Use</a>
+                <a href="#ip">Intellectual Property</a>
+                <a href="#disclaimer">Disclaimer</a>
+                <a href="#liability">Limitation of Liability</a>
+                <a href="#changes">Changes to Terms</a>
+                <a href="#youtube">YouTube Compliance</a>
+                <a href="#contact">Contact</a>
+            </div>
+
+            <div class="legal-content">
+                <h2 id="agreement">1. Agreement to Terms</h2>
+                <p>By accessing and using Nexus (the "Service"), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree, please do not use this service. These Terms of Service are subject to change without notice.</p>
+
+                <h2 id="services">2. Description of Services</h2>
+                <p>Nexus provides a YouTube bot platform and analytics dashboard that allows content creators to:</p>
+                <ul>
+                    <li>Monitor real-time channel statistics (subscribers, views, engagement)</li>
+                    <li>Access up to 24 months of historical analytics data</li>
+                    <li>Configure and deploy a customizable chat bot with moderation features</li>
+                    <li>Manage multiple YouTube channels with independent settings</li>
+                    <li>Track stream analytics and viewer metrics</li>
+                </ul>
+
+                <h2 id="user-rights">3. User Rights and Account Responsibilities</h2>
+                <p>You retain all rights to your YouTube channel data. By using Nexus, you grant us permission to:</p>
+                <ul>
+                    <li>Access publicly available channel information through YouTube API</li>
+                    <li>Display channel statistics in your Nexus dashboard</li>
+                    <li>Store analytics data for up to 24 months</li>
+                    <li>Post messages in your chat on your behalf when the bot is enabled</li>
+                </ul>
+                <div class="legal-highlight">
+                    <p><strong>Account Security:</strong> You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. Notify Nexus immediately of any unauthorized use.</p>
+                </div>
+
+                <h2 id="acceptable-use">4. Acceptable Use Policy</h2>
+                <p>You agree not to use Nexus for:</p>
+                <ul>
+                    <li>Any unlawful purpose or in violation of any applicable law</li>
+                    <li>Harassment, abuse, hate speech, or discrimination</li>
+                    <li>Spam, phishing, or malicious activities</li>
+                    <li>Circumventing or bypassing YouTube's Terms of Service</li>
+                    <li>Attempting to gain unauthorized access to the Service</li>
+                    <li>Reselling or redistributing the Service to third parties</li>
+                    <li>Creating excessive or duplicate bot accounts</li>
+                </ul>
+
+                <h2 id="ip">5. Intellectual Property Rights</h2>
+                <p>Nexus and all its contents, including text, graphics, logos, images, and software, are the property of Nexus or its content suppliers and are protected by international copyright laws. You are granted a limited license to access and use Nexus for personal, non-commercial purposes.</p>
+
+                <h2 id="disclaimer">6. Disclaimer of Warranties</h2>
+                <div class="legal-highlight">
+                    <p>NEXUS IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.</p>
+                </div>
+                <p>We do not warrant that the Service will be uninterrupted or error-free, that it will meet your specific requirements, that any data will be preserved or recoverable, or that analytics data will always be 100% accurate. YouTube data is sourced from YouTube's public API and is subject to their data accuracy.</p>
+
+                <h2 id="liability">7. Limitation of Liability</h2>
+                <p>In no event shall Nexus be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to damages for loss of data, lost profits, or business interruption, arising out of or in connection with the use or inability to use the Service.</p>
+
+                <h2 id="changes">8. Changes to Terms</h2>
+                <p>We reserve the right to modify these Terms of Service at any time. Changes will be effective immediately upon posting. Your continued use of Nexus following any modification constitutes acceptance of the modified terms.</p>
+
+                <h2 id="youtube">9. YouTube Terms Compliance</h2>
+                <p>Nexus is designed to comply with YouTube's Terms of Service. All data is accessed through official YouTube APIs with proper authorization. We do not violate YouTube's policies regarding automated access, scraping, or manipulation.</p>
+
+                <h2 id="contact">10. Contact Information</h2>
+                <p>If you have questions about these Terms of Service, reach out through our <a href="/contact">contact page</a> or <a href="https://discord.gg/mzxHumP5nR" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
+            </div>
+        </div>
+
+        <div class="legal-footer">
+            <p>Have questions about these terms?</p>
+            <a href="/contact" class="btn btn-primary">Contact Support</a>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

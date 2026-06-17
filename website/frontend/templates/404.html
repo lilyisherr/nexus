@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <meta name="description" content="Page not found. The page you are looking for does not exist or has been moved.">
+      <meta name="keywords" content="page not found, 404">
+      <meta name="author" content="Nexus">
+      <meta name="robots" content="noindex, nofollow">
+      <meta name="theme-color" content="#6366f1">
+      <meta property="og:type" content="website">
+      <meta property="og:title" content="Nexus - YouTube Bot & Analytics Platform">
+      <meta property="og:description" content="Page not found. The page you are looking for does not exist or has been moved.">
+      <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+      <meta property="og:site_name" content="Nexus">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="Nexus - YouTube Bot & Analytics Platform">
+      <meta name="twitter:description" content="Page not found. The page you are looking for does not exist or has been moved.">
+      <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div style="text-align: center; padding: 100px 20px;">
+        <h1 style="font-size: 72px; font-weight: 700; margin-bottom: 20px; color: var(--primary-color);">404</h1>
+        <h2 style="font-size: 28px; margin-bottom: 10px;">Page Not Found</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">
+            The page you're looking for doesn't exist or has been moved.
+        </p>
+        <a href="/" class="btn btn-primary">Go Home</a>
+        <a href="/dashboard" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+
+    <footer style="position: fixed; bottom: 0; width: 100%;">
+        <div class="footer-bottom">
+            &copy; 2026 Nexus
+        </div>
+    </footer>
+</body>
+</html>

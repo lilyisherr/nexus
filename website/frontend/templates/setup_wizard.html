@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup - Nexus</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0a0a10; color: #e2e8f0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .wiz-bg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 20px 60px; min-height: 100vh; }
+        .wiz-container { width: 100%; max-width: 580px; }
+
+        .wiz-brand { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 36px; }
+        .wiz-brand img { height: 28px; }
+        .wiz-brand span { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+        .wiz-brand .beta-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; background: rgba(99,102,241,0.2); color: #818cf8; border-radius: 20px; letter-spacing: 0.5px; }
+
+        .progress-bar { display: flex; align-items: center; margin-bottom: 28px; }
+        .progress-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .progress-step + .progress-step::before { content: ''; position: absolute; left: -50%; right: 50%; top: 13px; height: 1px; background: #1e1e2a; z-index: 0; transition: background 0.4s; }
+        .progress-step.done + .progress-step::before { background: #6366f1; }
+        .ps-node { width: 26px; height: 26px; border-radius: 50%; background: #1a1a24; border: 1.5px solid #2d2d3d; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #475569; z-index: 1; transition: all 0.3s; position: relative; }
+        .progress-step.done .ps-node { background: #6366f1; border-color: #6366f1; color: #fff; }
+        .progress-step.active .ps-node { background: #0a0a10; border-color: #6366f1; color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .ps-label { font-size: 10px; font-weight: 600; color: #334155; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.3s; }
+        .progress-step.active .ps-label, .progress-step.done .ps-label { color: #6366f1; }
+
+        .wiz-card { background: #13131b; border: 1px solid #1e1e2a; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+
+        .step-panel { display: none; padding: 36px; }
+        .step-panel.active { display: block; }
+        @media(max-width: 520px) { .step-panel { padding: 28px 22px; } }
+
+        .step-eyebrow { font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .step-heading { font-size: 22px; font-weight: 800; color: #fff; line-height: 1.25; margin-bottom: 8px; }
+        .step-sub { font-size: 14px; color: #64748b; line-height: 1.65; margin-bottom: 28px; }
+
+        .field-group { margin-bottom: 18px; }
+        .field-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .field-opt { font-size: 10px; font-weight: 600; padding: 2px 7px; background: rgba(100,116,139,0.12); color: #475569; border-radius: 10px; letter-spacing: 0; text-transform: none; }
+        .field-input { width: 100%; padding: 11px 14px; background: #0a0a10; border: 1px solid #1e1e2a; border-radius: 10px; color: #e2e8f0; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+        .field-input:focus { border-color: rgba(99,102,241,0.45); }
+        .field-hint { font-size: 12px; color: #334155; margin-top: 6px; line-height: 1.5; }
+
+        .toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: #0d0d14; border: 1px solid #1a1a24; border-radius: 12px; margin-bottom: 8px; transition: border-color 0.2s; }
+        .toggle-item:hover { border-color: #25253a; }
+        .ti-left { flex: 1; }
+        .ti-label { font-size: 14px; font-weight: 600; color: #c4c9d4; }
+        .ti-desc { font-size: 12px; color: #475569; margin-top: 2px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #1e1e2a; border-radius: 22px; transition: 0.25s; }
+        .slider:before { position: absolute; content: ''; height: 16px; width: 16px; left: 3px; bottom: 3px; background: #475569; border-radius: 50%; transition: 0.25s; }
+        input:checked + .slider { background: rgba(99,102,241,0.3); }
+        input:checked + .slider:before { transform: translateX(18px); background: #6366f1; }
+
+        .ch-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #0d0d14; border: 1.5px solid #1a1a24; border-radius: 12px; cursor: pointer; transition: all 0.2s; margin-bottom: 8px; }
+        .ch-card:hover { border-color: #2d2d45; }
+        .ch-card.selected { border-color: #6366f1; background: rgba(99,102,241,0.05); }
+        .ch-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .ch-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #1e1e2a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ef4444; font-size: 16px; }
+        .ch-body { flex: 1; min-width: 0; }
+        .ch-name { font-size: 14px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ch-sub { font-size: 12px; color: #475569; margin-top: 2px; }
+        .ch-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #2d2d3d; flex-shrink: 0; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .ch-card.selected .ch-radio { border-color: #6366f1; background: #6366f1; }
+        .ch-radio-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; display: none; }
+        .ch-card.selected .ch-radio-dot { display: block; }
+
+        .cmd-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #0d0d14; border: 1px solid #1a1a24; border-radius: 10px; margin-bottom: 6px; }
+        .cmd-name { font-size: 13px; font-weight: 700; color: #818cf8; font-family: 'Courier New', monospace; min-width: 80px; }
+        .cmd-desc { font-size: 12px; color: #475569; flex: 1; }
+
+        .no-channel-box { text-align: center; padding: 12px 0 4px; }
+        .no-channel-box .nc-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(99,102,241,0.08); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 26px; color: #6366f1; }
+        .no-channel-box h3 { font-size: 17px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
+        .no-channel-box p { font-size: 14px; color: #64748b; line-height: 1.6; max-width: 340px; margin: 0 auto 24px; }
+
+        .done-box { text-align: center; padding: 16px 0 8px; }
+        .done-check { width: 72px; height: 72px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid rgba(16,185,129,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; color: #34d399; }
+        .done-box h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+        .done-box p { font-size: 14px; color: #64748b; line-height: 1.65; max-width: 380px; margin: 0 auto 28px; }
+        .done-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 400px; margin: 0 auto; }
+        .done-link { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: #0d0d14; border: 1px solid #1e1e2a; border-radius: 10px; text-decoration: none; color: #94a3b8; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+        .done-link:hover { border-color: #2d2d45; color: #e2e8f0; background: #16161f; }
+        .done-link.primary-link { background: #6366f1; border-color: #6366f1; color: #fff; }
+        .done-link.primary-link:hover { background: #5457e0; border-color: #5457e0; color: #fff; }
+
+        .wiz-footer { display: flex; align-items: center; justify-content: space-between; padding: 20px 36px; background: #0f0f18; border-top: 1px solid #1a1a24; }
+        @media(max-width: 520px) { .wiz-footer { padding: 18px 22px; } }
+        .btn-back { background: transparent; border: 1px solid #1e1e2a; color: #475569; padding: 10px 20px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 7px; font-family: inherit; }
+        .btn-back:hover { border-color: #2d2d45; color: #94a3b8; }
+        .btn-next { background: #6366f1; border: none; color: #fff; padding: 10px 24px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 7px; font-family: inherit; letter-spacing: 0.1px; }
+        .btn-next:hover { background: #5457e0; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+        .skip-link { font-size: 12px; color: #334155; text-decoration: none; cursor: pointer; background: none; border: none; font-family: inherit; transition: color 0.2s; }
+        .skip-link:hover { color: #64748b; }
+
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: #1a1a24; border: 1px solid #2d2d3d; border-radius: 10px; padding: 11px 18px; font-size: 13px; font-weight: 600; color: #e2e8f0; opacity: 0; transition: all 0.25s; z-index: 9999; white-space: nowrap; pointer-events: none; display: flex; align-items: center; gap: 8px; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.ok { border-color: rgba(16,185,129,0.3); color: #34d399; }
+        .toast.err { border-color: rgba(239,68,68,0.3); color: #f87171; }
+    </style>
+</head>
+<body>
+
+<div class="wiz-bg">
+    <div class="wiz-container">
+
+        <div class="wiz-brand">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Nexus" onerror="this.style.display='none'">
+            <span>Nexus</span>
+            <span class="beta-tag">BETA</span>
+        </div>
+
+        {% if not channels %}
+        <div class="wiz-card">
+            <div class="step-panel active">
+                <div class="no-channel-box">
+                    <div class="nc-icon"><i class="fab fa-youtube"></i></div>
+                    <h3>Connect a YouTube channel first</h3>
+                    <p>Before configuring your bot, link your YouTube account so Nexus knows which channel to manage.</p>
+                    <a href="/dashboard" onclick="markDone(event, '/auth/google')" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#6366f1;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;">
+                        <i class="fab fa-youtube"></i> Connect YouTube
+                    </a>
+                    <div style="margin-top:16px;">
+                        <a href="#" onclick="skipSetup()" class="skip-link">Skip for now and go to dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-step active" data-s="1">
+                <div class="ps-node">1</div>
+                <div class="ps-label">Channel</div>
+            </div>
+            <div class="progress-step" data-s="2">
+                <div class="ps-node">2</div>
+                <div class="ps-label">Bot</div>
+            </div>
+            <div class="progress-step" data-s="3">
+                <div class="ps-node">3</div>
+                <div class="ps-label">Moderation</div>
+            </div>
+            <div class="progress-step" data-s="4">
+                <div class="ps-node">4</div>
+                <div class="ps-label">Commands</div>
+            </div>
+            <div class="progress-step" data-s="5">
+                <div class="ps-node"><i class="fas fa-check" style="font-size:9px;"></i></div>
+                <div class="ps-label">Done</div>
+            </div>
+        </div>
+
+        <div class="wiz-card">
+
+            <div class="step-panel active" id="sp1">
+                <div class="step-eyebrow">Step 1 of 4</div>
+                <div class="step-heading">Which channel are you setting up?</div>
+                <div class="step-sub">Pick the YouTube channel you want the Nexus bot to manage. You can run this again for other channels.</div>
+                {% for ch in channels %}
+                <div class="ch-card {{ 'selected' if loop.first }}" onclick="selectChannel(this, {{ ch.id }})">
+                    {% if ch.channel_thumbnail %}
+                    <img class="ch-avatar" src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">
+                    {% else %}
+                    <div class="ch-avatar-placeholder"><i class="fab fa-youtube"></i></div>
+                    {% endif %}
+                    <div class="ch-body">
+                        <div class="ch-name">{{ ch.channel_name }}</div>
+                        <div class="ch-sub">YouTube Channel</div>
+                    </div>
+                    <div class="ch-radio"><div class="ch-radio-dot"></div></div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="step-panel" id="sp2">
+                <div class="step-eyebrow">Step 2 of 4</div>
+                <div class="step-heading">Bot basics</div>
+                <div class="step-sub">Configure how your bot behaves in chat. These can all be changed later in your channel settings.</div>
+
+                <div class="toggle-item">
+                    <div class="ti-left">
+                        <div class="ti-label">Enable Bot</div>
+                        <div class="ti-desc">Turn the Nexus bot on in your live chat</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="botEnabled" {{ 'checked' if settings.get('bot_enabled', True) }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="field-group" style="margin-top:16px;">
+                    <div class="field-label">Command Prefix</div>
+                    <input type="text" id="prefixInput" class="field-input" value="{{ settings.get('chat_prefix', '!') }}" maxlength="5" style="max-width:100px;">
+                    <div class="field-hint">The character viewers type before commands. Default is <strong>!</strong></div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field-label">Join Message <span class="field-opt">Optional</span></div>
+                    <input type="text" id="joinMsg" class="field-input" value="{{ settings.get('join_message', '') }}" placeholder="e.g. Welcome {user}!">
+                    <div class="field-hint">Sent when a new viewer joins. Use <strong>{user}</strong> for their name. Leave blank to disable.</div>
+                </div>
+            </div>
+
+            <div class="step-panel" id="sp3">
+                <div class="step-eyebrow">Step 3 of 4</div>
+                <div class="step-heading">Moderation</div>
+                <div class="step-sub">Keep your chat clean. All of these can be fine-tuned in Channel Settings.</div>
+
+                <div class="toggle-item">
+                    <div class="ti-left">
+                        <div class="ti-label">Spam Filter</div>
+                        <div class="ti-desc">Remove repeated messages and all-caps spam</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="spamFilter" {{ 'checked' if settings.get('spam_filter_enabled') }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="ti-left">
+                        <div class="ti-label">Link Filter</div>
+                        <div class="ti-desc">Block links from non-moderators</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="linkFilter" {{ 'checked' if settings.get('link_filter_enabled') }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="ti-left">
+                        <div class="ti-label">Blocked Words</div>
+                        <div class="ti-desc">Auto-remove messages with banned words</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="blockedWords" {{ 'checked' if settings.get('blocked_words_enabled') }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <div class="ti-left">
+                        <div class="ti-label">Slow Mode</div>
+                        <div class="ti-desc">Rate-limit how often each viewer can send messages</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="slowMode" {{ 'checked' if settings.get('slow_mode_enabled') }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="step-panel" id="sp4">
+                <div class="step-eyebrow">Step 4 of 4</div>
+                <div class="step-heading">Commands</div>
+                <div class="step-sub">Toggle which built-in commands your viewers can use. You can add custom commands in Channel Settings.</div>
+                <div id="cmdList">
+                    {% set show_cmds = ['uptime', 'title', '8ball', 'lurk', 'shoutout', 'commands', 'hug', 'flip', 'watchtime'] %}
+                    {% for cmd in builtin_commands %}
+                    {% if cmd.name in show_cmds %}
+                    <div class="cmd-item">
+                        <div class="cmd-name">!{{ cmd.name }}</div>
+                        <div class="cmd-desc">{{ cmd.description }}</div>
+                        <label class="switch" style="flex-shrink:0;">
+                            <input type="checkbox" class="cmd-toggle" data-cmd="{{ cmd.name }}" {{ 'checked' if cmd.enabled }}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="step-panel" id="sp5">
+                <div class="done-box">
+                    <div class="done-check"><i class="fas fa-check"></i></div>
+                    <h2>You're all set</h2>
+                    <p>Your bot is configured. Head to your dashboard to manage channels, check analytics, and go live.</p>
+                    <div class="done-links">
+                        <a href="/dashboard" class="done-link primary-link" id="doneBtn" onclick="markDoneLink(event, '/dashboard')"><i class="fas fa-gauge-high"></i> Go to Dashboard</a>
+                        <a href="#" class="done-link" id="settingsBtn"><i class="fas fa-sliders"></i> Full Settings</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wiz-footer" id="wizFooter">
+                <button class="btn-back" id="btnBack" onclick="prevStep()" style="visibility:hidden;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button class="skip-link" onclick="skipSetup()" id="btnSkip">Skip setup</button>
+                <button class="btn-next" id="btnNext" onclick="nextStep()">
+                    Continue <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var step = 1;
+var totalSteps = 5;
+var channelId = {{ channels[0].id if channels else 0 }};
+
+function selectChannel(el, id) {
+    document.querySelectorAll('.ch-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    channelId = id;
+}
+
+function toast(msg, type) {
+    var t = document.getElementById('toast');
+    t.className = 'toast ' + (type || '');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function updateUI() {
+    document.querySelectorAll('.progress-step').forEach(function(el, i) {
+        el.classList.remove('done', 'active');
+        if (i + 1 < step) el.classList.add('done');
+        else if (i + 1 === step) el.classList.add('active');
+    });
+    var back = document.getElementById('btnBack');
+    var next = document.getElementById('btnNext');
+    var footer = document.getElementById('wizFooter');
+    var skip = document.getElementById('btnSkip');
+    if (!back || !next) return;
+    back.style.visibility = step > 1 ? 'visible' : 'hidden';
+    if (step === totalSteps) {
+        footer.style.display = 'none';
+    } else {
+        footer.style.display = 'flex';
+        next.innerHTML = step === totalSteps - 1 ? '<i class="fas fa-check"></i> Finish' : 'Continue <i class="fas fa-arrow-right"></i>';
+        skip.style.display = step < totalSteps - 1 ? 'inline' : 'none';
+    }
+}
+
+function saveStep(s, cb) {
+    if (s === 1) { cb(true); return; }
+    var data = {};
+    if (s === 2) {
+        data.bot_enabled = document.getElementById('botEnabled').checked;
+        data.chat_prefix = document.getElementById('prefixInput').value.trim() || '!';
+        data.join_message = document.getElementById('joinMsg').value.trim();
+    } else if (s === 3) {
+        data.spam_filter_enabled = document.getElementById('spamFilter').checked;
+        data.link_filter_enabled = document.getElementById('linkFilter').checked;
+        data.blocked_words_enabled = document.getElementById('blockedWords').checked;
+        data.slow_mode_enabled = document.getElementById('slowMode').checked;
+    } else if (s === 4) {
+        var cmds = {};
+        document.querySelectorAll('.cmd-toggle').forEach(function(el) { cmds[el.dataset.cmd] = el.checked; });
+        data.cmd_toggles = JSON.stringify(cmds);
+    } else {
+        cb(true); return;
+    }
+    var btn = document.getElementById('btnNext');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    fetch('/api/channels/' + channelId + '/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(r => r.json()).then(function(d) {
+        btn.disabled = false;
+        if (d.success || d.status === 'ok') {
+            cb(true);
+        } else {
+            btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
+            toast('Failed to save. Try again.', 'err');
+            cb(false);
+        }
+    }).catch(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
+        toast('Network error.', 'err');
+        cb(false);
+    });
+}
+
+function markComplete(then) {
+    fetch('/api/setup/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+        .then(function() { if (then) window.location.href = then; })
+        .catch(function() { if (then) window.location.href = then; });
+}
+
+function markDoneLink(e, url) {
+    e.preventDefault();
+    markComplete(url);
+}
+
+function skipSetup() {
+    markComplete('/dashboard');
+}
+
+function nextStep() {
+    saveStep(step, function(ok) {
+        if (!ok) return;
+        if (step === totalSteps - 1) {
+            document.getElementById('sp' + step).classList.remove('active');
+            step = totalSteps;
+            document.getElementById('sp' + step).classList.add('active');
+            var sl = document.getElementById('settingsBtn');
+            if (sl && channelId) sl.href = '/channel/' + channelId + '/settings';
+            updateUI();
+            markComplete(null);
+            return;
+        }
+
+        document.getElementById('sp' + step).classList.remove('active');
+        step++;
+        document.getElementById('sp' + step).classList.add('active');
+        updateUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+function prevStep() {
+    if (step > 1) {
+        document.getElementById('sp' + step).classList.remove('active');
+        step--;
+        document.getElementById('sp' + step).classList.add('active');
+        updateUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+updateUI();
+</script>
+</body>
+</html>

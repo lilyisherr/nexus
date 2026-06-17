@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Nexus</title>
+    <meta name="description" content="Manage your Nexus account settings, notifications, privacy, and bot defaults.">
+      <meta name="keywords" content="Nexus settings, account settings, bot configuration">
+      <meta name="author" content="Nexus">
+      <meta name="robots" content="noindex, nofollow">
+      <meta name="theme-color" content="#6366f1">
+      <link rel="canonical" href="https://nexusbeta.vercel.app/settings">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://nexusbeta.vercel.app/settings">
+      <meta property="og:title" content="Settings - Nexus">
+      <meta property="og:description" content="Manage your Nexus account settings, notifications, privacy, and bot defaults.">
+      <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+      <meta property="og:image:width" content="1024">
+      <meta property="og:image:height" content="1024">
+      <meta property="og:site_name" content="Nexus">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="Settings - Nexus">
+      <meta name="twitter:description" content="Manage your Nexus account settings, notifications, privacy, and bot defaults.">
+      <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background: var(--light-bg); }
+
+        .settings-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+        }
+
+        .settings-header {
+            margin-bottom: 28px;
+        }
+
+        .settings-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.4px;
+        }
+
+        .settings-header p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .settings-nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 6px;
+        }
+
+        .settings-nav a {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+
+        .settings-nav a:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .settings-nav a.active {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .settings-section {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .section-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-head .sec-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .section-head .sec-icon.purple { background: rgba(99,102,241,0.1); color: #6366f1; }
+        .section-head .sec-icon.green { background: rgba(16,185,129,0.1); color: #10b981; }
+        .section-head .sec-icon.blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .section-head .sec-icon.yellow { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .section-head .sec-icon.red { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .section-head .sec-icon.teal { background: rgba(20,184,166,0.1); color: #14b8a6; }
+        .section-head .sec-icon.orange { background: rgba(249,115,22,0.1); color: #f97316; }
+        .section-head .sec-icon.indigo { background: rgba(79,70,229,0.1); color: #4f46e5; }
+        .section-head .sec-icon.slate { background: rgba(100,116,139,0.1); color: #64748b; }
+        .section-head .sec-icon.rose { background: rgba(244,63,94,0.1); color: #f43f5e; }
+
+        .section-head h2 {
+            font-size: 16px;
+            font-weight: 650;
+            color: #1e293b;
+        }
+
+        .section-head .sec-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+
+        .section-body {
+            padding: 20px 24px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e5e7eb;
+        }
+
+        .profile-avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .profile-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .profile-field label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+        }
+
+        .profile-field .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            padding: 8px 12px;
+            background: #f8f9fc;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #f8f9fc;
+        }
+
+        .form-row:last-child {
+            border-bottom: none;
+        }
+
+        .form-row-info {
+            flex: 1;
+        }
+
+        .form-row-info .label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-row-info .desc {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .form-row input[type="text"],
+        .form-row input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .form-row select {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: #fff;
+            min-width: 140px;
+        }
+
+        .tgl {
+            position: relative;
+            width: 42px;
+            height: 23px;
+            flex-shrink: 0;
+        }
+
+        .tgl input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .tgl-track {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #cbd5e1;
+            border-radius: 23px;
+            transition: 0.25s;
+        }
+
+        .tgl-track:before {
+            content: "";
+            position: absolute;
+            width: 17px;
+            height: 17px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.25s;
+        }
+
+        .tgl input:checked + .tgl-track {
+            background: #6366f1;
+        }
+
+        .tgl input:checked + .tgl-track:before {
+            transform: translateX(19px);
+        }
+
+        .channel-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f8f9fc;
+        }
+
+        .channel-row:last-child {
+            border-bottom: none;
+        }
+
+        .channel-row img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .channel-row .ch-init {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .channel-row .ch-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .channel-row .ch-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .channel-row .ch-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-outline-danger {
+            background: transparent;
+            border: 1px solid #fecaca;
+            color: #ef4444;
+        }
+
+        .btn-outline-danger:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .btn-save {
+            background: #6366f1;
+            color: #fff;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-save:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .danger-zone {
+            border-color: #fecaca;
+        }
+
+        .danger-zone .section-head {
+            border-bottom-color: #fef2f2;
+        }
+
+        .danger-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 14px 0;
+            border-bottom: 1px solid #fef2f2;
+        }
+
+        .danger-box:last-child {
+            border-bottom: none;
+        }
+
+        .danger-box .danger-info {
+            flex: 1;
+        }
+
+        .danger-box .danger-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #dc2626;
+        }
+
+        .danger-box .danger-info p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .btn-danger-action {
+            background: #ef4444;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-danger-action:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+        }
+
+        .support-links {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .support-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fc;
+            border-radius: 10px;
+            border: 1px solid #f1f5f9;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .support-card:hover {
+            border-color: #6366f1;
+            background: rgba(99,102,241,0.03);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .support-card i {
+            font-size: 22px;
+            color: #6366f1;
+        }
+
+        .support-card .sc-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .support-card .sc-desc {
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .empty-channels {
+            text-align: center;
+            padding: 24px;
+            color: #94a3b8;
+        }
+
+        .empty-channels i {
+            font-size: 28px;
+            opacity: 0.3;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .empty-channels p {
+            font-size: 13px;
+        }
+
+        .integration-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f8f9fc;
+        }
+
+        .integration-row:last-child {
+            border-bottom: none;
+        }
+
+        .integration-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .integration-info {
+            flex: 1;
+        }
+
+        .integration-info .int-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .integration-info .int-desc {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .status-badge.connected {
+            background: rgba(16,185,129,0.1);
+            color: #059669;
+        }
+
+        .status-badge.disconnected {
+            background: rgba(148,163,184,0.15);
+            color: #94a3b8;
+        }
+
+        .btn-connect {
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #6366f1;
+            color: #fff;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-connect:hover {
+            background: #4f46e5;
+        }
+
+        .btn-disconnect {
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(239,68,68,0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.2);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-disconnect:hover {
+            background: rgba(239,68,68,0.2);
+        }
+
+        .subsection-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #94a3b8;
+            padding: 16px 0 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .subsection-label:first-child {
+            padding-top: 0;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast.success { background: #059669; color: #fff; }
+        .toast.error { background: #dc2626; color: #fff; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-box p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .modal-box .confirm-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .modal-box .confirm-input:focus {
+            outline: none;
+            border-color: #ef4444;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions .btn-cancel {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .modal-actions .btn-cancel:hover {
+            background: #f8f9fc;
+        }
+
+        @media (max-width: 768px) {
+            .settings-container { padding: 20px 16px 60px; }
+            .profile-grid { grid-template-columns: 1fr; }
+            .profile-details { grid-template-columns: 1fr; }
+            .support-links { grid-template-columns: repeat(2, 1fr); }
+            .danger-box { flex-direction: column; align-items: flex-start; }
+            .settings-nav { overflow-x: auto; flex-wrap: nowrap; }
+        }
+
+        body.dark-theme .settings-header h1,
+        body.dark-theme .section-head h2,
+        body.dark-theme .label,
+        body.dark-theme .int-name,
+        body.dark-theme .sc-title,
+        body.dark-theme .subsection-label { color: #f1f5f9; }
+
+        body.dark-theme .settings-header p,
+        body.dark-theme .sec-sub,
+        body.dark-theme .desc,
+        body.dark-theme .int-desc,
+        body.dark-theme .sc-desc { color: #94a3b8; }
+
+        body.dark-theme .settings-section { background: #1e293b; border-color: #334155; }
+        body.dark-theme .section-head { border-color: #334155; }
+        body.dark-theme .settings-nav a { background: #1e293b; color: #94a3b8; border-color: #334155; }
+        body.dark-theme .settings-nav a:hover,
+        body.dark-theme .settings-nav a.active { background: #334155; color: #f1f5f9; border-color: #6366f1; }
+
+        body.dark-theme .form-row { border-color: #334155; }
+        body.dark-theme .profile-card { background: #1e293b; border-color: #334155; }
+        body.dark-theme .profile-detail-item { background: #0f172a; border-color: #334155; }
+
+        body.dark-theme .integration-row { border-color: #334155; }
+        body.dark-theme .support-card { background: #0f172a; border-color: #334155; color: #94a3b8; }
+        body.dark-theme .support-card:hover { background: #334155; }
+
+        body.dark-theme .danger-box { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+
+        body.dark-theme .tgl-track { background: #334155; }
+
+        body.dark-theme .btn-save { background: #6366f1; color: #fff; }
+        body.dark-theme .btn-disconnect { border-color: #475569; color: #94a3b8; }
+        body.dark-theme .btn-connect { background: #6366f1; color: #fff; }
+
+        body.dark-theme .modal-overlay .modal-box { background: #1e293b; border-color: #334155; }
+        body.dark-theme .modal-box h3 { color: #f1f5f9; }
+        body.dark-theme .modal-box p { color: #94a3b8; }
+        body.dark-theme .modal-actions .btn-cancel { background: #334155; color: #94a3b8; border-color: #475569; }
+
+        body.dark-theme .profile-avatar { border-color: #334155; }
+        body.dark-theme .profile-field label { color: #94a3b8; }
+        body.dark-theme .profile-field .value { color: #f1f5f9; background: #0f172a; border-color: #334155; }
+        body.dark-theme .form-row-info .label { color: #f1f5f9; }
+        body.dark-theme .form-row { border-bottom-color: #334155; }
+        body.dark-theme .int-status { color: #94a3b8; }
+        body.dark-theme .integration-icon { opacity: 0.9; }
+        body.dark-theme div[style*="background: #d1fae5"] { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #6ee7b7 !important; }
+        body.dark-theme div[style*="background: #dbeafe"] { background: rgba(59, 130, 246, 0.15) !important; border-color: rgba(59, 130, 246, 0.3) !important; color: #93c5fd !important; }
+        body.dark-theme div[style*="background: #fee2e2"] { background: rgba(239, 68, 68, 0.15) !important; border-color: rgba(239, 68, 68, 0.3) !important; color: #fca5a5 !important; }
+        body.dark-theme .danger-box h3 { color: #fca5a5; }
+        body.dark-theme .danger-box p { color: #94a3b8; }
+        body.dark-theme .btn-danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' %}
+    {% include 'partials/banner.html' %}
+
+    <div id="toast-el" class="toast"></div>
+
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1><i class="fas fa-cog" style="color: #6366f1; margin-right: 8px;"></i>Account Settings</h1>
+            <p>Manage your profile, preferences, and connected channels</p>
+        </div>
+
+        <div class="settings-nav">
+            <a href="#profile" class="active" onclick="scrollToSection(event, 'sec-profile')">Profile</a>
+            <a href="#appearance" onclick="scrollToSection(event, 'sec-appearance')">Appearance</a>
+            <a href="#notifications" onclick="scrollToSection(event, 'sec-notifications')">Notifications</a>
+            <a href="#integrations" onclick="scrollToSection(event, 'sec-integrations')">Integrations</a>
+            <a href="#data" onclick="scrollToSection(event, 'sec-data')">Data</a>
+            <a href="#danger" onclick="scrollToSection(event, 'sec-danger')">Danger Zone</a>
+        </div>
+
+        {% if request.args.get('saved') %}
+        <div style="background: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 12px 18px; margin-bottom: 18px; color: #065f46; font-size: 14px; font-weight: 500;">
+            <i class="fas fa-check-circle" style="margin-right: 6px;"></i> Preferences saved successfully.
+        </div>
+        {% endif %}
+
+        {% if request.args.get('disconnected') %}
+        <div style="background: #dbeafe; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px 18px; margin-bottom: 18px; color: #1e40af; font-size: 14px; font-weight: 500;">
+            <i class="fas fa-unlink" style="margin-right: 6px;"></i> Channel disconnected successfully.
+        </div>
+        {% endif %}
+
+        {% if request.args.get('error') == 'confirmation' %}
+        <div style="background: #fee2e2; border: 1px solid #ef4444; border-radius: 8px; padding: 12px 18px; margin-bottom: 18px; color: #991b1b; font-size: 14px; font-weight: 500;">
+            <i class="fas fa-exclamation-circle" style="margin-right: 6px;"></i> Account deletion failed. Please type DELETE to confirm.
+        </div>
+        {% endif %}
+
+        {% if request.args.get('cleared') %}
+        <div style="background: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 12px 18px; margin-bottom: 18px; color: #065f46; font-size: 14px; font-weight: 500;">
+            <i class="fas fa-check-circle" style="margin-right: 6px;"></i> Data cleared successfully.
+        </div>
+        {% endif %}
+
+        <div class="settings-section" id="sec-profile">
+            <div class="section-head">
+                <div class="sec-icon purple"><i class="fas fa-user"></i></div>
+                <div>
+                    <h2>Profile Information</h2>
+                    <div class="sec-sub">Your Google account details</div>
+                </div>
+            </div>
+            <div class="section-body">
+                <div class="profile-grid">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture }}" alt="{{ user.username }}" class="profile-avatar">
+                    {% else %}
+                    <div class="profile-avatar-placeholder">{{ (user.username or 'U')[0]|upper }}</div>
+                    {% endif %}
+                    <div class="profile-details">
+                        <div class="profile-field">
+                            <label>Display Name</label>
+                            <div class="value">{{ user.username or 'Not set' }}</div>
+                        </div>
+                        <div class="profile-field">
+                            <label>Email</label>
+                            <div class="value">{{ user.email }}</div>
+                        </div>
+                        <div class="profile-field">
+                            <label>YouTube Channel</label>
+                            <div class="value">{{ user.youtube_channel_name or 'Not linked' }}</div>
+                        </div>
+                        <div class="profile-field">
+                            <label>Member Since</label>
+                            <div class="value">{{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'Unknown' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="/settings/preferences">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div class="settings-section" id="sec-appearance">
+                <div class="section-head">
+                    <div class="sec-icon indigo"><i class="fas fa-palette"></i></div>
+                    <div>
+                        <h2>Appearance</h2>
+                        <div class="sec-sub">Change how Nexus looks for you</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-row-info">
+                            <div class="label">Theme Preference</div>
+                            <div class="desc">Choose between light and dark mode</div>
+                        </div>
+                        <select name="theme_preference">
+                            <option value="light" {{ 'selected' if notif_prefs.get('theme_preference', 'light') == 'light' }}>Light</option>
+                            <option value="dark" {{ 'selected' if notif_prefs.get('theme_preference') == 'dark' }}>Dark</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-row-info">
+                            <div class="label">Compact Mode</div>
+                            <div class="desc">Less spacing, more content on screen</div>
+                        </div>
+                        <label class="tgl">
+                            <input type="checkbox" name="compact_mode" {{ 'checked' if notif_prefs.get('compact_mode', False) }}>
+                            <span class="tgl-track"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section" id="sec-notifications">
+                <div class="section-head">
+                    <div class="sec-icon green"><i class="fas fa-bell"></i></div>
+                    <div>
+                        <h2>Notifications</h2>
+                        <div class="sec-sub">Choose what you get notified about</div>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="subsection-label">General</div>
+                    <div class="form-row" style="opacity: 0.5; pointer-events: none;">
+                        <div class="form-row-info">
+                            <div class="label">Email Alerts <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></div>
+                            <div class="desc">Still working on this. Email notifications aren't ready yet.</div>
+                        </div>
+                        <label class="tgl">
+                            <input type="checkbox" name="email_alerts" disabled>
+                            <span class="tgl-track"></span>
+                        </label>
+                    </div>
+                    <div class="form-row" style="opacity: 0.5; pointer-events: none;">
+                        <div class="form-row-info">
+                            <div class="label">Weekly Reports <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></div>
+                            <div class="desc">Not ready yet. Weekly summaries will be added later.</div>
+                        </div>
+                        <label class="tgl">
+                            <input type="checkbox" name="weekly_reports" disabled>
+                            <span class="tgl-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="subsection-label">Bot Alerts</div>
+                    <div class="form-row" style="opacity: 0.5; pointer-events: none;">
+                        <div class="form-row-info">
+                            <div class="label">Bot Status Alerts <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></div>
+                            <div class="desc">Know when your bot connects or disconnects</div>
+                        </div>
+                        <label class="tgl">
+                            <input type="checkbox" name="bot_alerts" disabled>
+                            <span class="tgl-track"></span>
+                        </label>
+                    </div>
+                    <div class="form-row" style="opacity: 0.5; pointer-events: none;">
+                        <div class="form-row-info">
+                            <div class="label">Moderation Alerts <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></div>
+                            <div class="desc">Get alerts when the bot takes moderation action</div>
+                        </div>
+                        <label class="tgl">
+                            <input type="checkbox" name="moderation_alerts" disabled>
+                            <span class="tgl-track"></span>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div style="text-align: right; margin-bottom: 24px;">
+                <button type="submit" class="btn-save"><i class="fas fa-save" style="margin-right: 6px;"></i>Save All Preferences</button>
+            </div>
+        </form>
+
+        <div class="settings-section" id="sec-integrations">
+            <div class="section-head">
+                <div class="sec-icon blue"><i class="fas fa-plug"></i></div>
+                <div>
+                    <h2>Integrations</h2>
+                    <div class="sec-sub">Services linked to your Nexus account</div>
+                </div>
+            </div>
+            <div class="section-body">
+                <div class="integration-row">
+                    <div class="integration-icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <div class="integration-info">
+                        <div class="int-name">YouTube</div>
+                        <div class="int-desc">{{ user.youtube_channel_name or 'No channel linked' }}</div>
+                    </div>
+                    {% if user.youtube_channel_id %}
+                    <span class="status-badge connected">Connected</span>
+                    {% else %}
+                    <span class="status-badge disconnected">Not Connected</span>
+                    {% endif %}
+                </div>
+                <div class="integration-row">
+                    <div class="integration-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+                        <i class="fab fa-google"></i>
+                    </div>
+                    <div class="integration-info">
+                        <div class="int-name">Google Account</div>
+                        <div class="int-desc">{{ user.email }}</div>
+                    </div>
+                    <span class="status-badge connected">Connected</span>
+                </div>
+                <div class="integration-row">
+                    <div class="integration-icon" style="background: rgba(88,101,242,0.1); color: #5865f2;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="integration-info">
+                        <div class="int-name">Nexus YouTube Bot</div>
+                        <div class="int-desc">Connect the Nexus Discord bot to manage your server from the dashboard</div>
+                    </div>
+                    <span style="font-size:11px;background:rgba(245,158,11,0.15);color:#d97706;padding:4px 12px;border-radius:20px;font-weight:600;white-space:nowrap;">Coming Soon</span>
+                </div>
+                <div class="integration-row">
+                    <div class="integration-icon" style="background: rgba(16,185,129,0.1); color: #10b981;">
+                        <i class="fas fa-file-import"></i>
+                    </div>
+                    <div class="integration-info">
+                        <div class="int-name">Nightbot Import</div>
+                        <div class="int-desc">Import commands from Nightbot in your bot settings under Commands tab</div>
+                    </div>
+                    <span class="status-badge connected">Available</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-head">
+                <div class="sec-icon blue"><i class="fas fa-link"></i></div>
+                <div>
+                    <h2>Connected Channels</h2>
+                    <div class="sec-sub">YouTube channels linked to your account</div>
+                </div>
+            </div>
+            <div class="section-body">
+                {% if channels %}
+                {% for channel in channels %}
+                <div class="channel-row">
+                    {% if channel.channel_thumbnail %}
+                    <img src="{{ channel.channel_thumbnail }}" alt="{{ channel.channel_name }}">
+                    {% else %}
+                    <div class="ch-init">{{ channel.channel_name[0]|upper }}</div>
+                    {% endif %}
+                    <div class="ch-info">
+                        <div class="ch-name">{{ channel.channel_name }}</div>
+                        <div class="ch-meta">
+                            {{ "{:,}".format(channel.subscriber_count) }} subscribers &middot;
+                            {{ "{:,}".format(channel.view_count) }} views &middot;
+                            {{ channel.video_count }} videos
+                        </div>
+                    </div>
+                    <form method="POST" action="/settings/disconnect-channel/{{ channel.id }}" onsubmit="return confirm('Disconnect {{ channel.channel_name }}? This will remove all tracking data for this channel.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-sm btn-outline-danger"><i class="fas fa-unlink" style="margin-right: 4px;"></i>Disconnect</button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-channels">
+                    <i class="fas fa-plug"></i>
+                    <p>No channels connected yet. Channels are automatically added when you sign in with Google.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="settings-section" id="sec-data">
+            <div class="section-head">
+                <div class="sec-icon slate"><i class="fas fa-database"></i></div>
+                <div>
+                    <h2>Data Management</h2>
+                    <div class="sec-sub">Download or delete your data</div>
+                </div>
+            </div>
+            <div class="section-body">
+                <div class="form-row">
+                    <div class="form-row-info">
+                        <div class="label">Export Account Data</div>
+                        <div class="desc">Get a JSON file with all your account data</div>
+                    </div>
+                    <form method="POST" action="/settings/export-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-secondary"><i class="fas fa-download" style="margin-right: 4px;"></i>Export</button>
+                    </form>
+                </div>
+                <div class="form-row">
+                    <div class="form-row-info">
+                        <div class="label">Clear Chat Logs</div>
+                        <div class="desc">Delete all saved chat logs from your channels</div>
+                    </div>
+                    <form method="POST" action="/settings/clear-chat-logs" onsubmit="return confirm('This will permanently delete all chat logs. Continue?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-secondary" style="color: #ef4444; border-color: #fecaca;"><i class="fas fa-eraser" style="margin-right: 4px;"></i>Clear</button>
+                    </form>
+                </div>
+                <div class="form-row">
+                    <div class="form-row-info">
+                        <div class="label">Clear Command History</div>
+                        <div class="desc">Delete all command usage history from your channels</div>
+                    </div>
+                    <form method="POST" action="/settings/clear-command-history" onsubmit="return confirm('This will permanently delete all command history. Continue?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-secondary" style="color: #ef4444; border-color: #fecaca;"><i class="fas fa-eraser" style="margin-right: 4px;"></i>Clear</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-head">
+                <div class="sec-icon yellow"><i class="fas fa-life-ring"></i></div>
+                <div>
+                    <h2>Support</h2>
+                    <div class="sec-sub">Need help? Reach out here</div>
+                </div>
+            </div>
+            <div class="section-body">
+                <div class="support-links">
+                    <a href="/contact" class="support-card">
+                        <i class="fas fa-envelope"></i>
+                        <div class="sc-title">Contact</div>
+                        <div class="sc-desc">Send a message through the contact form</div>
+                    </a>
+                    <a href="/faq" class="support-card">
+                        <i class="fas fa-question-circle"></i>
+                        <div class="sc-title">FAQ</div>
+                        <div class="sc-desc">Find answers to common questions</div>
+                    </a>
+                    <a href="/contact" class="support-card">
+                        <i class="fas fa-headset"></i>
+                        <div class="sc-title">Contact Us</div>
+                        <div class="sc-desc">Reach out through our contact page</div>
+                    </a>
+                    <a href="https://discord.gg/mzxHumP5nR" target="_blank" rel="noopener noreferrer" class="support-card">
+                        <i class="fab fa-discord"></i>
+                        <div class="sc-title">Discord Server</div>
+                        <div class="sc-desc">Join our community on Discord</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section danger-zone" id="sec-danger">
+            <div class="section-head">
+                <div class="sec-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+                <div>
+                    <h2>Danger Zone</h2>
+                    <div class="sec-sub">These actions can't be undone</div>
+                </div>
+            </div>
+            <div class="section-body">
+                <div class="danger-box">
+                    <div class="danger-info">
+                        <h3><i class="fas fa-trash-alt" style="margin-right: 4px;"></i>Delete Account</h3>
+                        <p>Permanently delete your account and all associated data, including channels, bot settings, viewer data, and command logs. This action cannot be undone.</p>
+                    </div>
+                    <button type="button" class="btn-danger-action" onclick="document.getElementById('deleteModal').classList.add('active');">
+                        <i class="fas fa-trash" style="margin-right: 4px;"></i>Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <h3><i class="fas fa-exclamation-triangle"></i> Delete Account</h3>
+            <p>This will permanently delete your account and <strong>all associated data</strong>:</p>
+            <ul style="font-size: 13px; color: #64748b; margin-bottom: 16px; padding-left: 20px; line-height: 1.8;">
+                <li>All connected YouTube channels</li>
+                <li>Bot settings and custom commands</li>
+                <li>Viewer tracking data</li>
+                <li>Command logs and statistics</li>
+            </ul>
+            <p style="font-size: 13px; font-weight: 600; color: #1e293b;">Type <strong style="color: #dc2626;">DELETE</strong> to confirm:</p>
+            <form method="POST" action="/settings/delete-account" id="deleteForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="text" name="confirm_delete" class="confirm-input" placeholder="Type DELETE to confirm" autocomplete="off" id="deleteConfirmInput">
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('deleteModal').classList.remove('active');">Cancel</button>
+                    <button type="submit" class="btn-danger-action" id="deleteBtn" disabled>
+                        <i class="fas fa-trash" style="margin-right: 4px;"></i>Delete My Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+        var deleteInput = document.getElementById('deleteConfirmInput');
+        var deleteBtn = document.getElementById('deleteBtn');
+        if (deleteInput && deleteBtn) {
+            deleteInput.addEventListener('input', function() {
+                deleteBtn.disabled = this.value !== 'DELETE';
+            });
+        }
+
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('saved') === '1') {
+            showToast('Preferences saved successfully!', 'success');
+        }
+        if (params.get('disconnected') === '1') {
+            showToast('Channel disconnected.', 'success');
+        }
+        if (params.get('cleared') === '1') {
+            showToast('Data cleared successfully.', 'success');
+        }
+        if (params.get('discord') === 'connected') {
+            showToast('Discord account connected!', 'success');
+        }
+        if (params.get('discord') === 'disconnected') {
+            showToast('Discord account disconnected.', 'success');
+        }
+        if (params.get('bot') === 'unlinked') {
+            showToast('Nexus Bot unlinked from your account.', 'success');
+        }
+        if (params.get('error') === 'discord_not_configured') {
+            showToast('Discord integration is not configured yet.', 'error');
+        }
+        if (params.get('error') === 'discord_denied') {
+            showToast('Discord authorization was cancelled.', 'error');
+        }
+        if (params.get('error') === 'discord_already_linked') {
+            showToast('That Discord account is already linked to another user.', 'error');
+        }
+        if (params.get('error') === 'discord_failed') {
+            showToast('Failed to connect Discord. Try again.', 'error');
+        }
+
+        function showToast(msg, type) {
+            var t = document.getElementById('toast-el');
+            if (!t) return;
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(function() { t.classList.remove('show'); }, 3500);
+        }
+
+        function scrollToSection(e, id) {
+            e.preventDefault();
+            var el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            var links = document.querySelectorAll('.settings-nav a');
+            links.forEach(function(l) { l.classList.remove('active'); });
+            e.target.classList.add('active');
+        }
+
+        function autoSavePrefs(data) {
+            data.csrf_token = '{{ csrf_token }}';
+            fetch('/settings/preferences', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            }).then(function(r) {
+                if (r.ok) showToast('Settings saved', 'success');
+                else showToast('Failed to save', 'error');
+            }).catch(function() {
+                showToast('Failed to save', 'error');
+            });
+        }
+
+        var themeSelect = document.querySelector('select[name="theme_preference"]');
+        if (themeSelect) {
+            themeSelect.addEventListener('change', function() {
+                document.body.classList.remove('dark-theme');
+                if (this.value === 'dark') {
+                    document.body.classList.add('dark-theme');
+                }
+                autoSavePrefs({theme_preference: this.value});
+            });
+        }
+
+        var compactToggle = document.querySelector('input[name="compact_mode"]');
+        if (compactToggle) {
+            compactToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.body.classList.add('compact-mode');
+                } else {
+                    document.body.classList.remove('compact-mode');
+                }
+                autoSavePrefs({compact_mode: this.checked});
+            });
+        }
+    </script>
+</body>
+</html>
