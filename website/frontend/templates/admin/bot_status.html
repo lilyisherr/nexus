@@ -1,0 +1,106 @@
+{% extends "admin/base.html" %}
+{% block title %}Bot Status{% endblock %}
+{% block page_title %}Discord Bot Status{% endblock %}
+{% block content %}
+{% if heartbeat %}
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon {% if heartbeat.status == 'online' %}green{% else %}red{% endif %}">
+            <i class="fas fa-circle"></i>
+        </div>
+        <div class="stat-value">{{ heartbeat.status|capitalize }}</div>
+        <div class="stat-label">Status</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-server"></i></div>
+        <div class="stat-value">{{ heartbeat.guild_count }}</div>
+        <div class="stat-label">Guilds</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+        <div class="stat-value">{{ heartbeat.user_count }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-bolt"></i></div>
+        <div class="stat-value">{{ heartbeat.latency_ms }}ms</div>
+        <div class="stat-label">Latency</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-clock"></i></div>
+        <div class="stat-value">{{ (heartbeat.uptime_seconds // 3600) }}h {{ ((heartbeat.uptime_seconds % 3600) // 60) }}m</div>
+        <div class="stat-label">Uptime</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pink"><i class="fas fa-heartbeat"></i></div>
+        <div class="stat-value">{{ heartbeat.last_heartbeat.strftime('%H:%M') if heartbeat.last_heartbeat else 'N/A' }}</div>
+        <div class="stat-label">Last Heartbeat</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Bot Details</h3>
+        </div>
+        <div style="padding:24px;">
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Bot Name</span>
+                <span style="color:#fff;font-weight:600;">{{ heartbeat.bot_name or 'Unknown' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Bot ID</span>
+                <span style="color:#fff;font-weight:600;font-family:monospace;">{{ heartbeat.bot_id }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Guilds Connected</span>
+                <span style="color:#fff;font-weight:600;">{{ heartbeat.guild_count }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Users Reachable</span>
+                <span style="color:#fff;font-weight:600;">{{ heartbeat.user_count }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Uptime</span>
+                <span style="color:#fff;font-weight:600;">{{ heartbeat.uptime_seconds // 3600 }}h {{ (heartbeat.uptime_seconds % 3600) // 60 }}m {{ heartbeat.uptime_seconds % 60 }}s</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;">
+                <span style="color:#94a3b8;">Last Heartbeat</span>
+                <span style="color:#fff;font-weight:600;">{{ heartbeat.last_heartbeat.strftime('%b %d, %Y at %I:%M:%S %p') if heartbeat.last_heartbeat else 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Server Stats</h3>
+        </div>
+        <div style="padding:24px;">
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Total Configured Servers</span>
+                <span style="color:#fff;font-weight:600;">{{ total_servers }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Bot Enabled Servers</span>
+                <span style="color:#22c55e;font-weight:600;">{{ enabled_servers }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;">
+                <span style="color:#94a3b8;">Bot Disabled Servers</span>
+                <span style="color:#ef4444;font-weight:600;">{{ total_servers - enabled_servers }}</span>
+            </div>
+        </div>
+        <div style="padding: 0 24px 24px;">
+            <a href="{{ url_for('admin_dashboard.servers') }}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                <i class="fas fa-server"></i> View All Servers
+            </a>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="empty-state" style="margin-top:60px;">
+    <i class="fas fa-robot"></i>
+    <p style="margin-top:16px;font-size:16px;color:#94a3b8;">No bot heartbeat data available</p>
+    <p style="margin-top:8px;color:#64748b;">The Discord bot has not sent any heartbeat data yet. Make sure the bot is running and configured to send heartbeats.</p>
+</div>
+{% endif %}
+{% endblock %}

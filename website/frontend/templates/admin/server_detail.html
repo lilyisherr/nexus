@@ -1,0 +1,122 @@
+{% extends "admin/base.html" %}
+{% block title %}Server: {{ config.server_name }}{% endblock %}
+{% block page_title %}Server Detail{% endblock %}
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <a href="{{ url_for('admin_dashboard.servers') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <i class="fas fa-arrow-left"></i> Back to Servers
+    </a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div class="card">
+        <h3 style="font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 20px;">
+            <i class="fas fa-server" style="color: #818cf8;"></i> {{ config.server_name or 'Unknown Server' }}
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Server ID</div>
+                <div style="font-size: 14px; color: #e2e8f0; font-family: monospace;">{{ config.server_id }}</div>
+            </div>
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Prefix</div>
+                <div style="font-size: 16px; font-weight: 600; color: #e2e8f0; font-family: monospace;">{{ config.prefix or '!' }}</div>
+            </div>
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Bot Status</div>
+                <div style="font-size: 14px; font-weight: 600; color: {% if config.bot_enabled %}#22c55e{% else %}#ef4444{% endif %};">
+                    {% if config.bot_enabled %}Active{% else %}Disabled{% endif %}
+                </div>
+            </div>
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Added</div>
+                <div style="font-size: 14px; color: #e2e8f0;">{{ config.created_at.strftime('%b %d, %Y') if config.created_at else 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">Features</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% if config.welcome_enabled %}
+            <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;"><i class="fas fa-hand-wave"></i> Welcome</span>
+            {% endif %}
+            {% if config.mod_log_enabled %}
+            <span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6;"><i class="fas fa-clipboard-list"></i> Mod Log</span>
+            {% endif %}
+            {% if config.auto_mod_enabled %}
+            <span class="badge" style="background: rgba(234,179,8,0.15); color: #eab308;"><i class="fas fa-shield-alt"></i> AutoMod</span>
+            {% endif %}
+            {% if config.level_system_enabled %}
+            <span class="badge" style="background: rgba(168,85,247,0.15); color: #a855f7;"><i class="fas fa-star"></i> Leveling</span>
+            {% endif %}
+            {% if config.youtube_notify_enabled %}
+            <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;"><i class="fab fa-youtube"></i> YouTube</span>
+            {% endif %}
+            {% if config.starboard_enabled %}
+            <span class="badge" style="background: rgba(234,179,8,0.15); color: #eab308;"><i class="fas fa-star"></i> Starboard</span>
+            {% endif %}
+            {% if config.ticket_system_enabled %}
+            <span class="badge" style="background: rgba(249,115,22,0.15); color: #f97316;"><i class="fas fa-ticket-alt"></i> Tickets</span>
+            {% endif %}
+            {% if not config.welcome_enabled and not config.mod_log_enabled and not config.auto_mod_enabled and not config.level_system_enabled and not config.youtube_notify_enabled and not config.starboard_enabled and not config.ticket_system_enabled %}
+            <span style="color: #64748b; font-size: 14px;">No features enabled</span>
+            {% endif %}
+        </div>
+        {% if config.welcome_channel_id %}
+        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(99,102,241,0.1);">
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Welcome Channel ID</div>
+            <div style="font-size: 13px; color: #94a3b8; font-family: monospace;">{{ config.welcome_channel_id }}</div>
+        </div>
+        {% endif %}
+        {% if config.mod_log_channel_id %}
+        <div style="margin-top: 8px;">
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Mod Log Channel ID</div>
+            <div style="font-size: 13px; color: #94a3b8; font-family: monospace;">{{ config.mod_log_channel_id }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+        <i class="fas fa-gavel" style="color: #eab308;"></i> Recent Mod Logs ({{ mod_logs|length }})
+    </h3>
+    {% if mod_logs %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Moderator</th>
+                    <th>Target</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in mod_logs %}
+                <tr>
+                    <td>
+                        <span class="badge" style="
+                            {% if log.action_type in ('ban', 'kick') %}background: rgba(239,68,68,0.15); color: #ef4444;
+                            {% elif log.action_type == 'warn' %}background: rgba(234,179,8,0.15); color: #eab308;
+                            {% else %}background: rgba(99,102,241,0.15); color: #818cf8;{% endif %}
+                        ">{{ log.action_type }}</span>
+                    </td>
+                    <td style="color: #e2e8f0; font-size: 13px;">{{ log.moderator_name or log.moderator_id }}</td>
+                    <td style="color: #94a3b8; font-size: 13px;">{{ log.target_name or log.target_id }}</td>
+                    <td style="color: #94a3b8; font-size: 13px;">{{ log.reason or '-' }}</td>
+                    <td style="color: #64748b; font-size: 13px;">{{ log.created_at.strftime('%b %d, %H:%M') if log.created_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 32px;">
+        <p>No moderation actions recorded for this server</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

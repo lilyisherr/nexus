@@ -1,0 +1,291 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block extra_css %}
+.quick-actions { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px; }
+.qa-card { display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:16px 18px;background:#1e1e2a;border:1px solid rgba(99,102,241,0.1);border-radius:12px;text-decoration:none;color:#e2e8f0;transition:background 0.15s,transform 0.1s,border-color 0.15s;cursor:pointer; }
+.qa-card:hover { background:#252533;border-color:rgba(99,102,241,0.3);transform:translateY(-2px);color:#fff; }
+.qa-card .qa-icon { width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0; }
+.qa-card .qa-label { font-size:13px;font-weight:600;color:#e2e8f0; }
+.qa-card .qa-desc { font-size:11px;color:#64748b;line-height:1.4; }
+.section-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.section-header h2 { font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px; }
+.two-col { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+.mini-stat { display:flex;align-items:center;gap:12px;padding:14px 18px;background:#0f0f14;border-radius:8px; }
+.mini-stat .ms-icon { width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0; }
+.mini-stat .ms-val { font-size:22px;font-weight:800;color:#fff; }
+.mini-stat .ms-lbl { font-size:12px;color:#64748b;margin-top:1px; }
+.stat-row { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px; }
+@media(max-width:1100px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.stat-row{grid-template-columns:1fr 1fr;}}
+.bot-pill { display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase; }
+.bot-pill.online { background:rgba(16,185,129,0.12);color:#34d399; }
+.bot-pill.offline { background:rgba(239,68,68,0.12);color:#f87171; }
+{% endblock %}
+{% block content %}
+
+<div class="stat-row">
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-users"></i></div>
+        <div>
+            <div class="ms-val">{{ user_count }}</div>
+            <div class="ms-lbl">Total Users</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(59,130,246,0.12);color:#60a5fa;"><i class="fab fa-youtube"></i></div>
+        <div>
+            <div class="ms-val">{{ channel_count }}</div>
+            <div class="ms-lbl">YouTube Channels</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(16,185,129,0.12);color:#34d399;"><i class="fas fa-circle-dot"></i></div>
+        <div>
+            <div class="ms-val">{{ currently_live_count }}</div>
+            <div class="ms-lbl">Currently Live</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(245,158,11,0.12);color:#fbbf24;"><i class="fas fa-user-plus"></i></div>
+        <div>
+            <div class="ms-val">{{ new_users_week }}</div>
+            <div class="ms-lbl">New Users (7d)</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(236,72,153,0.12);color:#f472b6;"><i class="fas fa-robot"></i></div>
+        <div>
+            <div class="ms-val">{{ active_bots }}</div>
+            <div class="ms-lbl">Active Bots</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(139,92,246,0.12);color:#a78bfa;"><i class="fas fa-user-shield"></i></div>
+        <div>
+            <div class="ms-val">{{ admin_count }}</div>
+            <div class="ms-lbl">Admins</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-newspaper"></i></div>
+        <div>
+            <div class="ms-val">{{ blog_count }}</div>
+            <div class="ms-lbl">Blog Posts</div>
+        </div>
+    </div>
+    <div class="mini-stat">
+        <div class="ms-icon" style="background:{% if unread_messages > 0 %}rgba(239,68,68,0.12){% else %}rgba(100,116,139,0.12){% endif %};color:{% if unread_messages > 0 %}#f87171{% else %}#94a3b8{% endif %};"><i class="fas fa-envelope{% if unread_messages > 0 %}-open{% endif %}"></i></div>
+        <div>
+            <div class="ms-val">{{ unread_messages }}</div>
+            <div class="ms-lbl">Unread Messages</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-header"><h2><i class="fas fa-bolt" style="color:#fbbf24;font-size:13px;"></i> Quick Actions</h2></div>
+<div class="quick-actions">
+    <a href="{{ url_for('admin_dashboard.users') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(99,102,241,0.12);color:#818cf8;"><i class="fas fa-users"></i></div>
+        <div><div class="qa-label">Users</div><div class="qa-desc">View and manage accounts</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.channels') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(239,68,68,0.12);color:#f87171;"><i class="fab fa-youtube"></i></div>
+        <div><div class="qa-label">Channels</div><div class="qa-desc">YouTube channel list</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.servers') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(88,101,242,0.12);color:#818cf8;"><i class="fab fa-discord"></i></div>
+        <div><div class="qa-label">Servers</div><div class="qa-desc">Discord server configs</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.messages') }}" class="qa-card">
+        <div class="qa-icon" style="background:{% if unread_messages > 0 %}rgba(239,68,68,0.12){% else %}rgba(59,130,246,0.12){% endif %};color:{% if unread_messages > 0 %}#f87171{% else %}#60a5fa{% endif %};"><i class="fas fa-envelope"></i></div>
+        <div><div class="qa-label">Messages {% if unread_messages > 0 %}<span style="font-size:10px;background:#ef4444;color:#fff;padding:1px 6px;border-radius:10px;">{{ unread_messages }}</span>{% endif %}</div><div class="qa-desc">Contact form inbox</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.blogs') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(16,185,129,0.12);color:#34d399;"><i class="fas fa-pen-fancy"></i></div>
+        <div><div class="qa-label">Blog Posts</div><div class="qa-desc">Create &amp; manage posts</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.changelog_admin') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(245,158,11,0.12);color:#fbbf24;"><i class="fas fa-scroll"></i></div>
+        <div><div class="qa-label">Changelog</div><div class="qa-desc">Version history &amp; Discord send</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.settings') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(100,116,139,0.12);color:#94a3b8;"><i class="fas fa-sliders"></i></div>
+        <div><div class="qa-label">Site Settings</div><div class="qa-desc">Banners, maintenance, CSS</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.mod_logs') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(139,92,246,0.12);color:#a78bfa;"><i class="fas fa-gavel"></i></div>
+        <div><div class="qa-label">Mod Logs</div><div class="qa-desc">Moderation action history</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.analytics') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(6,182,212,0.12);color:#22d3ee;"><i class="fas fa-chart-line"></i></div>
+        <div><div class="qa-label">Analytics</div><div class="qa-desc">Platform usage stats</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.system_info') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(100,116,139,0.12);color:#94a3b8;"><i class="fas fa-microchip"></i></div>
+        <div><div class="qa-label">System</div><div class="qa-desc">Server health &amp; info</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.bot_status') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(16,185,129,0.12);color:#34d399;"><i class="fas fa-robot"></i></div>
+        <div><div class="qa-label">Bot Status</div><div class="qa-desc">Discord bot heartbeat</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.assign_admin') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(236,72,153,0.12);color:#f472b6;"><i class="fas fa-user-gear"></i></div>
+        <div><div class="qa-label">Assign Admin</div><div class="qa-desc">Grant or revoke admin</div></div>
+    </a>
+    <a href="{{ url_for('admin_dashboard.users') }}" class="qa-card">
+        <div class="qa-icon" style="background:rgba(34,211,238,0.12);color:#22d3ee;"><i class="fas fa-eye"></i></div>
+        <div><div class="qa-label">View as User</div><div class="qa-desc">Preview any user's dashboard</div></div>
+    </a>
+</div>
+
+{% if heartbeat %}
+<div class="admin-table-wrapper" style="margin-bottom:24px;">
+    <div class="admin-table-header">
+        <h3><i class="fab fa-discord" style="color:#5865f2;margin-right:6px;"></i> Discord Bot</h3>
+        <span class="bot-pill {% if heartbeat.status == 'online' %}online{% else %}offline{% endif %}">
+            <span style="width:6px;height:6px;border-radius:50%;background:{% if heartbeat.status == 'online' %}#34d399{% else %}#f87171{% endif %};display:inline-block;"></span>
+            {{ heartbeat.status }}
+        </span>
+    </div>
+    <div style="padding:20px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:20px;">
+        <div>
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Servers</div>
+            <div style="font-size:24px;font-weight:800;color:#fff;">{{ heartbeat.guild_count }}</div>
+        </div>
+        <div>
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Members</div>
+            <div style="font-size:24px;font-weight:800;color:#fff;">{{ heartbeat.user_count }}</div>
+        </div>
+        <div>
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Latency</div>
+            <div style="font-size:24px;font-weight:800;color:{% if heartbeat.latency_ms < 100 %}#34d399{% elif heartbeat.latency_ms < 200 %}#fbbf24{% else %}#f87171{% endif %};">{{ heartbeat.latency_ms }}ms</div>
+        </div>
+        <div>
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Last Seen</div>
+            <div style="font-size:14px;font-weight:700;color:#e2e8f0;">{{ heartbeat.last_heartbeat.strftime('%b %d, %H:%M') if heartbeat.last_heartbeat else 'N/A' }}</div>
+        </div>
+        <div style="display:flex;align-items:center;">
+            <a href="{{ url_for('admin_dashboard.bot_status') }}" class="btn btn-secondary btn-sm">Full Status</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="two-col" style="margin-bottom:24px;">
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Recent Streams</h3>
+            <span class="badge badge-blue">Last 5</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Stream</th>
+                    <th>Peak</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in recent_streams %}
+                <tr>
+                    <td style="font-weight:600;color:#e2e8f0;">{{ s.channel.channel_name if s.channel else 'Unknown' }}</td>
+                    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#94a3b8;" title="{{ s.title or '' }}">{{ (s.title or 'No Title')[:40] }}{% if s.title and s.title|length > 40 %}…{% endif %}</td>
+                    <td><span style="font-weight:700;color:#fff;">{{ s.peak_viewers or 0 }}</span></td>
+                    <td style="color:#64748b;">
+                        {% if s.duration_seconds %}{{ (s.duration_seconds // 60) }}m
+                        {% else %}<span style="color:#34d399;font-size:11px;font-weight:700;">LIVE</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not recent_streams %}
+                <tr><td colspan="4" style="text-align:center;color:#64748b;padding:24px;">No streams yet</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Recent Users</h3>
+            <a href="{{ url_for('admin_dashboard.users') }}" class="btn btn-secondary btn-sm">All Users</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Joined</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in recent_users %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            {% if u.profile_picture %}
+                            <img src="{{ u.profile_picture }}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;" alt="">
+                            {% endif %}
+                            <div>
+                                <div style="font-size:13px;font-weight:600;color:#e2e8f0;">{{ u.username or 'N/A' }}</div>
+                                <div style="font-size:11px;color:#64748b;">{{ u.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#64748b;font-size:12px;">{{ u.created_at.strftime('%b %d') if u.created_at else 'N/A' }}</td>
+                    <td>{% if u.is_admin %}<span class="badge badge-purple">Admin</span>{% endif %}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <a href="{{ url_for('admin_dashboard.user_detail', user_id=u.id) }}" class="btn btn-secondary btn-sm" title="View Profile"><i class="fas fa-user"></i></a>
+                            <a href="{{ url_for('admin_dashboard.view_as_user', user_id=u.id) }}" class="btn btn-secondary btn-sm" title="View as User"><i class="fas fa-eye"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not recent_users %}
+                <tr><td colspan="4" style="text-align:center;color:#64748b;padding:24px;">No users yet</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="admin-table-wrapper">
+    <div class="admin-table-header">
+        <h3>Inbox</h3>
+        <a href="{{ url_for('admin_dashboard.messages') }}" class="btn btn-secondary btn-sm">
+            View All {% if unread_messages > 0 %}<span style="background:#ef4444;color:#fff;padding:1px 6px;border-radius:10px;font-size:11px;margin-left:4px;">{{ unread_messages }}</span>{% endif %}
+        </a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>From</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in recent_messages %}
+            <tr>
+                <td>
+                    <div style="font-weight:600;color:#e2e8f0;">{{ m.name }}</div>
+                    {% if m.discord %}<div style="font-size:11px;color:#64748b;">{{ m.discord }}</div>{% endif %}
+                </td>
+                <td style="color:#94a3b8;">{{ m.subject[:50] }}{% if m.subject|length > 50 %}…{% endif %}</td>
+                <td style="color:#64748b;font-size:12px;">{{ m.created_at.strftime('%b %d, %Y') if m.created_at else 'N/A' }}</td>
+                <td>{% if not m.read %}<span class="badge badge-blue">New</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% if not recent_messages %}
+            <tr><td colspan="4" style="text-align:center;color:#64748b;padding:24px;">No messages yet</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

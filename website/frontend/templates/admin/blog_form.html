@@ -1,0 +1,147 @@
+{% extends "admin/base.html" %}
+{% block title %}{% if editing %}Edit Post{% else %}New Post{% endif %}{% endblock %}
+{% block page_title %}{% if editing %}Edit Blog Post{% else %}New Blog Post{% endif %}{% endblock %}
+{% block extra_css %}
+.content-editor {
+    min-height: 300px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.preview-area {
+    background: #1e1e2a;
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 8px;
+    padding: 24px;
+    min-height: 300px;
+    color: #e2e8f0;
+    font-size: 14px;
+    line-height: 1.7;
+    display: none;
+}
+.preview-area h1, .preview-area h2, .preview-area h3 { color: #fff; margin: 16px 0 8px; }
+.preview-area p { margin-bottom: 12px; }
+.preview-area ul, .preview-area ol { padding-left: 24px; margin-bottom: 12px; }
+.preview-area a { color: #818cf8; }
+.editor-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: -1px;
+    position: relative;
+    z-index: 1;
+}
+.editor-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+.editor-tab.active {
+    color: #818cf8;
+    border-bottom-color: #818cf8;
+}
+{% endblock %}
+{% block content %}
+<form method="POST" action="{% if editing %}{{ url_for('admin_dashboard.blog_update', post_id=post.id) }}{% else %}{{ url_for('admin_dashboard.blog_create') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+
+    <div style="display:flex;gap:24px;">
+        <div style="flex:1;">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" value="{{ post.title if editing else '' }}" required placeholder="My Blog Post Title">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" name="slug" value="{{ post.slug if editing else '' }}" placeholder="my-blog-post-title">
+                </div>
+                <div class="form-group">
+                    <label>Blog Type</label>
+                    <select name="blog_type">
+                        <option value="nexus" {% if editing and post.blog_type == 'nexus' %}selected{% endif %}>Nexus (Main Site)</option>
+                        <option value="bot" {% if editing and post.blog_type == 'bot' %}selected{% endif %}>Bot Dashboard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tag</label>
+                    <select name="tag" onchange="this.form.tag_label.value=this.options[this.selectedIndex].text">
+                        <option value="announcement" {% if editing and post.tag == 'announcement' %}selected{% endif %}>Announcement</option>
+                        <option value="feature" {% if editing and post.tag == 'feature' %}selected{% endif %}>Feature</option>
+                        <option value="devlog" {% if editing and post.tag == 'devlog' %}selected{% endif %}>Dev Log</option>
+                        <option value="update" {% if editing and post.tag == 'update' %}selected{% endif %}>Update</option>
+                        <option value="bugfix" {% if editing and post.tag == 'bugfix' %}selected{% endif %}>Bug Fix</option>
+                        <option value="guide" {% if editing and post.tag == 'guide' %}selected{% endif %}>Guide</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tag Label</label>
+                    <input type="text" name="tag_label" value="{{ post.tag_label if editing else 'Announcement' }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Display Date</label>
+                    <input type="text" name="date_display" value="{{ post.date_display if editing else '' }}" placeholder="March 10, 2026">
+                </div>
+                <div class="form-group">
+                    <label>Short Date</label>
+                    <input type="text" name="date_short" value="{{ post.date_short if editing else '' }}" placeholder="Mar 10, 2026">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Summary</label>
+                <textarea name="summary" rows="3" placeholder="Brief description shown on the blog listing...">{{ post.summary if editing else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Content (HTML)</label>
+                <div class="editor-tabs">
+                    <button type="button" class="editor-tab active" onclick="showEditor(this)">Write</button>
+                    <button type="button" class="editor-tab" onclick="showPreview(this)">Preview</button>
+                </div>
+                <textarea name="content" class="content-editor" id="contentEditor" placeholder="<p>Your blog post content here...</p>">{{ post.content if editing else '' }}</textarea>
+                <div class="preview-area" id="contentPreview"></div>
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" name="is_published" id="is_published" {% if not editing or post.is_published %}checked{% endif %}>
+                <label for="is_published">Published</label>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:24px;">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {% if editing %}Update Post{% else %}Create Post{% endif %}</button>
+                <a href="{{ url_for('admin_dashboard.blogs') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+function showEditor(btn) {
+    document.getElementById('contentEditor').style.display = '';
+    document.getElementById('contentPreview').style.display = 'none';
+    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+}
+function showPreview(btn) {
+    var content = document.getElementById('contentEditor').value;
+    document.getElementById('contentPreview').innerHTML = content;
+    document.getElementById('contentEditor').style.display = 'none';
+    document.getElementById('contentPreview').style.display = '';
+    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+}
+</script>
+{% endblock %}

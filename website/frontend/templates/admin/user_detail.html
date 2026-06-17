@@ -1,0 +1,151 @@
+{% extends "admin/base.html" %}
+{% block title %}User: {{ user.username }}{% endblock %}
+{% block page_title %}User Detail{% endblock %}
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <a href="{{ url_for('admin_dashboard.users') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <i class="fas fa-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture }}" alt="" style="width: 64px; height: 64px; border-radius: 50%; border: 2px solid #6366f1;">
+            {% else %}
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #fff;">
+                {{ user.username[0]|upper if user.username else '?' }}
+            </div>
+            {% endif %}
+            <div>
+                <h2 style="font-size: 20px; color: #fff; margin-bottom: 4px;">{{ user.username or 'Unknown' }}</h2>
+                <p style="color: #94a3b8; font-size: 14px;">{{ user.email }}</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">User ID</div>
+                <div style="font-size: 16px; font-weight: 600; color: #e2e8f0;">#{{ user.id }}</div>
+            </div>
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Role</div>
+                <div style="font-size: 16px; font-weight: 600; color: {% if user.is_admin %}#818cf8{% else %}#e2e8f0{% endif %};">
+                    {% if user.is_admin %}<i class="fas fa-shield-alt"></i> Admin{% else %}User{% endif %}
+                </div>
+            </div>
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Joined</div>
+                <div style="font-size: 14px; color: #e2e8f0;">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}</div>
+            </div>
+            <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Google ID</div>
+                <div style="font-size: 14px; color: #e2e8f0; word-break: break-all;">{{ user.google_id or 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">Quick Actions</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="{{ url_for('admin_dashboard.view_as_user', user_id=user.id) }}" class="btn btn-primary" style="width: 100%; text-align: center;">
+                <i class="fas fa-eye"></i> View Dashboard as User
+            </a>
+            {% if user.id != session.get('user_id') %}
+            <form method="POST" action="{{ url_for('admin_dashboard.toggle_admin', user_id=user.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+                <button type="submit" class="btn {% if user.is_admin %}btn-secondary{% else %}btn-primary{% endif %}" style="width: 100%;">
+                    <i class="fas fa-{% if user.is_admin %}user-minus{% else %}user-shield{% endif %}"></i>
+                    {% if user.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('admin_dashboard.delete_user', user_id=user.id) }}" onsubmit="return confirm('Are you sure you want to delete this user? This cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+                <button type="submit" class="btn" style="width: 100%; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);">
+                    <i class="fas fa-trash-alt"></i> Delete User
+                </button>
+            </form>
+            {% else %}
+            <div style="padding: 16px; background: rgba(99,102,241,0.1); border-radius: 8px; color: #818cf8; font-size: 14px; text-align: center;">
+                <i class="fas fa-info-circle"></i> This is your account
+            </div>
+            {% endif %}
+        </div>
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(99,102,241,0.1);">
+            <h4 style="font-size: 14px; color: #94a3b8; margin-bottom: 12px;">Statistics</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="text-align: center; padding: 12px; background: #0f0f14; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #ef4444;">{{ channels|length }}</div>
+                    <div style="font-size: 12px; color: #64748b;">Channels</div>
+                </div>
+                <div style="text-align: center; padding: 12px; background: #0f0f14; border-radius: 8px;">
+                    <div style="font-size: 24px; font-weight: 700; color: #22c55e;">{{ stream_count }}</div>
+                    <div style="font-size: 12px; color: #64748b;">Streams</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if channels %}
+<div class="card" style="margin-bottom: 24px;">
+    <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+        <i class="fab fa-youtube" style="color: #ef4444;"></i> YouTube Channels ({{ channels|length }})
+    </h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Channel ID</th>
+                    <th>Added</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ch in channels %}
+                <tr>
+                    <td style="font-weight: 500; color: #fff;">{{ ch.channel_name or 'Unnamed' }}</td>
+                    <td style="font-size: 13px; color: #94a3b8; font-family: monospace;">{{ ch.youtube_channel_id }}</td>
+                    <td style="font-size: 13px; color: #64748b;">{{ ch.created_at.strftime('%b %d, %Y') if ch.created_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if bot_settings %}
+<div class="card">
+    <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+        <i class="fas fa-robot" style="color: #818cf8;"></i> Bot Settings
+    </h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Bot Enabled</th>
+                    <th>Prefix</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bs in bot_settings %}
+                <tr>
+                    <td style="font-weight: 500; color: #fff;">{{ bs.channel.channel_name or 'Unnamed' }}</td>
+                    <td>
+                        {% if bs.settings.bot_enabled %}
+                        <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Active</span>
+                        {% else %}
+                        <span class="badge" style="background: rgba(100,116,139,0.15); color: #64748b;">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family: monospace; color: #94a3b8;">{{ bs.settings.chat_prefix or '!' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

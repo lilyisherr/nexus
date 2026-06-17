@@ -1,0 +1,83 @@
+{% extends "admin/base.html" %}
+{% block title %}Servers{% endblock %}
+{% block page_title %}Server Configurations{% endblock %}
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <p style="color: #94a3b8; font-size: 14px;">{{ configs|length }} server{{ 's' if configs|length != 1 else '' }} configured</p>
+    <div style="display: flex; gap: 8px;">
+        <form method="GET" style="display: flex; gap: 8px;">
+            <input type="text" name="q" value="{{ search }}" placeholder="Search servers..." class="form-group"
+                   style="padding: 8px 14px; margin: 0; width: 220px;">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+        </form>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='servers') }}" class="btn btn-secondary">
+            <i class="fas fa-download"></i> Export
+        </a>
+    </div>
+</div>
+
+<div class="admin-table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Server</th>
+                <th>Server ID</th>
+                <th>Prefix</th>
+                <th>Features</th>
+                <th>Owner</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for config in configs %}
+            <tr>
+                <td style="display:flex;align-items:center;gap:10px;">
+                    {% if config.server_icon %}
+                    <img src="https://cdn.discordapp.com/icons/{{ config.server_id }}/{{ config.server_icon }}.png?size=32" style="width:28px;height:28px;border-radius:50%;">
+                    {% else %}
+                    <div style="width:28px;height:28px;border-radius:50%;background:#2d2d3d;display:flex;align-items:center;justify-content:center;font-size:12px;color:#64748b;">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    {% endif %}
+                    {{ config.server_name or 'Unknown Server' }}
+                </td>
+                <td style="font-family:monospace;font-size:12px;color:#64748b;">{{ config.server_id }}</td>
+                <td><code style="background:#2d2d3d;padding:2px 8px;border-radius:4px;font-size:13px;">{{ config.prefix }}</code></td>
+                <td>
+                    {% if config.welcome_enabled %}<span class="badge badge-green" style="margin-right:4px;">Welcome</span>{% endif %}
+                    {% if config.auto_mod_enabled %}<span class="badge badge-blue" style="margin-right:4px;">AutoMod</span>{% endif %}
+                    {% if config.level_system_enabled %}<span class="badge badge-purple" style="margin-right:4px;">Levels</span>{% endif %}
+                    {% if config.ticket_system_enabled %}<span class="badge badge-orange" style="margin-right:4px;">Tickets</span>{% endif %}
+                    {% if config.starboard_enabled %}<span class="badge badge-yellow" style="margin-right:4px;">Starboard</span>{% endif %}
+                    {% if config.reaction_roles_enabled %}<span class="badge badge-pink">Reactions</span>{% endif %}
+                </td>
+                <td>
+                    {% if config.bot_user %}
+                    {{ config.bot_user.display_name }}
+                    {% else %}
+                    <span style="color:#64748b;">-</span>
+                    {% endif %}
+                </td>
+                <td>{{ config.created_at.strftime('%b %d, %Y') if config.created_at else 'N/A' }}</td>
+                <td>
+                    <a href="{{ url_for('admin_dashboard.server_detail', config_id=config.id) }}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not configs %}
+            <tr>
+                <td colspan="7">
+                    <div class="empty-state">
+                        <i class="fas fa-server"></i>
+                        <p>{% if search %}No servers matching "{{ search }}"{% else %}No server configurations yet{% endif %}</p>
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "admin/base.html" %}
+{% block title %}Blog Posts{% endblock %}
+{% block page_title %}Blog Posts{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div class="filter-tabs">
+        <a href="{{ url_for('admin_dashboard.blogs', type='all') }}" class="{% if blog_type == 'all' %}active{% endif %}">All</a>
+        <a href="{{ url_for('admin_dashboard.blogs', type='nexus') }}" class="{% if blog_type == 'nexus' %}active{% endif %}">Nexus Site</a>
+        <a href="{{ url_for('admin_dashboard.blogs', type='bot') }}" class="{% if blog_type == 'bot' %}active{% endif %}">Bot Dashboard</a>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="{{ url_for('admin_dashboard.blog_new') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Post</a>
+    </div>
+</div>
+
+<div style="display: flex; gap: 12px; margin-bottom: 24px;">
+    <div style="padding: 12px 16px; background: #1e1e2a; border: 1px solid rgba(99,102,241,0.1); border-radius: 8px; font-size: 13px; color: #94a3b8;">
+        <i class="fas fa-database" style="color: #818cf8;"></i> {{ posts|length }} DB posts
+    </div>
+    <div style="padding: 12px 16px; background: #1e1e2a; border: 1px solid rgba(99,102,241,0.1); border-radius: 8px; font-size: 13px; color: #94a3b8;">
+        <i class="fas fa-file-code" style="color: #22c55e;"></i> {{ static_nexus_count }} static Nexus + {{ static_bot_count }} static Bot posts
+    </div>
+    <form method="POST" action="{{ url_for('admin_dashboard.blog_import_static') }}" style="display: flex; gap: 6px;">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+        <input type="hidden" name="import_type" value="nexus">
+        <button type="submit" class="btn btn-secondary" style="font-size: 13px; padding: 8px 14px;" onclick="return confirm('Import all static Nexus blog posts to the database?');">
+            <i class="fas fa-file-import"></i> Import Nexus Static
+        </button>
+    </form>
+    <form method="POST" action="{{ url_for('admin_dashboard.blog_import_static') }}" style="display: flex; gap: 6px;">
+        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+        <input type="hidden" name="import_type" value="bot">
+        <button type="submit" class="btn btn-secondary" style="font-size: 13px; padding: 8px 14px;" onclick="return confirm('Import all static Bot blog posts to the database?');">
+            <i class="fas fa-file-import"></i> Import Bot Static
+        </button>
+    </form>
+</div>
+
+<div class="admin-table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Tag</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>
+                    <div style="font-weight:600;color:#fff;">{{ post.title }}</div>
+                    <div style="font-size:12px;color:#64748b;">{{ post.slug }}</div>
+                </td>
+                <td>
+                    {% if post.blog_type == 'nexus' %}
+                    <span class="badge badge-purple">Nexus</span>
+                    {% else %}
+                    <span class="badge badge-blue">Bot</span>
+                    {% endif %}
+                </td>
+                <td><span class="badge badge-gray">{{ post.tag_label }}</span></td>
+                <td>
+                    {% if post.is_published %}
+                    <span class="badge badge-green">Published</span>
+                    {% else %}
+                    <span class="badge badge-yellow">Draft</span>
+                    {% endif %}
+                </td>
+                <td>{{ post.date_short }}</td>
+                <td style="display:flex;gap:6px;">
+                    <a href="{{ url_for('admin_dashboard.blog_edit', post_id=post.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i></a>
+                    <form method="POST" action="{{ url_for('admin_dashboard.blog_toggle_publish', post_id=post.id) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+                        <button type="submit" class="btn btn-sm {% if post.is_published %}btn-secondary{% else %}btn-primary{% endif %}" title="{% if post.is_published %}Unpublish{% else %}Publish{% endif %}">
+                            <i class="fas fa-{% if post.is_published %}eye-slash{% else %}eye{% endif %}"></i>
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_dashboard.blog_duplicate', post_id=post.id) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+                        <button type="submit" class="btn btn-secondary btn-sm" title="Duplicate"><i class="fas fa-copy"></i></button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_dashboard.blog_delete', post_id=post.id) }}" onsubmit="return confirm('Delete this post?');" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not posts %}
+            <tr>
+                <td colspan="6">
+                    <div class="empty-state">
+                        <i class="fas fa-pen-fancy"></i>
+                        <p>No blog posts yet. Create your first one!</p>
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

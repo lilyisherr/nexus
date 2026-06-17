@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+{% block title %}Messages{% endblock %}
+{% block page_title %}Contact Messages{% endblock %}
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+    <div class="filter-tabs">
+        <a href="{{ url_for('admin_dashboard.messages', filter='all') }}" class="{% if filter_type == 'all' %}active{% endif %}">All</a>
+        <a href="{{ url_for('admin_dashboard.messages', filter='unread') }}" class="{% if filter_type == 'unread' %}active{% endif %}">Unread</a>
+        <a href="{{ url_for('admin_dashboard.messages', filter='read') }}" class="{% if filter_type == 'read' %}active{% endif %}">Read</a>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <form method="POST" action="{{ url_for('admin_dashboard.mark_all_read') }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+            <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-check-double"></i> Mark All Read</button>
+        </form>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='messages') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-download"></i> Export
+        </a>
+    </div>
+</div>
+
+{% for msg in messages %}
+<div class="msg-card {% if not msg.read %}unread{% endif %}">
+    <div class="msg-header">
+        <div>
+            <span style="font-weight:600;color:#fff;">{{ msg.name }}</span>
+            {% if msg.discord_username %}
+            <span style="color:#64748b;font-size:13px;margin-left:8px;">{{ msg.discord_username }}</span>
+            {% endif %}
+            <span class="badge {% if msg.category == 'bug' %}badge-red{% elif msg.category == 'feature' %}badge-green{% elif msg.category == 'general' %}badge-blue{% else %}badge-gray{% endif %}" style="margin-left:8px;">{{ msg.category }}</span>
+        </div>
+        <div class="msg-meta">
+            {{ msg.created_at.strftime('%b %d, %Y at %I:%M %p') if msg.created_at else '' }}
+        </div>
+    </div>
+    <div class="msg-subject">{{ msg.subject }}</div>
+    <div class="msg-body">{{ msg.message }}</div>
+    <div class="msg-actions">
+        <form method="POST" action="{{ url_for('admin_dashboard.toggle_message_read', msg_id=msg.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+            <button type="submit" class="btn btn-secondary btn-sm">
+                {% if msg.read %}<i class="fas fa-envelope"></i> Mark Unread{% else %}<i class="fas fa-envelope-open"></i> Mark Read{% endif %}
+            </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_dashboard.delete_message', msg_id=msg.id) }}" onsubmit="return confirm('Delete this message?');" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% if not messages %}
+<div class="empty-state">
+    <i class="fas fa-envelope"></i>
+    <p>No messages found</p>
+</div>
+{% endif %}
+{% endblock %}

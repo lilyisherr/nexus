@@ -1,0 +1,301 @@
+{% extends "admin/base.html" %}
+{% block title %}Site Settings{% endblock %}
+{% block page_title %}Site Settings{% endblock %}
+{% block extra_css %}
+.settings-section {
+    background: #1e1e2a;
+    border: 1px solid rgba(99,102,241,0.1);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+}
+.settings-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+.settings-section-desc {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(99,102,241,0.06);
+}
+.toggle-row:last-of-type { border-bottom: none; }
+.toggle-row-info h4 { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
+.toggle-row-info p { font-size: 12px; color: #64748b; }
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+.toggle-switch input { display: none; }
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #334155;
+    border-radius: 24px;
+    transition: 0.2s;
+}
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: #6366f1; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+.toggle-switch input:checked + .toggle-slider.green-on { background: #10b981; }
+.toggle-switch input:checked + .toggle-slider.red-on { background: #ef4444; }
+{% endblock %}
+{% block content %}
+<form method="POST" action="{{ url_for('admin_dashboard.settings_save') }}">
+    <input type="hidden" name="csrf_token" value="{{ admin_csrf_token }}">
+
+    <div class="settings-section">
+        <div class="settings-section-title">General</div>
+        <div class="settings-section-desc">Core site configuration</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Homepage Hero Title</label>
+                <input type="text" name="homepage_hero_title" value="{{ settings.get('homepage_hero_title', '') }}" placeholder="Your YouTube Bot Platform">
+            </div>
+            <div class="form-group">
+                <label>Homepage Hero Subtitle</label>
+                <input type="text" name="homepage_hero_subtitle" value="{{ settings.get('homepage_hero_subtitle', '') }}" placeholder="Manage your stream with ease">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Site Description</label>
+            <textarea name="site_description" rows="2" placeholder="Brief site description for meta tags...">{{ settings.get('site_description', '') }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Contact Email</label>
+                <input type="text" name="contact_email" value="{{ settings.get('contact_email', '') }}" placeholder="support@example.com">
+            </div>
+            <div class="form-group">
+                <label>Discord Invite URL</label>
+                <input type="text" name="discord_invite_url" value="{{ settings.get('discord_invite_url', '') }}" placeholder="https://discord.gg/...">
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Banners &amp; Announcements</div>
+        <div class="settings-section-desc">Control site-wide banners visible to all users</div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Beta Warning Banner</h4>
+                <p>Yellow bar at the top telling users the platform is in beta</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="beta_banner_enabled" value="true" {% if settings.get('beta_banner_enabled', 'true') != 'false' %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+            <label>Beta Banner Text</label>
+            <input type="text" name="beta_banner_text" value="{{ settings.get('beta_banner_text', '') }}" placeholder="This bot is currently in beta and may not work as expected.">
+        </div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Announcement Banner</h4>
+                <p>Purple bar above the beta banner — use for important announcements</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="announcement_enabled" value="true" {% if settings.get('announcement_enabled', '') == 'true' %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+            <label>Announcement Text</label>
+            <textarea name="announcement_text" rows="2" placeholder="Discord server is now live! Join at discord.gg/...">{{ settings.get('announcement_text', '') }}</textarea>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Access Control</div>
+        <div class="settings-section-desc">Manage site-wide access and user limits</div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Maintenance Mode</h4>
+                <p>Blocks all non-admin access with a maintenance page. Admins can still log in and use /nx-admin.</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="maintenance_mode" value="true" {% if settings.get('maintenance_mode', '') == 'true' %}checked{% endif %}>
+                <span class="toggle-slider red-on"></span>
+            </label>
+        </div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Allow New Registrations</h4>
+                <p>When off, new users can't create accounts via Google OAuth</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="registration_enabled" value="true" {% if settings.get('registration_enabled', 'true') == 'true' %}checked{% endif %}>
+                <span class="toggle-slider green-on"></span>
+            </label>
+        </div>
+
+        <div class="form-row" style="margin-top:14px;">
+            <div class="form-group">
+                <label>Max Channels Per User</label>
+                <input type="number" name="max_channels_per_user" value="{{ settings.get('max_channels_per_user', '5') }}" min="1" max="50">
+            </div>
+            <div class="form-group">
+                <label>Default Bot Prefix</label>
+                <input type="text" name="default_bot_prefix" value="{{ settings.get('default_bot_prefix', '!') }}" maxlength="5">
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Branding</div>
+        <div class="settings-section-desc">Customize brand colors</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Primary Color</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <input type="color" name="primary_color" value="{{ settings.get('primary_color', '#6366f1') }}" style="width:48px;height:36px;padding:2px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:transparent;cursor:pointer;">
+                    <input type="text" value="{{ settings.get('primary_color', '#6366f1') }}" style="flex:1;" readonly onclick="this.previousElementSibling.click()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Secondary Color</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <input type="color" name="secondary_color" value="{{ settings.get('secondary_color', '#8b5cf6') }}" style="width:48px;height:36px;padding:2px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:transparent;cursor:pointer;">
+                    <input type="text" value="{{ settings.get('secondary_color', '#8b5cf6') }}" style="flex:1;" readonly onclick="this.previousElementSibling.click()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Social Links</div>
+        <div class="settings-section-desc">External social media profile URLs</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Twitter / X URL</label>
+                <input type="text" name="twitter_url" value="{{ settings.get('twitter_url', '') }}" placeholder="https://twitter.com/...">
+            </div>
+            <div class="form-group">
+                <label>GitHub URL</label>
+                <input type="text" name="github_url" value="{{ settings.get('github_url', '') }}" placeholder="https://github.com/...">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>YouTube URL</label>
+            <input type="text" name="youtube_url" value="{{ settings.get('youtube_url', '') }}" placeholder="https://youtube.com/@...">
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Rate Limiting</div>
+        <div class="settings-section-desc">Control API and request rate limits</div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Enable Rate Limiting</h4>
+                <p>Limits how many requests a single IP can make per minute</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="rate_limit_enabled" value="true" {% if settings.get('rate_limit_enabled', '') == 'true' %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+            <label>Requests Per Minute</label>
+            <input type="number" name="rate_limit_per_minute" value="{{ settings.get('rate_limit_per_minute', '60') }}" min="1" max="1000">
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Bot Defaults</div>
+        <div class="settings-section-desc">Default behavior for the bot when connecting new channels</div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Auto-join New Channels</h4>
+                <p>Bot automatically starts monitoring when a new channel is connected</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="bot_auto_join" value="true" {% if settings.get('bot_auto_join', '') == 'true' %}checked{% endif %}>
+                <span class="toggle-slider green-on"></span>
+            </label>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+            <label>Welcome Message</label>
+            <textarea name="welcome_message" rows="3" placeholder="Message shown in chat when the bot joins a new stream...">{{ settings.get('welcome_message', '') }}</textarea>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Content</div>
+        <div class="settings-section-desc">Blog and content configuration</div>
+
+        <div class="toggle-row">
+            <div class="toggle-row-info">
+                <h4>Enable Blog Comments</h4>
+                <p>Allow visitors to leave comments on blog posts</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" name="blog_comments_enabled" value="true" {% if settings.get('blog_comments_enabled', '') == 'true' %}checked{% endif %}>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-section-title">Advanced</div>
+        <div class="settings-section-desc">Additional configuration options</div>
+
+        <div class="form-group">
+            <label>Footer Text</label>
+            <input type="text" name="footer_text" value="{{ settings.get('footer_text', '') }}" placeholder="Custom footer text...">
+        </div>
+
+        <div class="form-group">
+            <label>Google Analytics ID</label>
+            <input type="text" name="google_analytics_id" value="{{ settings.get('google_analytics_id', '') }}" placeholder="G-XXXXXXXXXX">
+        </div>
+
+        <div class="form-group">
+            <label>Custom CSS</label>
+            <textarea name="custom_css" rows="4" placeholder="Add custom CSS styles..." style="font-family: monospace; font-size: 13px;">{{ settings.get('custom_css', '') }}</textarea>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+    </div>
+</form>
+{% endblock %}

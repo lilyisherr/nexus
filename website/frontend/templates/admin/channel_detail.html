@@ -1,0 +1,271 @@
+{% extends "admin/base.html" %}
+{% block title %}Channel: {{ channel.channel_name }}{% endblock %}
+{% block page_title %}Channel Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+    .channel-header {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 32px;
+        background: #1e1e2a;
+        padding: 32px;
+        border-radius: 12px;
+        border: 1px solid rgba(99,102,241,0.1);
+    }
+    .channel-thumbnail {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid #6366f1;
+    }
+    .channel-info h2 {
+        font-size: 28px;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+    .channel-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+    .stat-box {
+        background: #1e1e2a;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid rgba(99,102,241,0.1);
+    }
+    .stat-box .label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+    .stat-box .value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+    }
+    .live-status-card {
+        background: #1e1e2a;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid rgba(99,102,241,0.1);
+        margin-bottom: 24px;
+    }
+    .live-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .live-badge.off { background: rgba(100,116,139,0.15); color: #94a3b8; }
+    .live-badge.on { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ef4444;
+        box-shadow: 0 0 0 0 rgba(239,68,68,0.7);
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <a href="{{ url_for('admin_dashboard.channels') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Channels
+    </a>
+    <div style="display: flex; gap: 12px;">
+        <a href="https://youtube.com/channel/{{ channel.youtube_channel_id }}" target="_blank" class="btn btn-secondary">
+            <i class="fab fa-youtube"></i> YouTube Page
+        </a>
+        <a href="{{ url_for('admin_dashboard.user_detail', user_id=channel.user_id) }}" class="btn btn-secondary">
+            <i class="fas fa-user"></i> View Owner
+        </a>
+    </div>
+</div>
+
+<div class="channel-header">
+    {% if channel.thumbnail_url %}
+    <img src="{{ channel.thumbnail_url }}" alt="" class="channel-thumbnail">
+    {% else %}
+    <div class="channel-thumbnail" style="background: #16161d; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+        <i class="fab fa-youtube" style="color: #ef4444;"></i>
+    </div>
+    {% endif %}
+    <div class="channel-info">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+            <h2>{{ channel.channel_name or 'Unnamed' }}</h2>
+            {% if bot_settings and bot_settings.bot_enabled %}
+            <span class="badge badge-green">Bot Active</span>
+            {% else %}
+            <span class="badge badge-gray">Bot Inactive</span>
+            {% endif %}
+        </div>
+        <p style="color: #94a3b8; font-family: monospace;">{{ channel.youtube_channel_id }}</p>
+        <p style="color: #64748b; font-size: 14px; margin-top: 8px;">
+            <i class="fas fa-sync"></i> Last Synced: {{ channel.updated_at.strftime('%b %d, %Y %H:%M') if channel.updated_at else 'Never' }}
+        </p>
+    </div>
+</div>
+
+<div class="channel-stats">
+    <div class="stat-box">
+        <div class="label">Subscribers</div>
+        <div class="value">{{ "{:,}".format(channel.subscriber_count or 0) }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="label">Total Views</div>
+        <div class="value">{{ "{:,}".format(channel.view_count or 0) }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="label">Video Count</div>
+        <div class="value">{{ "{:,}".format(channel.video_count or 0) }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="label">Owner</div>
+        <div class="value" style="font-size: 16px;">
+            <a href="{{ url_for('admin_dashboard.user_detail', user_id=channel.user_id) }}">
+                {{ owner.username or owner.email }}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div>
+        <div class="live-status-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: #fff; font-size: 18px;">Live Status</h3>
+                <div id="live-indicator">
+                    <span class="live-badge off">OFFLINE</span>
+                </div>
+            </div>
+            <div id="live-details" style="display: none; margin-bottom: 20px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                <p id="live-title" style="color: #fff; font-weight: 600; margin-bottom: 8px;"></p>
+                <p style="color: #94a3b8; font-size: 14px;">
+                    <i class="fas fa-users"></i> <span id="live-viewers">0</span> viewers
+                </p>
+            </div>
+            <button id="check-live-btn" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-sync"></i> Check Live Status
+            </button>
+        </div>
+
+        <div class="card">
+            <h3 style="color: #fff; font-size: 18px; margin-bottom: 20px;">Bot Settings</h3>
+            {% if bot_settings %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                    <div style="font-size: 11px; color: #64748b; text-transform: uppercase;">Prefix</div>
+                    <div style="font-size: 16px; color: #fff; font-family: monospace;">{{ bot_settings.chat_prefix or '!' }}</div>
+                </div>
+                <div style="padding: 12px; background: #0f0f14; border-radius: 8px;">
+                    <div style="font-size: 11px; color: #64748b; text-transform: uppercase;">Moderation</div>
+                    <div style="font-size: 16px; color: #fff;">
+                        {% if bot_settings.moderation_enabled %}
+                        <span style="color: #22c55e;">Enabled</span>
+                        {% else %}
+                        <span style="color: #64748b;">Disabled</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <a href="{{ url_for('admin_dashboard.user_detail', user_id=channel.user_id) }}#bot-settings" class="btn btn-secondary btn-sm" style="width: 100%;">
+                    <i class="fas fa-edit"></i> Edit Bot Settings
+                </a>
+            </div>
+            {% else %}
+            <p style="color: #64748b; text-align: center; padding: 20px;">No bot settings found for this channel.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="color: #fff; font-size: 18px; margin-bottom: 20px;">Recent Streams</h3>
+        {% if recent_streams %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Peak Viewers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stream in recent_streams %}
+                    <tr>
+                        <td style="color: #fff; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ stream.title or 'Untitled Stream' }}
+                        </td>
+                        <td style="font-size: 13px; color: #94a3b8;">
+                            {{ stream.start_time.strftime('%b %d, %Y') if stream.start_time else 'N/A' }}
+                        </td>
+                        <td style="text-align: center; color: #fbbf24; font-weight: 600;">
+                            {{ stream.peak_viewers or 0 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+            <i class="fas fa-video-slash" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+            <p>No stream sessions recorded yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('check-live-btn').addEventListener('click', async function() {
+    const btn = this;
+    const indicator = document.getElementById('live-indicator');
+    const details = document.getElementById('live-details');
+    const titleElem = document.getElementById('live-title');
+    const viewersElem = document.getElementById('live-viewers');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+    
+    try {
+        const response = await fetch('/nx-admin/api/channel-live/{{ channel.id }}');
+        const data = await response.json();
+        
+        if (data.live) {
+            indicator.innerHTML = '<span class="live-badge on"><div class="pulse"></div> LIVE NOW</span>';
+            details.style.display = 'block';
+            titleElem.textContent = data.title;
+            viewersElem.textContent = data.viewers.toLocaleString();
+        } else {
+            indicator.innerHTML = '<span class="live-badge off">OFFLINE</span>';
+            details.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error checking live status:', error);
+        alert('Failed to check live status');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync"></i> Check Live Status';
+    }
+});
+</script>
+{% endblock %}

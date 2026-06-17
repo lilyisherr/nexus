@@ -1,0 +1,191 @@
+{% extends "admin/base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Platform Analytics{% endblock %}
+{% block content %}
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+        <div class="stat-value">{{ user_count }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-tv"></i></div>
+        <div class="stat-value">{{ channel_count }}</div>
+        <div class="stat-label">YouTube Channels</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fab fa-discord"></i></div>
+        <div class="stat-value">{{ bot_user_count }}</div>
+        <div class="stat-label">Discord Bot Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-server"></i></div>
+        <div class="stat-value">{{ server_count }}</div>
+        <div class="stat-label">Server Configs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pink"><i class="fas fa-robot"></i></div>
+        <div class="stat-value">{{ active_bots }}</div>
+        <div class="stat-label">Active Bots</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pink"><i class="fas fa-pen-fancy"></i></div>
+        <div class="stat-value">{{ blog_count }}</div>
+        <div class="stat-label">Blog Posts (DB)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-envelope"></i></div>
+        <div class="stat-value">{{ message_count }}</div>
+        <div class="stat-label">Contact Messages</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>User Registrations (Last 30 Days)</h3>
+        </div>
+        <div style="padding:24px;">
+            {% if recent_registrations %}
+            <div style="height:280px;position:relative;">
+                <canvas id="registrationChart"></canvas>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-chart-bar"></i>
+                <p>No registration data available yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Bot User Registrations (Last 30 Days)</h3>
+        </div>
+        <div style="padding:24px;">
+            {% if bot_user_registrations %}
+            <div style="height:280px;position:relative;">
+                <canvas id="botRegChart"></canvas>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fab fa-discord"></i>
+                <p>No bot user registration data available yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Platform Summary</h3>
+        </div>
+        <div style="padding:24px;">
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Users per Channel</span>
+                <span style="color:#fff;font-weight:600;">{{ '%.1f'|format(user_count / channel_count) if channel_count > 0 else '0' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Bot Users / Total Users</span>
+                <span style="color:#fff;font-weight:600;">{{ '%.0f'|format(bot_user_count / user_count * 100) if user_count > 0 else '0' }}%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Avg Servers per Bot User</span>
+                <span style="color:#fff;font-weight:600;">{{ '%.1f'|format(server_count / bot_user_count) if bot_user_count > 0 else '0' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(99,102,241,0.08);">
+                <span style="color:#94a3b8;">Active Bots / Channels</span>
+                <span style="color:#fff;font-weight:600;">{{ '%.0f'|format(active_bots / channel_count * 100) if channel_count > 0 else '0' }}%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;">
+                <span style="color:#94a3b8;">Messages per User</span>
+                <span style="color:#fff;font-weight:600;">{{ '%.1f'|format(message_count / user_count) if user_count > 0 else '0' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-table-wrapper">
+        <div class="admin-table-header">
+            <h3>Quick Actions</h3>
+        </div>
+        <div style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+            <a href="{{ url_for('admin_dashboard.blog_new') }}" class="btn btn-primary" style="justify-content:center;">
+                <i class="fas fa-plus"></i> Create Blog Post
+            </a>
+            <a href="{{ url_for('admin_dashboard.messages') }}" class="btn btn-secondary" style="justify-content:center;">
+                <i class="fas fa-envelope"></i> View Messages
+            </a>
+            <a href="{{ url_for('admin_dashboard.system_info') }}" class="btn btn-secondary" style="justify-content:center;">
+                <i class="fas fa-info-circle"></i> System Info
+            </a>
+            <a href="{{ url_for('admin_dashboard.users') }}" class="btn btn-secondary" style="justify-content:center;">
+                <i class="fas fa-users"></i> Manage Users
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% if recent_registrations or bot_user_registrations %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var chartOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+        x: {
+            ticks: { color: '#64748b', font: { size: 11 } },
+            grid: { color: 'rgba(99,102,241,0.05)' }
+        },
+        y: {
+            beginAtZero: true,
+            ticks: { color: '#64748b', stepSize: 1 },
+            grid: { color: 'rgba(99,102,241,0.05)' }
+        }
+    }
+};
+{% if recent_registrations %}
+var regData = {{ recent_registrations|tojson }};
+regData.reverse();
+new Chart(document.getElementById('registrationChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: regData.map(function(d) { return d.day; }),
+        datasets: [{
+            label: 'New Users',
+            data: regData.map(function(d) { return d.count; }),
+            backgroundColor: 'rgba(99,102,241,0.5)',
+            borderColor: '#6366f1',
+            borderWidth: 1,
+            borderRadius: 4
+        }]
+    },
+    options: chartOpts
+});
+{% endif %}
+{% if bot_user_registrations %}
+var botData = {{ bot_user_registrations|tojson }};
+botData.reverse();
+new Chart(document.getElementById('botRegChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: botData.map(function(d) { return d.day; }),
+        datasets: [{
+            label: 'New Bot Users',
+            data: botData.map(function(d) { return d.count; }),
+            backgroundColor: 'rgba(88,101,242,0.5)',
+            borderColor: '#5865F2',
+            borderWidth: 1,
+            borderRadius: 4
+        }]
+    },
+    options: chartOpts
+});
+{% endif %}
+</script>
+{% endif %}
+{% endblock %}

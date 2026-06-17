@@ -1,0 +1,80 @@
+{% extends "admin/base.html" %}
+{% block title %}Mod Logs{% endblock %}
+{% block page_title %}Moderation Logs{% endblock %}
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+    <p style="color: #94a3b8; font-size: 14px;">{{ logs.total }} moderation actions recorded</p>
+    <form method="GET" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <select name="action" class="form-group" style="padding: 8px 14px; margin: 0; min-width: 160px;" onchange="this.form.submit()">
+            <option value="all" {% if action_filter == 'all' %}selected{% endif %}>All Actions</option>
+            {% for at in action_types %}
+            <option value="{{ at }}" {% if action_filter == at %}selected{% endif %}>{{ at }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="server" value="{{ server_filter }}" placeholder="Server ID..." class="form-group"
+               style="padding: 8px 14px; margin: 0; width: 200px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button>
+    </form>
+</div>
+
+{% if logs.items %}
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Moderator</th>
+                    <th>Target</th>
+                    <th>Server</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs.items %}
+                <tr>
+                    <td>
+                        <span class="badge" style="
+                            {% if log.action_type in ('ban', 'kick') %}background: rgba(239,68,68,0.15); color: #ef4444;
+                            {% elif log.action_type == 'warn' %}background: rgba(234,179,8,0.15); color: #eab308;
+                            {% elif log.action_type == 'mute' %}background: rgba(249,115,22,0.15); color: #f97316;
+                            {% elif log.action_type == 'unban' %}background: rgba(34,197,94,0.15); color: #22c55e;
+                            {% else %}background: rgba(99,102,241,0.15); color: #818cf8;{% endif %}
+                        ">{{ log.action_type }}</span>
+                    </td>
+                    <td style="color: #e2e8f0; font-size: 13px;">{{ log.moderator_name or log.moderator_id }}</td>
+                    <td style="color: #94a3b8; font-size: 13px;">{{ log.target_name or log.target_id }}</td>
+                    <td style="color: #64748b; font-size: 13px;">{{ log.server_id }}</td>
+                    <td style="color: #94a3b8; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ log.reason or '-' }}
+                    </td>
+                    <td style="color: #64748b; font-size: 13px; white-space: nowrap;">{{ log.created_at.strftime('%b %d, %Y %H:%M') if log.created_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if logs.pages > 1 %}
+<div style="display: flex; justify-content: center; gap: 6px; margin-top: 24px;">
+    {% for p in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <a href="{{ url_for('admin_dashboard.mod_logs', page=p, action=action_filter, server=server_filter) }}"
+           class="btn {% if p == logs.page %}btn-primary{% else %}btn-secondary{% endif %}"
+           style="min-width: 36px; text-align: center;">{{ p }}</a>
+        {% else %}
+        <span style="padding: 8px; color: #64748b;">...</span>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <i class="fas fa-gavel"></i>
+    <p>{% if action_filter != 'all' or server_filter %}No mod logs matching your filters{% else %}No moderation logs recorded yet{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

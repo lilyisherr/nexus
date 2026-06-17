@@ -1,0 +1,133 @@
+{% extends "admin/base.html" %}
+{% block title %}System Info{% endblock %}
+{% block page_title %}System Information{% endblock %}
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div class="card">
+        <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+            <i class="fas fa-server" style="color: #818cf8;"></i> Environment
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Python</span>
+                <span style="color: #e2e8f0; font-size: 14px; font-family: monospace;">{{ info.python_version.split()[0] }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Platform</span>
+                <span style="color: #e2e8f0; font-size: 14px; font-family: monospace;">{{ info.platform[:40] }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Database</span>
+                <span style="color: #e2e8f0; font-size: 14px; font-family: monospace;">{{ info.database_url }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Port</span>
+                <span style="color: #e2e8f0; font-size: 14px; font-family: monospace;">{{ info.port }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+            <i class="fas fa-key" style="color: #eab308;"></i> Configuration Status
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Google OAuth</span>
+                {% if info.google_oauth_configured %}
+                <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Configured</span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Not Set</span>
+                {% endif %}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Discord OAuth</span>
+                {% if info.discord_oauth_configured %}
+                <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Configured</span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Not Set</span>
+                {% endif %}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Discord Bot Token</span>
+                {% if info.discord_bot_token_set %}
+                <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Set</span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Not Set</span>
+                {% endif %}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">YouTube API Key</span>
+                {% if info.youtube_api_key_set %}
+                <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Set</span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Not Set</span>
+                {% endif %}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Bot Access Token</span>
+                {% if info.bot_access_token_set %}
+                <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Set</span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Not Set</span>
+                {% endif %}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #0f0f14; border-radius: 6px;">
+                <span style="color: #94a3b8; font-size: 14px;">Nexus API Key</span>
+                {% if info.nexus_api_key_set %}
+                <span class="badge" style="background: rgba(34,197,94,0.15); color: #22c55e;">Set</span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444;">Not Set</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+        <i class="fas fa-database" style="color: #6366f1;"></i> Database Tables
+    </h3>
+    {% if table_counts %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+        {% for table, count in table_counts.items() %}
+        <div style="padding: 12px; background: #0f0f14; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #94a3b8; font-size: 14px; font-family: monospace;">{{ table }}</span>
+            <span style="color: #818cf8; font-weight: 700; font-size: 16px;">{{ count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 32px;">
+        <p>Could not read table information</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 style="font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px;">
+        <i class="fas fa-download" style="color: #22c55e;"></i> Data Export
+    </h3>
+    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 16px;">Download data as JSON files for backup or analysis.</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='users') }}" class="btn btn-secondary" style="text-align: center;">
+            <i class="fas fa-users"></i> Export Users
+        </a>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='channels') }}" class="btn btn-secondary" style="text-align: center;">
+            <i class="fab fa-youtube"></i> Export Channels
+        </a>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='bot-users') }}" class="btn btn-secondary" style="text-align: center;">
+            <i class="fab fa-discord"></i> Export Bot Users
+        </a>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='servers') }}" class="btn btn-secondary" style="text-align: center;">
+            <i class="fas fa-server"></i> Export Servers
+        </a>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='blogs') }}" class="btn btn-secondary" style="text-align: center;">
+            <i class="fas fa-pen-fancy"></i> Export Blog Posts
+        </a>
+        <a href="{{ url_for('admin_dashboard.export_data', export_type='messages') }}" class="btn btn-secondary" style="text-align: center;">
+            <i class="fas fa-envelope"></i> Export Messages
+        </a>
+    </div>
+</div>
+{% endblock %}

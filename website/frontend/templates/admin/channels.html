@@ -1,0 +1,106 @@
+{% extends "admin/base.html" %}
+{% block title %}Channels{% endblock %}
+{% block page_title %}YouTube Channels{% endblock %}
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <div>
+        <p style="color: #94a3b8; font-size: 14px;">{{ channels.total }} channels registered across all users</p>
+    </div>
+    <form method="GET" style="display: flex; gap: 8px;">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search channels..." class="form-group"
+               style="padding: 8px 14px; margin: 0; width: 240px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+{% if channels.items %}
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Subscribers</th>
+                    <th>Videos / Views</th>
+                    <th>Owner</th>
+                    <th>Bot Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ch in channels.items %}
+                <tr>
+                    <td style="font-weight: 500; color: #fff;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            {% if ch.thumbnail_url %}
+                            <img src="{{ ch.thumbnail_url }}" alt="" style="width: 32px; height: 32px; border-radius: 50%;">
+                            {% else %}
+                            <i class="fab fa-youtube" style="color: #ef4444; font-size: 24px;"></i>
+                            {% endif %}
+                            <div>
+                                <a href="https://youtube.com/channel/{{ ch.youtube_channel_id }}" target="_blank" style="color: #fff; font-weight: 600;">
+                                    {{ ch.channel_name or 'Unnamed' }}
+                                </a>
+                                <div style="font-family: monospace; font-size: 11px; color: #64748b;">{{ ch.youtube_channel_id }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 14px; color: #e2e8f0; font-weight: 600;">{{ "{:,}".format(ch.subscriber_count or 0) }}</div>
+                        <div style="font-size: 11px; color: #64748b;">subscribers</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px; color: #e2e8f0;">{{ "{:,}".format(ch.video_count or 0) }} videos</div>
+                        <div style="font-size: 11px; color: #64748b;">{{ "{:,}".format(ch.view_count or 0) }} total views</div>
+                    </td>
+                    <td>
+                        {% if ch.owner %}
+                        <a href="{{ url_for('admin_dashboard.user_detail', user_id=ch.user_id) }}" style="color: #818cf8; font-size: 14px;">
+                            {{ ch.owner.username or ch.owner.email }}
+                        </a>
+                        {% else %}
+                        <span style="color: #64748b;">Unknown</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ch.bot_settings and ch.bot_settings.bot_enabled %}
+                        <span class="badge badge-green"><i class="fas fa-check-circle"></i> Active</span>
+                        {% else %}
+                        <span class="badge badge-gray">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{{ url_for('admin_dashboard.channel_detail', channel_id=ch.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if channels.pages > 1 %}
+<div style="display: flex; justify-content: center; gap: 6px; margin-top: 24px;">
+    {% for p in channels.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <a href="{{ url_for('admin_dashboard.channels', page=p, q=search) }}"
+           class="btn {% if p == channels.page %}btn-primary{% else %}btn-secondary{% endif %}"
+           style="min-width: 36px; text-align: center;">{{ p }}</a>
+        {% else %}
+        <span style="padding: 8px; color: #64748b;">...</span>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <i class="fab fa-youtube"></i>
+    <p>{% if search %}No channels matching "{{ search }}"{% else %}No channels registered yet{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

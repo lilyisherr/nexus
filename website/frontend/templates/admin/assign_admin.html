@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Assign Admin - Nexus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f14;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 24px;
+        }
+        .card {
+            background: #1e1e2a;
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            background: rgba(34,197,94,0.15);
+            color: #22c55e;
+            border: 1px solid rgba(34,197,94,0.3);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(99,102,241,0.1);
+        }
+        td {
+            padding: 10px 12px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(99,102,241,0.06);
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-admin {
+            background: rgba(99,102,241,0.15);
+            color: #818cf8;
+        }
+        .badge-user {
+            background: rgba(100,116,139,0.15);
+            color: #64748b;
+        }
+        form.assign-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            background: #0f0f14;
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        button {
+            padding: 8px 20px;
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #818cf8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            color: #a5b4fc;
+        }
+        .empty {
+            text-align: center;
+            padding: 32px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1><i class="fas fa-shield-alt" style="color: #6366f1;"></i> Assign Admin</h1>
+            <p class="subtitle">Select a user ID below to grant admin access, then you can access the full admin panel at /nx-admin/</p>
+
+            {% if message %}
+            <div class="alert">{{ message }}</div>
+            {% endif %}
+
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td style="font-weight: 700; color: #818cf8;">#{{ u['id'] }}</td>
+                        <td style="color: #fff;">{{ u['username'] or 'N/A' }}</td>
+                        <td style="color: #94a3b8;">{{ u['email'] }}</td>
+                        <td>
+                            {% if u['is_admin'] %}
+                            <span class="badge badge-admin"><i class="fas fa-check"></i> Admin</span>
+                            {% else %}
+                            <span class="badge badge-user">User</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <form class="assign-form" method="POST">
+                <input type="number" name="user_id" placeholder="User ID" min="1" required>
+                <button type="submit"><i class="fas fa-user-shield"></i> Grant Admin</button>
+            </form>
+            {% else %}
+            <div class="empty">
+                <i class="fas fa-users" style="font-size: 32px; margin-bottom: 12px; display: block;"></i>
+                <p>No users registered yet. Log in to the site first, then come back here.</p>
+            </div>
+            {% endif %}
+        </div>
+        <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Site</a>
+    </div>
+</body>
+</html>

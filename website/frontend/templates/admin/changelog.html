@@ -1,0 +1,418 @@
+{% extends "admin/base.html" %}
+{% block title %}Changelog{% endblock %}
+{% block page_title %}Changelog{% endblock %}
+{% block extra_css %}
+.discord-send-wrap {
+    background: #1a1a2e;
+    border: 1px solid rgba(88,101,242,0.3);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+.discord-send-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.discord-send-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.discord-send-header p { font-size: 13px; color: #64748b; }
+.send-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #5865F2;
+    color: white;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.send-btn:hover { background: #4752c4; }
+.send-btn:disabled { background: #334155; cursor: not-allowed; }
+.send-btn.success { background: #10b981; }
+.send-btn.error { background: #ef4444; }
+.copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(88,101,242,0.12);
+    color: #818cf8;
+    border: 1px solid rgba(88,101,242,0.25);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.copy-btn:hover { background: rgba(88,101,242,0.2); }
+.copy-btn.copied { background: #10b981; color: #fff; border-color: #10b981; }
+.version-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.version-selector button {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(99,102,241,0.2);
+    background: rgba(99,102,241,0.08);
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.version-selector button:hover,
+.version-selector button.active {
+    background: #6366f1;
+    color: #fff;
+    border-color: #6366f1;
+}
+.send-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+    align-items: flex-end;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+.send-row-group { display: flex; flex-direction: column; gap: 5px; }
+.send-row-group label { font-size: 12px; font-weight: 600; color: #94a3b8; }
+.send-row-group input {
+    background: #0f0f14;
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 7px;
+    color: #e2e8f0;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 100%;
+}
+.send-row-group input:focus { outline: none; border-color: #6366f1; }
+.send-status {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    display: none;
+}
+.send-status.success { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+.send-status.error { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+.discord-embed-preview {
+    background: #2b2d31;
+    border-radius: 8px;
+    border-left: 4px solid #6366f1;
+    padding: 16px;
+    margin-top: 12px;
+    font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+.dep-bot-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.dep-bot-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #5865f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+.dep-bot-name { font-size: 14px; font-weight: 700; color: #fff; }
+.dep-bot-tag { font-size: 11px; background: #5865f2; color: #fff; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.dep-embed-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.dep-embed-title a { color: #00a8fc; text-decoration: none; }
+.dep-embed-desc { font-size: 13px; color: #b5bac1; line-height: 1.6; white-space: pre-wrap; margin-bottom: 10px; }
+.dep-embed-fields { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.dep-embed-field { font-size: 12px; }
+.dep-embed-field-name { font-weight: 700; color: #fff; margin-bottom: 2px; }
+.dep-embed-field-val { color: #b5bac1; }
+.dep-embed-footer { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.dep-embed-footer-icon { width: 16px; height: 16px; border-radius: 50%; }
+.dep-embed-footer-text { font-size: 11px; color: #87909e; }
+.cl-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+}
+.cl-entry {
+    background: #1e1e2a;
+    border: 1px solid rgba(99,102,241,0.1);
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.cl-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.cl-version {
+    font-size: 13px;
+    font-weight: 800;
+    color: #818cf8;
+    background: rgba(99,102,241,0.12);
+    padding: 2px 8px;
+    border-radius: 5px;
+}
+.cl-date { font-size: 12px; color: #64748b; }
+.cl-badge {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    color: white;
+}
+.cl-badge-feature { background: #10b981; }
+.cl-badge-improvement { background: #6366f1; }
+.cl-badge-fix { background: #f59e0b; color: #000; }
+.cl-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.cl-desc { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 12px; }
+.cl-changes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid rgba(99,102,241,0.08);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.cl-changes li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+.cl-changes li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #6366f1;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+{% endblock %}
+{% block content %}
+<div class="discord-send-wrap">
+    <div class="discord-send-header">
+        <div>
+            <h3>
+                <i class="fab fa-discord" style="color:#5865F2;"></i>
+                Post Changelog to Discord
+            </h3>
+            <p>Select a version, enter a Discord channel ID, optionally ping a role, then send.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="copy-btn" id="copyRawBtn" onclick="copyRaw()">
+                <i class="fas fa-copy"></i> Copy Raw
+            </button>
+            <button class="send-btn" id="sendBtn" onclick="sendChangelog()">
+                <i class="fab fa-discord"></i> Send to Discord
+            </button>
+        </div>
+    </div>
+
+    <div class="version-selector" id="versionSelector">
+        {% for entry in changelog %}
+        <button onclick="selectVersion({{ loop.index0 }})" class="{% if loop.first %}active{% endif %}">
+            {{ entry.version }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <div class="send-row">
+        <div class="send-row-group">
+            <label><i class="fas fa-hashtag"></i> Channel ID</label>
+            <input type="text" id="channelIdInput" placeholder="e.g. 1234567890123456789" autocomplete="off">
+        </div>
+        <div class="send-row-group">
+            <label><i class="fas fa-at"></i> Ping Role ID (optional)</label>
+            <input type="text" id="pingRoleInput" placeholder="Role ID to mention (leave blank for none)">
+        </div>
+    </div>
+
+    <div class="send-status" id="sendStatus"></div>
+
+    <div style="margin-top:16px;">
+        <div style="font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Embed Preview</div>
+        <div class="discord-embed-preview" id="embedPreview">
+            <div class="dep-bot-row">
+                <div class="dep-bot-avatar">N</div>
+                <div>
+                    <span class="dep-bot-name">Nexus Bot</span>
+                    <span class="dep-bot-tag">BOT</span>
+                </div>
+            </div>
+            <div style="border-left:4px solid #6366f1;padding-left:12px;" id="embedContent">
+                <div class="dep-embed-title" id="depTitle"></div>
+                <div class="dep-embed-desc" id="depDesc"></div>
+                <div class="dep-embed-fields" id="depFields"></div>
+                <div class="dep-embed-footer">
+                    <img src="/static/img/logo.png" class="dep-embed-footer-icon" alt="" onerror="this.style.display='none'">
+                    <span class="dep-embed-footer-text">Nexus Bot • Full changelog at nexusbeta.vercel.app/changelog</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <h3 style="font-size:15px;font-weight:600;color:#fff;">All Versions</h3>
+    <a href="/changelog" target="_blank" class="btn btn-secondary btn-sm">
+        <i class="fas fa-external-link-alt"></i> View Public Changelog
+    </a>
+</div>
+
+<div class="cl-timeline">
+    {% for entry in changelog %}
+    <div class="cl-entry">
+        <div class="cl-entry-header">
+            <span class="cl-version">{{ entry.version }}</span>
+            <span class="cl-date">{{ entry.date }}</span>
+            <span class="cl-badge cl-badge-{{ entry.type }}">{{ entry.type }}</span>
+        </div>
+        <div class="cl-title">{{ entry.title }}</div>
+        <div class="cl-desc">{{ entry.description }}</div>
+        {% if entry.changes %}
+        <ul class="cl-changes">
+            {% for change in entry.changes %}
+            <li>{{ change }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+var changelogData = {{ changelog | tojson }};
+var csrfToken = '{{ admin_csrf_token }}';
+var currentIndex = 0;
+
+var typeColors = { feature: '#10b981', improvement: '#6366f1', fix: '#f59e0b' };
+
+function buildEmbedDescription(entry) {
+    var desc = (entry.description || '');
+    if (entry.changes && entry.changes.length) {
+        desc += '\n\n' + entry.changes.map(function(c) { return '• ' + c; }).join('\n');
+    }
+    return desc;
+}
+
+function updatePreview(entry) {
+    var color = typeColors[entry.type] || '#6366f1';
+    document.getElementById('embedContent').style.borderLeftColor = color;
+    var titleEl = document.getElementById('depTitle');
+    titleEl.innerHTML = '<a href="https://nexusbeta.vercel.app/changelog">' + entry.version + ' — ' + entry.title + '</a>';
+    document.getElementById('depDesc').textContent = buildEmbedDescription(entry);
+    var typeLabels = { feature: '🟢 New Feature', improvement: '🟣 Improvement', fix: '🟡 Bug Fix' };
+    var fieldsHtml = '<div class="dep-embed-field"><div class="dep-embed-field-name">Type</div><div class="dep-embed-field-val">' + (typeLabels[entry.type] || '🟣 Update') + '</div></div>';
+    fieldsHtml += '<div class="dep-embed-field"><div class="dep-embed-field-name">Released</div><div class="dep-embed-field-val">' + (entry.date || '') + '</div></div>';
+    fieldsHtml += '<div class="dep-embed-field"><div class="dep-embed-field-name">Changes</div><div class="dep-embed-field-val">' + (entry.changes ? entry.changes.length : 0) + '</div></div>';
+    document.getElementById('depFields').innerHTML = fieldsHtml;
+}
+
+function selectVersion(index) {
+    currentIndex = index;
+    var btns = document.querySelectorAll('#versionSelector button');
+    btns.forEach(function(b, i) { b.classList.toggle('active', i === index); });
+    updatePreview(changelogData[index]);
+}
+
+function copyRaw() {
+    var entry = changelogData[currentIndex];
+    var lines = ['**[' + entry.version + '] ' + entry.title + '**', '*' + entry.date + '*', '', entry.description, ''];
+    if (entry.changes && entry.changes.length) { entry.changes.forEach(function(c) { lines.push('• ' + c); }); }
+    lines.push('', 'Full changelog: https://nexusbeta.vercel.app/changelog');
+    navigator.clipboard.writeText(lines.join('\n')).then(function() {
+        var btn = document.getElementById('copyRawBtn');
+        btn.classList.add('copied');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(function() { btn.classList.remove('copied'); btn.innerHTML = '<i class="fas fa-copy"></i> Copy Raw'; }, 2500);
+    });
+}
+
+function sendChangelog() {
+    var channelId = document.getElementById('channelIdInput').value.trim();
+    if (!channelId) {
+        showStatus('error', 'Please enter a Discord channel ID.');
+        return;
+    }
+    var pingRoleId = document.getElementById('pingRoleInput').value.trim();
+    var btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    var formData = new FormData();
+    formData.append('csrf_token', csrfToken);
+    formData.append('channel_id', channelId);
+    formData.append('version_index', currentIndex);
+    if (pingRoleId) formData.append('ping_role_id', pingRoleId);
+    fetch('/nx-admin/changelog/send', { method: 'POST', body: formData })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+            btn.disabled = false;
+            if (res.ok && res.data.ok) {
+                btn.classList.add('success');
+                btn.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                showStatus('success', res.data.version + ' sent to Discord successfully!');
+                setTimeout(function() { btn.classList.remove('success'); btn.innerHTML = '<i class="fab fa-discord"></i> Send to Discord'; }, 3000);
+            } else {
+                btn.classList.add('error');
+                btn.innerHTML = '<i class="fas fa-times"></i> Failed';
+                showStatus('error', res.data.error || 'Failed to send to Discord.');
+                setTimeout(function() { btn.classList.remove('error'); btn.innerHTML = '<i class="fab fa-discord"></i> Send to Discord'; }, 3000);
+            }
+        })
+        .catch(function(e) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fab fa-discord"></i> Send to Discord';
+            showStatus('error', 'Network error: ' + e.message);
+        });
+}
+
+function showStatus(type, msg) {
+    var el = document.getElementById('sendStatus');
+    el.className = 'send-status ' + type;
+    el.innerHTML = (type === 'success' ? '<i class="fas fa-check-circle"></i> ' : '<i class="fas fa-exclamation-circle"></i> ') + msg;
+    el.style.display = 'block';
+    setTimeout(function() { el.style.display = 'none'; }, 6000);
+}
+
+updatePreview(changelogData[0]);
+</script>
+{% endblock %}

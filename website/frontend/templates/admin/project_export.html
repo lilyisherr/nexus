@@ -1,0 +1,141 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Project Export — Nexus Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Project Export</h1>
+        <p class="page-desc">Download all project files including hidden files for GitHub backup.</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px;">
+    <div class="stat-card">
+        <div class="stat-label">Total Files</div>
+        <div class="stat-value">{{ file_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Size</div>
+        <div class="stat-value">{{ "%.1f"|format(total_size / 1024 / 1024) }} MB</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Excluded</div>
+        <div class="stat-value">.git, __pycache__</div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <h2>Download ZIP</h2>
+    </div>
+    <div class="card-body">
+        <p style="margin-bottom: 16px; color: var(--text-muted);">
+            Downloads all {{ file_count }} files as a single ZIP archive. Includes hidden files like <code>.gitignore</code>, <code>.replit</code>, <code>replit.nix</code>, and config files. The <code>.git</code> folder and compiled <code>__pycache__</code> are excluded.
+        </p>
+        <a href="/nx-admin/project-export/download" class="btn btn-primary" style="font-size: 15px; padding: 12px 28px;">
+            <i class="fas fa-download"></i> Download nexus-project.zip
+        </a>
+        <p style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+            After downloading, create a new GitHub repo and drag-drop the extracted folder contents into it, or use <code>git init</code> in the extracted folder.
+        </p>
+    </div>
+</div>
+
+{% if hidden_files %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <h2>Environment Files</h2>
+        <p class="card-desc">These files contain secrets and are included in the ZIP — copy them carefully if you need to recreate them manually.</p>
+    </div>
+    <div class="card-body">
+        {% for hf in hidden_files %}
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <code style="font-size: 13px; color: #e2e8f0; background: #1e1e2e; padding: 4px 10px; border-radius: 4px;">{{ hf.path }}</code>
+                <button onclick="copyToClipboard(this, 'env-{{ loop.index }}')" class="btn btn-sm" style="font-size: 12px;">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            <textarea id="env-{{ loop.index }}" readonly style="width: 100%; font-family: monospace; font-size: 12px; background: #0f0f14; color: #a3e635; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; resize: vertical; min-height: 120px; box-sizing: border-box;">{{ hf.content }}</textarea>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>File List ({{ file_count }} files)</h2>
+        <input type="text" id="file-search" placeholder="Filter files..." style="padding: 6px 12px; font-size: 13px; background: #0f0f14; border: 1px solid #1e293b; border-radius: 6px; color: #e2e8f0; width: 240px;" oninput="filterFiles(this.value)">
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="table" id="file-table">
+                <thead>
+                    <tr>
+                        <th>Path</th>
+                        <th style="text-align: right; width: 90px;">Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in file_tree %}
+                    <tr class="file-row">
+                        <td>
+                            {% if f.path.startswith('.') or '/.' in f.path %}
+                            <span style="color: #f59e0b; font-family: monospace; font-size: 12px;">{{ f.path }}</span>
+                            {% else %}
+                            <span style="font-family: monospace; font-size: 12px;">{{ f.path }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right; font-size: 12px; color: #64748b; white-space: nowrap;">
+                            {% if f.size < 1024 %}{{ f.size }} B{% elif f.size < 1048576 %}{{ "%.1f"|format(f.size / 1024) }} KB{% else %}{{ "%.1f"|format(f.size / 1048576) }} MB{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.card { background: #13131a; border: 1px solid #1e293b; border-radius: 10px; margin-bottom: 16px; }
+.card-header { padding: 18px 24px 0; }
+.card-header h2 { font-size: 16px; font-weight: 600; color: #e2e8f0; margin: 0 0 6px; }
+.card-desc { font-size: 13px; color: #64748b; margin: 0 0 16px; }
+.card-body { padding: 16px 24px 24px; }
+.table { width: 100%; border-collapse: collapse; }
+.table th { padding: 10px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border-bottom: 1px solid #1e293b; background: #0d0d14; }
+.table td { padding: 7px 16px; border-bottom: 1px solid #1a1a2a; }
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #1a1a2e; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; border: 1px solid #1e293b; cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
+.btn-primary { background: #6366f1; border-color: #6366f1; color: #fff; }
+.btn-primary:hover { background: #4f46e5; }
+.btn-sm { padding: 5px 12px; font-size: 12px; background: #1e1e2e; color: #94a3b8; }
+.btn-sm:hover { background: #2a2a3e; color: #e2e8f0; }
+code { font-family: monospace; }
+</style>
+
+<script>
+function filterFiles(query) {
+    var rows = document.querySelectorAll('.file-row');
+    query = query.toLowerCase();
+    rows.forEach(function(row) {
+        var path = row.querySelector('span').textContent.toLowerCase();
+        row.style.display = path.includes(query) ? '' : 'none';
+    });
+}
+
+function copyToClipboard(btn, id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    navigator.clipboard.writeText(el.value).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+        setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    });
+}
+</script>
+{% endblock %}
