@@ -931,18 +931,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="response-delay">Response Delay</label>
+                        <label class="form-label" for="response-delay">Reply Speed</label>
                         <div class="form-row">
-                            <input type="number" id="response-delay" class="form-input form-input-sm" min="0" max="30" value="{{ settings.response_delay or 2 }}">
+                            <input type="number" id="response-delay" class="form-input form-input-sm" min="0" max="15" value="{{ settings.response_delay or 0 }}">
                             <span class="form-suffix">seconds</span>
                         </div>
-                        <p class="form-hint">Delay before bot responds to messages (0-30s)</p>
+                        <p class="form-hint">0 = instant reply; higher values slow the bot down for a more relaxed feel.</p>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="join-message">Stream Start Message</label>
-                        <textarea id="join-message" class="form-input form-textarea">{{ settings.join_message or '' }}</textarea>
-                        <p class="form-hint">Message sent when your stream goes live (leave empty to disable)</p>
+                        <textarea id="join-message" class="form-input form-textarea" placeholder="Welcome to the stream! Type !help for commands.">{{ settings.join_message or '' }}</textarea>
+                        <p class="form-hint">Shows when the stream goes live. Leave blank to keep it off.</p>
                     </div>
 
                     <div class="form-group">
@@ -2405,7 +2405,7 @@
             saveSettings({
                 bot_enabled: document.getElementById('bot-enabled').checked,
                 chat_prefix: document.getElementById('chat-prefix').value,
-                response_delay: parseInt(document.getElementById('response-delay').value) || 2,
+                response_delay: parseInt(document.getElementById('response-delay').value) || 0,
                 join_message: document.getElementById('join-message').value,
                 command_cooldown: parseInt(document.getElementById('command-cooldown').value) || 5,
                 command_user_cooldown: parseInt(document.getElementById('command-user-cooldown').value) || 10,

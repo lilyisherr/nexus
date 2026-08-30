@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-POLL_INTERVAL = 10
-OFFLINE_CHECK_INTERVAL = 30
+POLL_INTERVAL = 2
+OFFLINE_CHECK_INTERVAL = 10
 
 
 class BotInstance:
@@ -218,6 +218,13 @@ class BotInstance:
             logger.error(f"Failed to send message: {e}")
             return False
 
+    def _respond_with_delay(self, text, delay=None):
+        if delay is None:
+            delay = int(self.bot_settings.get('response_delay', 0) or 0)
+        if delay > 0:
+            time.sleep(min(delay, 5))
+        return self._send_message(text)
+
     def _poll_messages(self, page_token=None):
         try:
             params = {
@@ -345,7 +352,7 @@ class BotInstance:
             response = response.replace('{channel}', self.stream_title or '')
 
         if response:
-            self._send_message(response)
+            self._respond_with_delay(response)
 
     def _build_command_list(self):
         prefix = self.bot_settings.get('chat_prefix', '!')
@@ -410,7 +417,7 @@ class BotInstance:
 
             response = response.replace('{user}', author).replace('{channel}', self.stream_title or '')
             if response:
-                self._send_message(response)
+                self._respond_with_delay(response)
 
     def _run(self):
         self.started_at = datetime.utcnow()
@@ -438,8 +445,7 @@ class BotInstance:
 
                         join_msg = self.bot_settings.get('join_message')
                         if join_msg:
-                            time.sleep(self.bot_settings.get('response_delay', 2))
-                            self._send_message(join_msg)
+                            self._respond_with_delay(join_msg)
                     else:
                         time.sleep(OFFLINE_CHECK_INTERVAL)
                         continue

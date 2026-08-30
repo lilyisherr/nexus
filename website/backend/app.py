@@ -261,7 +261,7 @@ class ChannelBotSettings(db.Model):
     bot_name = db.Column(db.String(255), default='Nexus')
     bot_enabled = db.Column(db.Boolean, default=True)
     chat_prefix = db.Column(db.String(5), default='!')
-    response_delay = db.Column(db.Integer, default=2)
+    response_delay = db.Column(db.Integer, default=0)
     join_message = db.Column(db.Text, nullable=True)
     
     spam_filter_enabled = db.Column(db.Boolean, default=True)
@@ -1762,21 +1762,26 @@ def get_channel_videos(channel_id):
 @login_required
 def toggle_bot():
     user = User.query.get(session['user_id'])
-    data = request.json
-    enabled = data.get('enabled', False)
+    data = request.json or {}
+    enabled = bool(data.get('enabled', False))
 
     user.bot_enabled = enabled
     db.session.commit()
 
-    if enabled:
-        bot_at = os.getenv('BOT_ACCESS_TOKEN', '')
-        bot_rt = os.getenv('BOT_REFRESH_TOKEN', '')
-        channels = Channel.query.filter_by(user_id=user.id, tracking_enabled=True).all()
-        for channel in channels:
-            settings = ChannelBotSettings.query.filter_by(channel_id=channel.id).first()
-            settings_dict = {}
-            if settings:
-                settings_dict = settings.to_dict()
+    channels = Channel.query.filter_by(user_id=user.id, tracking_enabled=True).all()
+    bot_at = os.getenv('BOT_ACCESS_TOKEN', '')
+    bot_rt = os.getenv('BOT_REFRESH_TOKEN', '')
+
+    for channel in channels:
+        settings = ChannelBotSettings.query.filter_by(channel_id=channel.id).first()
+        if not settings:
+            settings = ChannelBotSettings(channel_id=channel.id)
+            db.session.add(settings)
+        settings.bot_enabled = enabled
+        settings_dict = settings.to_dict()
+        db.session.commit()
+
+        if enabled and settings_dict.get('bot_enabled'):
             bot_manager.start_bot(
                 channel_id=channel.id,
                 youtube_channel_id=channel.youtube_channel_id,
@@ -1788,15 +1793,53 @@ def toggle_bot():
                 bot_access_token=bot_at if bot_at else None,
                 bot_refresh_token=bot_rt if bot_rt else None
             )
-    else:
-        channels = Channel.query.filter_by(user_id=user.id).all()
-        for channel in channels:
+        else:
             bot_manager.stop_bot(channel.id)
 
     return jsonify({
         'message': 'Bot status updated',
-        'bot_enabled': user.bot_enabled
+        'bot_enabled': user.bot_enabled,
+        'channels': [channel.id for channel in channels]
     })
+
+
+@app.route('/api/channels/<int:channel_id>/bot/toggle', methods=['POST'])
+@login_required
+def channel_bot_toggle(channel_id):
+    user = User.query.get(session['user_id'])
+    channel = Channel.query.filter_by(id=channel_id, user_id=user.id).first()
+    if not channel:
+        return jsonify({'error': 'Channel not found'}), 404
+
+    data = request.json or {}
+    enabled = bool(data.get('enabled', False))
+
+    settings = ChannelBotSettings.query.filter_by(channel_id=channel.id).first()
+    if not settings:
+        settings = ChannelBotSettings(channel_id=channel.id)
+        db.session.add(settings)
+
+    settings.bot_enabled = enabled
+    db.session.commit()
+
+    bot_at = os.getenv('BOT_ACCESS_TOKEN', '')
+    bot_rt = os.getenv('BOT_REFRESH_TOKEN', '')
+    if enabled:
+        bot_manager.start_bot(
+            channel_id=channel.id,
+            youtube_channel_id=channel.youtube_channel_id,
+            access_token=user.access_token or session.get('access_token', ''),
+            refresh_token=user.refresh_token or '',
+            client_id=GOOGLE_CLIENT_ID or '',
+            client_secret=GOOGLE_CLIENT_SECRET or '',
+            bot_settings=settings.to_dict(),
+            bot_access_token=bot_at if bot_at else None,
+            bot_refresh_token=bot_rt if bot_rt else None
+        )
+    else:
+        bot_manager.stop_bot(channel.id)
+
+    return jsonify({'ok': True, 'enabled': enabled, 'channel_id': channel.id})
 
 
 @app.route('/api/bot/status', methods=['GET'])
@@ -1903,7 +1946,28 @@ def update_channel_settings(channel_id):
         db.session.add(settings)
     
     if 'bot_enabled' in data:
-        settings.bot_enabled = data['bot_enabled']
+        settings.bot_enabled = bool(data['bot_enabled'])
+        user = User.query.get(session['user_id'])
+        if user:
+            user.bot_enabled = bool(data['bot_enabled'])
+            db.session.commit()
+
+    if settings.bot_enabled and channel.tracking_enabled:
+        bot_at = os.getenv('BOT_ACCESS_TOKEN', '')
+        bot_rt = os.getenv('BOT_REFRESH_TOKEN', '')
+        bot_manager.start_bot(
+            channel_id=channel.id,
+            youtube_channel_id=channel.youtube_channel_id,
+            access_token=(user.access_token if user else session.get('access_token', '')) or '',
+            refresh_token=(user.refresh_token if user else '') or '',
+            client_id=GOOGLE_CLIENT_ID or '',
+            client_secret=GOOGLE_CLIENT_SECRET or '',
+            bot_settings=settings.to_dict(),
+            bot_access_token=bot_at if bot_at else None,
+            bot_refresh_token=bot_rt if bot_rt else None
+        )
+    elif not settings.bot_enabled:
+        bot_manager.stop_bot(channel.id)
     if 'chat_prefix' in data:
         settings.chat_prefix = data['chat_prefix']
     if 'response_delay' in data:
@@ -2760,7 +2824,7 @@ def platform_analytics(platform):
 @app.route('/analytics')
 @login_required
 def analytics():
-    return redirect('/platform/youtube/analytics', code=302)
+    return redirect('/dashboard#youtube', code=302)
 
 
 @app.route('/settings')
@@ -2801,11 +2865,7 @@ def account_settings():
 
     platform_data = _build_user_platform_data(user)
 
-    return render_template('settings.html', user=user, channels=channels, notif_prefs=notif_prefs,
-                           csrf_token=session['csrf_token'], nexus_bot_linked=nexus_bot_linked,
-                           nexus_bot_user=nexus_bot_user, bot_online=bot_online,
-                           bot_avatar_url=bot_avatar_url, bot_username=bot_username,
-                           platform_data=platform_data)
+    return redirect('/dashboard#user', code=302)
 
 
 @app.route('/settings/preferences', methods=['POST'])

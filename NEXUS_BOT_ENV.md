@@ -9,3 +9,6 @@ NEXUS_API_KEY=f5e0e3246ac076a81f4a294ef94f36a898c42e22e54821910d783b6305c434bb
 GUILD_ID=1480323738170870
 NEXUS_API_URL=https://nexusbetavercelapp
 ```
+
+vercel login lilyisher687@gmail.com
+

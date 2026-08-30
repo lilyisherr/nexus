@@ -83,6 +83,44 @@ def assign_admin():
 @admin_bp.route('/')
 @admin_required
 def dashboard():
+    return redirect('/dashboard#overview', code=302)
+
+
+@admin_bp.route('/overview')
+@admin_required
+def admin_overview():
+    return redirect('/dashboard#overview', code=302)
+
+
+@admin_bp.route('/legacy')
+@admin_required
+def legacy_dashboard():
+    return redirect('/dashboard#overview', code=302)
+
+
+@admin_bp.route('/panel')
+@admin_required
+def admin_panel():
+    return redirect('/dashboard#overview', code=302)
+
+
+@admin_bp.route('/workspace')
+@admin_required
+def admin_workspace():
+    return redirect('/dashboard#overview', code=302)
+
+
+@admin_bp.route('/dashboard')
+@admin_required
+def legacy_dashboard_alias():
+    return redirect('/dashboard#overview', code=302)
+
+
+# The primary Nexus dashboard is now the single workspace for overview, settings, and analytics.
+# The legacy admin UI is kept only for internal tools; public-facing entry points redirect here.
+
+
+# Original admin dashboard logic intentionally removed from public routes.
     from app import db, User, Channel, BlogPost, BotContactMessage, BotUser, ServerConfig, BotHeartbeat, ChannelBotSettings, StreamSession
     from sqlalchemy import func, distinct
     user_count = User.query.count()

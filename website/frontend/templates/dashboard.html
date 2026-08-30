@@ -571,7 +571,7 @@
                 <p>{{ channels|length }} channel{{ 's' if channels|length != 1 }} synced &middot; Bot {{ 'enabled' if user.bot_enabled else 'paused' }}</p>
             </div>
             <div class="header-actions">
-                <a href="/settings" class="bot-link-btn secondary"><i class="fas fa-cog"></i> Settings</a>
+                <a href="/dashboard#user" class="bot-link-btn secondary"><i class="fas fa-cog"></i> Workspace settings</a>
                 <a href="/help" class="bot-link-btn secondary"><i class="fas fa-question-circle"></i> Help</a>
             </div>
         </div>
@@ -579,10 +579,8 @@
         <div class="workspace-tabs">
             <button class="workspace-tab active" data-panel="overview">Overview</button>
             <button class="workspace-tab" data-panel="youtube">YouTube</button>
-            <button class="workspace-tab" data-panel="discord">Discord</button>
-            <button class="workspace-tab" data-panel="kick">Kick</button>
-            <button class="workspace-tab" data-panel="tiktok">TikTok</button>
-            <button class="workspace-tab" data-panel="user">User</button>
+            <button class="workspace-tab" data-panel="automation">Automation</button>
+            <button class="workspace-tab" data-panel="settings">Settings</button>
         </div>
 
         <div class="workspace-panels">
@@ -598,14 +596,14 @@
                         <div class="s-card-sub">across {{ channels|length }} channel{{ 's' if channels|length != 1 }}</div>
                     </div>
                     <div class="s-card blue">
-                        <div class="s-card-top"><div class="s-card-label">Views</div><div class="s-card-icon"><i class="fas fa-eye"></i></div></div>
+                        <div class="s-card-top"><div class="s-card-label">Total views</div><div class="s-card-icon"><i class="fas fa-eye"></i></div></div>
                         <div class="s-card-val">{{ "{:,}".format(total_views) }}</div>
-                        <div class="s-card-sub">all time</div>
+                        <div class="s-card-sub">all-time reach</div>
                     </div>
                     <div class="s-card green">
                         <div class="s-card-top"><div class="s-card-label">Videos</div><div class="s-card-icon"><i class="fas fa-video"></i></div></div>
                         <div class="s-card-val">{{ "{:,}".format(total_videos) }}</div>
-                        <div class="s-card-sub">published</div>
+                        <div class="s-card-sub">published content</div>
                     </div>
                     <div class="s-card yellow">
                         <div class="s-card-top"><div class="s-card-label">Commands</div><div class="s-card-icon"><i class="fas fa-terminal"></i></div></div>
@@ -614,151 +612,103 @@
                     </div>
                 </div>
 
-                {% if channels and user.bot_enabled %}
-                <div id="live-status-card" class="live-card">
-                    <div id="live-dot" class="live-dot"></div>
-                    <div class="live-info"><strong id="live-title">Checking stream status...</strong><span id="live-sub">Bot is watching for your live stream</span></div>
-                    <span id="live-msgs-badge" class="live-msgs" style="display:none;"></span>
-                </div>
-                {% endif %}
-
                 <div class="card-grid two-up">
                     <div class="card-panel">
                         <div class="card-panel-head"><h3><i class="fas fa-robot"></i> Bot status</h3></div>
                         <div class="panel-content">
                             <div class="inline-status"><span class="status-dot {{ 'online' if user.bot_enabled else 'offline' }}"></span><strong>{{ 'Online' if user.bot_enabled else 'Paused' }}</strong></div>
-                            <p>Keep moderation, commands, and live chat automation active.</p>
+                            <p>Instant replies are on by default for live chat commands.</p>
                             <label class="tgl"><input type="checkbox" id="bot-toggle" {{ 'checked' if user.bot_enabled }}><span class="tgl-track"></span></label>
                         </div>
                     </div>
 
                     <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-layer-group"></i> Connections</h3></div>
+                        <div class="card-panel-head"><h3><i class="fas fa-link"></i> Connected channels</h3></div>
                         <div class="panel-content compact-list">
-                            {% for p in platform_data %}
+                            {% for ch in channels %}
                             <div class="mini-platform-row">
-                                <div class="mini-platform-name">{{ 'X' if p.platform == 'x' else p.platform|capitalize }}</div>
-                                <span class="mini-platform-state {{ 'on' if p.connected else 'off' }}">{{ 'Connected' if p.connected else 'Setup' }}</span>
+                                <div class="mini-platform-name">{{ ch.channel_name }}</div>
+                                <span class="mini-platform-state on">Ready</span>
                             </div>
+                            {% else %}
+                            <div class="empty-state"><i class="fas fa-video"></i><p>No channels linked yet.</p></div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
+
+                {% if channels and user.bot_enabled %}
+                <div id="live-status-card" class="live-card">
+                    <div id="live-dot" class="live-dot"></div>
+                    <div class="live-info"><strong id="live-title">Checking stream status...</strong><span id="live-sub">Bot is watching for chat commands</span></div>
+                    <span id="live-msgs-badge" class="live-msgs" style="display:none;"></span>
+                </div>
+                {% endif %}
             </div>
 
             <div class="workspace-panel" id="panel-youtube">
-                <div class="card-grid two-up">
-                    <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fab fa-youtube"></i> YouTube analytics</h3></div>
-                        <div class="panel-content">
-                            <div class="settings-stack">
-                                {% for ch in channels %}
-                                <div class="settings-stack-item">
-                                    <div class="youtube-channel-analytics"><div class="settings-stack-name">{{ ch.channel_name }}</div><div class="youtube-metrics"><span><strong>{{ "{:,}".format(ch.subscriber_count) }}</strong> subscribers</span><span><strong>{{ "{:,}".format(ch.view_count) }}</strong> views</span><span><strong>{{ "{:,}".format(ch.video_count) }}</strong> videos</span></div></div>
-                                    <div class="settings-stack-actions"><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Bot settings</a></div>
-                                </div>
-                                {% else %}
-                                <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels connected yet.</p></div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-video"></i> Recent videos</h3></div>
-                        <div class="panel-content">
-                            <div class="settings-stack">
-                                {% for video in video_stats[:8] %}
-                                <div class="settings-stack-item">
-                                    <div class="video-summary"><img src="{{ video.thumbnail_url }}" alt="" class="video-thumb"><div><div class="settings-stack-name">{{ video.title or 'Untitled video' }}</div><div class="channel-meta">{{ "{:,}".format(video.view_count or 0) }} views &middot; {{ "{:,}".format(video.like_count or 0) }} likes</div></div></div>
-                                    <a href="https://www.youtube.com/watch?v={{ video.video_id }}" class="icon-btn" target="_blank" rel="noopener noreferrer" aria-label="Open video" title="Open video"><i class="fas fa-arrow-up-right-from-square"></i></a>
-                                </div>
-                                {% else %}
-                                <div class="empty-state"><i class="fas fa-video"></i><p>No synced videos yet.</p></div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fas fa-tv"></i> Channels and controls</h3></div>
+                    <div class="card-panel-head"><h3><i class="fab fa-youtube"></i> YouTube channels</h3></div>
                     <div class="panel-content">
                         {% for ch in channels %}
                         <div class="channel-summary-row">
                             {% if ch.channel_thumbnail %}<img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">{% else %}<div class="channel-avatar">{{ ch.channel_name[0]|upper }}</div>{% endif %}
-                            <div class="channel-summary-info"><div class="channel-name">{{ ch.channel_name }}</div><div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views &middot; {{ ch.video_count }} videos</div></div>
-                            <div class="channel-summary-actions"><a href="/channel/{{ ch.id }}" class="small-btn">Analytics</a><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Settings</a><form method="POST" action="/settings/disconnect-channel/{{ ch.id }}" onsubmit="return confirm('Unlink {{ ch.channel_name }} from Nexus?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="small-btn outline" title="Unlink channel" aria-label="Unlink channel"><i class="fas fa-link-slash"></i></button></form></div>
+                            <div class="channel-summary-info">
+                                <div class="channel-name">{{ ch.channel_name }}</div>
+                                <div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subs &middot; {{ "{:,}".format(ch.view_count) }} views &middot; {{ ch.video_count }} videos</div>
+                            </div>
+                            <div class="channel-summary-actions">
+                                <a href="/channel/{{ ch.id }}" class="small-btn">Analytics</a>
+                                <a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Bot</a>
+                            </div>
                         </div>
-                        {% endfor %}
                         {% else %}
-                        <div class="empty-state"><i class="fas fa-video"></i><p>No YouTube channels connected yet.</p><a href="/setup" class="small-btn">Connect YouTube</a></div>
-                        {% endif %}
+                        <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels are connected.</p><a href="/setup" class="small-btn">Connect a channel</a></div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <div class="workspace-panel" id="panel-discord">
-                <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fab fa-discord"></i> Discord</h3></div>
-                    <div class="panel-content">
-                        <div class="settings-stack-item">
-                            <div>
-                                <div class="settings-stack-name">{{ user.discord_username or 'Discord not linked' }}</div>
-                                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">{{ 'Connected to your Nexus account' if user.discord_user_id else 'Link Discord to manage the bot and live notifications.' }}</div>
+            <div class="workspace-panel" id="panel-automation">
+                <div class="card-grid two-up">
+                    <div class="card-panel">
+                        <div class="card-panel-head"><h3><i class="fas fa-sliders-h"></i> Live chat automation</h3></div>
+                        <div class="panel-content compact-list">
+                            {% for ch in channels %}
+                            <div class="settings-stack-item">
+                                <div>
+                                    <div class="settings-stack-name">{{ ch.channel_name }}</div>
+                                    <div class="channel-meta">Instant command replies and chat moderation.</div>
+                                </div>
+                                <label class="qtgl">
+                                    <input type="checkbox" data-channel-id="{{ ch.id }}" class="channel-bot-toggle" {{ 'checked' if ch.bot_settings and ch.bot_settings.bot_enabled else '' }}>
+                                    <span class="qtgl-track"></span>
+                                </label>
                             </div>
-                            <div class="settings-stack-actions">
-                                {% if user.discord_user_id %}
-                                <a href="/bot/dashboard" class="small-btn">Open bot panel</a>
-                                <a href="/settings" class="small-btn outline">Manage link</a>
-                                {% else %}
-                                <a href="/settings" class="small-btn">Connect Discord</a>
-                                <a href="/bot/dashboard" class="small-btn outline">Bot dashboard</a>
-                                {% endif %}
-                            </div>
+                            {% else %}
+                            <div class="empty-state"><i class="fas fa-robot"></i><p>Connect a channel to start automation.</p></div>
+                            {% endfor %}
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="workspace-panel" id="panel-kick">
-                <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fas fa-play-circle"></i> Kick</h3></div>
-                    <div class="panel-content">
-                        <div class="settings-stack-item">
-                            <div class="settings-stack-name">Kick live alerts and chat sync</div>
-                            <div class="settings-stack-actions">
-                                <a href="/settings#sec-integrations" class="small-btn">Manage Kick connection</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="workspace-panel" id="panel-tiktok">
-                <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fab fa-tiktok"></i> TikTok</h3></div>
-                    <div class="panel-content">
-                        <div class="settings-stack-item">
-                            <div class="settings-stack-name">TikTok creator sync</div>
-                            <div class="settings-stack-actions">
-                                <a href="/settings#sec-integrations" class="small-btn">Manage TikTok connection</a>
-                            </div>
+                    <div class="card-panel">
+                        <div class="card-panel-head"><h3><i class="fas fa-bolt"></i> Quick actions</h3></div>
+                        <div class="panel-content compact-list">
+                            <div class="settings-stack-item"><div class="settings-stack-name">Open bot settings</div><div class="settings-stack-actions"><a href="/dashboard#settings" class="small-btn outline">Settings</a></div></div>
+                            <div class="settings-stack-item"><div class="settings-stack-name">Go to channel analytics</div><div class="settings-stack-actions"><a href="/dashboard#youtube" class="small-btn outline">Overview</a></div></div>
+                            <div class="settings-stack-item"><div class="settings-stack-name">Manage account</div><div class="settings-stack-actions"><a href="/dashboard#settings" class="small-btn outline">User</a></div></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="workspace-panel" id="panel-user">
+            <div class="workspace-panel" id="panel-settings">
                 <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fas fa-user"></i> User settings</h3></div>
-                    <div class="panel-content settings-stack">
-                        <div class="settings-stack-item">
-                            <div class="settings-stack-name">Profile & account</div>
-                            <div class="settings-stack-actions"><a href="/settings" class="small-btn">Open account settings</a></div>
-                        </div>
-                        <div class="settings-stack-item">
-                            <div class="settings-stack-name">Connected platforms</div>
-                            <div class="settings-stack-actions"><a href="/settings#sec-integrations" class="small-btn outline">Manage links</a></div>
-                        </div>
+                    <div class="card-panel-head"><h3><i class="fas fa-user-cog"></i> Account and platform settings</h3></div>
+                    <div class="panel-content compact-list">
+                        <div class="settings-stack-item"><div class="settings-stack-name">Profile</div><div class="settings-stack-actions"><a href="/dashboard#user" class="small-btn outline">Manage</a></div></div>
+                        <div class="settings-stack-item"><div class="settings-stack-name">YouTube bot config</div><div class="settings-stack-actions"><a href="/channel/{{ channels[0].id }}/settings" class="small-btn outline" {% if not channels %}disabled{% endif %}>Open</a></div></div>
+                        <div class="settings-stack-item"><div class="settings-stack-name">Platform links</div><div class="settings-stack-actions"><a href="/settings" class="small-btn outline">Connections</a></div></div>
                     </div>
                 </div>
             </div>
