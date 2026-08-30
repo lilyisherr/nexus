@@ -41,6 +41,22 @@
             gap: 24px;
         }
 
+        .bot-nav-back {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(148,163,184,0.2);
+            border-radius: 8px;
+            color: #94a3b8;
+        }
+
+        .bot-nav-back:hover {
+            color: #fff;
+            border-color: #6366f1;
+        }
+
         .bot-nav-logo {
             display: flex;
             align-items: center;
@@ -456,6 +472,7 @@
 <body>
     <nav class="bot-nav">
         <div class="bot-nav-left">
+            <a href="/dashboard" class="bot-nav-back" aria-label="Back to Nexus dashboard" title="Back to Nexus dashboard"><i class="fas fa-arrow-left"></i></a>
             <a href="/bot/" class="bot-nav-logo">
                 <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Nexus">
                 <span>Nexus Bot</span>

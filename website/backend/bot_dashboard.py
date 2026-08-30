@@ -165,10 +165,13 @@ def logout():
 @bot_admin_required
 def dashboard():
     from app import BotUser, ServerConfig
-    bot_user = BotUser.query.get(session['bot_user_id'])
+    bot_user_id = session.get('bot_user_id')
+    if not bot_user_id:
+        return redirect('/bot/login?next=/bot/dashboard')
+    bot_user = BotUser.query.get(bot_user_id)
     if not bot_user:
         session.pop('bot_user_id', None)
-        return redirect('/bot/login')
+        return redirect('/bot/login?next=/bot/dashboard')
 
     user_guilds = []
     try:

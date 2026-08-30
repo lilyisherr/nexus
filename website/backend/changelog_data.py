@@ -1,5 +1,20 @@
 changelog_data = [
     {
+        "version": "v1.3.1",
+        "date": "August 29, 2026",
+        "type": "feature",
+        "title": "Platform Connections and a Cleaner Workspace",
+        "changes": [
+            "Added OAuth connection guides for Twitch, Kick, X, TikTok, and Discord",
+            "Twitch, Kick, X, and TikTok connections now use provider OAuth instead of typed handles",
+            "Added PKCE support for Kick, X, and TikTok authentication",
+            "Added disconnect controls that remove external platform tokens from Nexus",
+            "Fixed the dashboard layout and made workspace tabs linkable from the URL",
+            "Admin health checks now use the same live service checks as the public status page",
+        ],
+        "description": "The connection flow is now documented and built around real provider sign-in. The dashboard also got a quieter layout so the next useful action is easier to find.",
+    },
+    {
         "version": "v1.3.0",
         "date": "March 14, 2026",
         "type": "feature",

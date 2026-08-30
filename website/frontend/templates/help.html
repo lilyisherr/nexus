@@ -502,6 +502,61 @@
                 </div>
             </div>
 
+            <div class="help-category" data-category="platform-setup">
+                <div class="help-category-header">
+                    <div class="cat-icon teal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"></path><circle cx="12" cy="12" r="8"></circle></svg>
+                    </div>
+                    <h3>Platform Connections</h3>
+                    <span class="article-count">5 guides</span>
+                </div>
+
+                <div class="help-article" data-keywords="twitch oauth setup client id secret callback redirect uri connect disconnect">
+                    <button class="help-article-title" onclick="toggleArticle(this)">Connecting Twitch <span class="arrow">+</span></button>
+                    <div class="help-article-content">
+                        <p>For a self-hosted Nexus instance, create an application in the <a href="https://dev.twitch.tv/console/apps" target="_blank">Twitch developer console</a>.</p>
+                        <ol><li>Set the OAuth redirect URL to <code>https://yourdomain.com/auth/platform/twitch/callback</code>.</li><li>Copy the client ID and generate a client secret.</li><li>Set <code>TWITCH_CLIENT_ID</code> and <code>TWITCH_CLIENT_SECRET</code> in your environment.</li><li>Restart Nexus, open <strong>Settings &gt; Workspace connections</strong>, and choose <strong>Connect Twitch</strong>.</li></ol>
+                        <div class="tip">The redirect URL must match exactly, including HTTPS, domain, and path.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="kick oauth setup client id secret callback redirect uri connect disconnect">
+                    <button class="help-article-title" onclick="toggleArticle(this)">Connecting Kick <span class="arrow">+</span></button>
+                    <div class="help-article-content">
+                        <p>Create an OAuth application in the <a href="https://kick.com/developer" target="_blank">Kick developer portal</a>.</p>
+                        <ol><li>Use <code>https://yourdomain.com/auth/platform/kick/callback</code> as the redirect URI.</li><li>Set <code>KICK_CLIENT_ID</code> and <code>KICK_CLIENT_SECRET</code>.</li><li>Restart Nexus and choose <strong>Connect Kick</strong> in Settings.</li><li>Approve the requested account permission.</li></ol>
+                        <div class="tip">Kick uses PKCE in this flow. Do not remove the code challenge parameters from the OAuth request.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="x twitter oauth setup client id secret callback redirect uri connect disconnect">
+                    <button class="help-article-title" onclick="toggleArticle(this)">Connecting X <span class="arrow">+</span></button>
+                    <div class="help-article-content">
+                        <p>In the <a href="https://developer.x.com/en/portal/dashboard" target="_blank">X developer portal</a>, create a project and OAuth 2.0 application.</p>
+                        <ol><li>Enable OAuth 2.0 with <strong>Web App</strong> as the app type.</li><li>Set <code>https://yourdomain.com/auth/platform/x/callback</code> as the callback URL.</li><li>Set <code>X_CLIENT_ID</code> and <code>X_CLIENT_SECRET</code>.</li><li>Restart Nexus and choose <strong>Connect X</strong>.</li></ol>
+                        <div class="tip">The app needs read access to users and offline access. X may require a paid or approved developer project for some API access.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="tiktok oauth setup client key secret callback redirect uri connect disconnect">
+                    <button class="help-article-title" onclick="toggleArticle(this)">Connecting TikTok <span class="arrow">+</span></button>
+                    <div class="help-article-content">
+                        <p>Create a Login Kit web application in the <a href="https://developers.tiktok.com/" target="_blank">TikTok developer portal</a>.</p>
+                        <ol><li>Add <code>https://yourdomain.com/auth/platform/tiktok/callback</code> to the redirect URIs.</li><li>Set <code>TIKTOK_CLIENT_KEY</code> and <code>TIKTOK_CLIENT_SECRET</code>.</li><li>Restart Nexus and choose <strong>Connect TikTok</strong>.</li><li>Approve basic profile access.</li></ol>
+                        <div class="tip">TikTok calls the OAuth client ID a client key. Nexus uses the correct <code>client_key</code> parameter during token exchange.</div>
+                    </div>
+                </div>
+
+                <div class="help-article" data-keywords="discord oauth setup client id secret callback redirect uri bot connect disconnect server permissions">
+                    <button class="help-article-title" onclick="toggleArticle(this)">Connecting Discord and the bot dashboard <span class="arrow">+</span></button>
+                    <div class="help-article-content">
+                        <p>Discord uses two separate permissions in Nexus: account sign-in for the bot dashboard, and a bot invite for the server itself.</p>
+                        <ol><li>Create an application in the <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a>.</li><li>Set <code>https://yourdomain.com/bot/callback</code> as the OAuth2 redirect URI.</li><li>Set <code>DISCORD_CLIENT_ID</code> and <code>DISCORD_CLIENT_SECRET</code> for the website.</li><li>Set <code>DISCORD_BOT_TOKEN</code> for the running bot process.</li><li>Sign in through <strong>Bot Dashboard</strong>, then invite Nexus to a server where you have Manage Server permission.</li></ol>
+                        <div class="warning">Never paste the bot token into the browser or a public repository. It belongs only in the server environment.</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="help-category" data-category="moderation">
                 <div class="help-category-header">
                     <div class="cat-icon orange">

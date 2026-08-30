@@ -1,5 +1,21 @@
 BLOG_POSTS = [
     {
+        "slug": "real-platform-oauth-and-a-quieter-workspace",
+        "title": "Real Platform Connections, Setup Guides, and a Quieter Workspace",
+        "date": "August 29, 2026",
+        "date_short": "Aug 29, 2026",
+        "tag": "devlog",
+        "tag_label": "Dev Log",
+        "summary": "I replaced the fake-feeling platform forms with OAuth connections, added setup guides, and cleaned up the dashboard again.",
+        "content": """
+            <p>The platform connection cards were doing a decent impression of a product, but asking someone to type a Twitch or TikTok handle is not the same thing as connecting an account. That distinction matters. This pass moves those connections onto provider OAuth so Nexus can identify the account it actually received permission for.</p>
+            <p>Twitch, Kick, X, and TikTok now have their own OAuth entry point and callback. The flow stores the provider token against the user's Nexus account, shows the returned profile name, and gives the user a clear way to disconnect it later. Kick, X, and TikTok also use PKCE, because a modern login flow should not quietly skip the part that protects the authorization code.</p>
+            <p>I also wrote setup guides for each provider. They cover where to create the application, which callback URL to use, which environment variables are required, and the little provider-specific details that usually turn into an hour of debugging. The guides live in Help rather than being buried in a README.</p>
+            <p>The dashboard got another cleanup pass too. The cards were using a mix of old and new class names, which made the layout look broken even when the data was fine. The workspace tabs now behave like actual tabs, work on small screens, and can be linked directly. I also kept the first view focused on channels, bot state, and connections instead of trying to show every possible feature at once.</p>
+            <p>There is still a lot of work before every platform feature is equally deep. But authentication is a better foundation than placeholder buttons, and the product feels more honest when it says exactly what is connected and what still needs setup.</p>
+        """
+    },
+    {
         "slug": "nexus-dashboard-cleanup-and-platform-plan",
         "title": "A Cleaner Dashboard, a More Real Product, and a Better Multi-Platform Direction",
         "date": "August 29, 2026",

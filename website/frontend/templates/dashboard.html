@@ -438,6 +438,10 @@
         .channel-avatar { display: flex; align-items: center; justify-content: center; background: #6366f1; color: #fff; font-weight: 700; }
         .channel-summary-info { flex: 1; min-width: 0; }
         .channel-meta { color: #94a3b8; font-size: 11px; margin-top: 3px; }
+        .video-summary { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .video-summary > div { min-width: 0; }
+        .video-thumb { width: 56px; height: 32px; border-radius: 5px; object-fit: cover; background: #e5e7eb; flex: 0 0 auto; }
+        .video-summary .settings-stack-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
         .empty-state { color: #94a3b8; padding: 24px 0; text-align: center; font-size: 13px; }
 
         .wt-bar { height: 5px; background: #f1f5f9; border-radius: 3px; overflow: hidden; width: 60px; }
@@ -518,6 +522,7 @@
         body.dark-theme .mini-platform-row, body.dark-theme .settings-stack-item, body.dark-theme .channel-summary-row { border-color: #334155; }
         body.dark-theme .small-btn.outline { background: #1e293b; border-color: #475569; color: #cbd5e1; }
         body.dark-theme .small-btn.disabled { background: #334155; border-color: #475569; }
+        body.dark-theme .video-thumb { background: #334155; }
         body.dark-theme .dt th { background: #0f172a; color: #94a3b8; border-bottom-color: #334155; }
         body.dark-theme .dt td { color: #94a3b8; border-bottom-color: #334155; }
         body.dark-theme .dt tr:hover { background: #334155; }
@@ -561,12 +566,13 @@
             </div>
             <div class="header-actions">
                 <a href="/settings" class="bot-link-btn secondary"><i class="fas fa-cog"></i> Settings</a>
-                <a href="/videos" class="bot-link-btn primary"><i class="fas fa-play-circle"></i> Videos</a>
+                <a href="/help" class="bot-link-btn secondary"><i class="fas fa-question-circle"></i> Help</a>
             </div>
         </div>
 
         <div class="workspace-tabs">
             <button class="workspace-tab active" data-panel="overview">Overview</button>
+            <button class="workspace-tab" data-panel="youtube">YouTube</button>
             <button class="workspace-tab" data-panel="channels">Channels</button>
             <button class="workspace-tab" data-panel="channel-settings">Channel Settings</button>
             <button class="workspace-tab" data-panel="discord">Discord</button>
@@ -623,7 +629,7 @@
                     </div>
 
                     <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-layer-group"></i> Platform stack</h3></div>
+                        <div class="card-panel-head"><h3><i class="fas fa-layer-group"></i> Connections</h3></div>
                         <div class="panel-content compact-list">
                             {% for p in platform_data %}
                             <div class="mini-platform-row">
@@ -631,6 +637,41 @@
                                 <span class="mini-platform-state {{ 'on' if p.connected else 'off' }}">{{ 'Connected' if p.connected else 'Setup' }}</span>
                             </div>
                             {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-youtube">
+                <div class="card-grid two-up">
+                    <div class="card-panel">
+                        <div class="card-panel-head"><h3><i class="fab fa-youtube"></i> YouTube analytics</h3></div>
+                        <div class="panel-content">
+                            <div class="settings-stack">
+                                {% for ch in channels %}
+                                <div class="settings-stack-item">
+                                    <div><div class="settings-stack-name">{{ ch.channel_name }}</div><div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views</div></div>
+                                    <div class="settings-stack-actions"><a href="/channel/{{ ch.id }}" class="small-btn">Open analytics</a><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Bot settings</a></div>
+                                </div>
+                                {% else %}
+                                <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels connected yet.</p></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-panel">
+                        <div class="card-panel-head"><h3><i class="fas fa-video"></i> Recent videos</h3></div>
+                        <div class="panel-content">
+                            <div class="settings-stack">
+                                {% for video in video_stats[:8] %}
+                                <div class="settings-stack-item">
+                                    <div class="video-summary"><img src="{{ video.thumbnail_url }}" alt="" class="video-thumb"><div><div class="settings-stack-name">{{ video.title or 'Untitled video' }}</div><div class="channel-meta">{{ "{:,}".format(video.view_count or 0) }} views &middot; {{ "{:,}".format(video.like_count or 0) }} likes</div></div></div>
+                                    <a href="https://www.youtube.com/watch?v={{ video.video_id }}" class="icon-btn" target="_blank" rel="noopener noreferrer" aria-label="Open video" title="Open video"><i class="fas fa-arrow-up-right-from-square"></i></a>
+                                </div>
+                                {% else %}
+                                <div class="empty-state"><i class="fas fa-video"></i><p>No synced videos yet.</p></div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
