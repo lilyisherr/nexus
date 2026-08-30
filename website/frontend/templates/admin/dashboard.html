@@ -84,6 +84,23 @@
     </div>
 </div>
 
+<div class="admin-table-wrapper" style="margin-bottom:24px;">
+    <div class="admin-table-header">
+        <h3><i class="fas fa-heartbeat" style="color:#34d399;margin-right:6px;"></i> Live Platform Health</h3>
+        <span style="font-size:11px;color:#64748b;">Checked {{ health.checked_at }}</span>
+    </div>
+    <div style="padding:18px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <strong style="color:{% if health.overall_ok %}#34d399{% else %}#fbbf24{% endif %};">{{ health.overall_status }}</strong>
+        <span style="color:#94a3b8;font-size:12px;">{{ health.summary }}</span>
+        {% for service in health.services %}
+        <span style="font-size:11px;color:{% if service.status == 'operational' %}#34d399{% else %}#fbbf24{% endif %};">
+            <i class="fas fa-circle" style="font-size:6px;"></i> {{ service.name }}
+        </span>
+        {% endfor %}
+        <a href="{{ url_for('admin_dashboard.bot_status') }}" class="btn btn-secondary btn-sm" style="margin-left:auto;">Bot details</a>
+    </div>
+</div>
+
 <div class="section-header"><h2><i class="fas fa-bolt" style="color:#fbbf24;font-size:13px;"></i> Quick Actions</h2></div>
 <div class="quick-actions">
     <a href="{{ url_for('admin_dashboard.users') }}" class="qa-card">

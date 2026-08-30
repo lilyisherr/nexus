@@ -896,6 +896,22 @@
         </div>
         {% endif %}
 
+        {% if request.args.get('platforms') == 'disconnected' %}
+        <div style="background:#dbeafe;border:1px solid #3b82f6;border-radius:8px;padding:12px 18px;margin-bottom:18px;color:#1e40af;font-size:14px;font-weight:500;">
+            <i class="fas fa-unlink" style="margin-right:6px;"></i> Platform disconnected successfully.
+        </div>
+        {% endif %}
+
+        {% if request.args.get('error') == 'platform_not_configured' %}
+        <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px 18px;margin-bottom:18px;color:#92400e;font-size:14px;font-weight:500;">
+            <i class="fas fa-plug" style="margin-right:6px;"></i> That platform is not configured for OAuth yet. Add its client credentials to continue.
+        </div>
+        {% elif request.args.get('error') in ['platform_auth_failed', 'platform_auth_denied', 'platform_auth_state'] %}
+        <div style="background:#fee2e2;border:1px solid #ef4444;border-radius:8px;padding:12px 18px;margin-bottom:18px;color:#991b1b;font-size:14px;font-weight:500;">
+            <i class="fas fa-exclamation-circle" style="margin-right:6px;"></i> We could not connect that platform. Please try again.
+        </div>
+        {% endif %}
+
         {% if request.args.get('error') == 'confirmation' %}
         <div style="background: #fee2e2; border: 1px solid #ef4444; border-radius: 8px; padding: 12px 18px; margin-bottom: 18px; color: #991b1b; font-size: 14px; font-weight: 500;">
             <i class="fas fa-exclamation-circle" style="margin-right: 6px;"></i> Account deletion failed. Please type DELETE to confirm.
@@ -1071,15 +1087,21 @@
                         <div class="platform-actions">
                             <a href="{{ p.profile_url }}" class="mini-btn" target="_blank" rel="noopener noreferrer">Open</a>
                             <a href="/platform/{{ p.platform }}/analytics" class="mini-btn primary">Analytics</a>
+                            {% if p.platform not in ['youtube', 'discord'] %}
+                            <form method="POST" action="/settings/platforms/{{ p.platform }}/disconnect" onsubmit="return confirm('Disconnect {{ p.platform|capitalize }} from Nexus?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="mini-btn">Disconnect</button>
+                            </form>
+                            {% endif %}
                         </div>
                         {% else %}
-                        <form method="POST" action="/settings/platforms" class="platform-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                            <input type="hidden" name="platform" value="{{ p.platform }}">
-                            <input type="hidden" name="action" value="connect">
-                            <input type="text" name="username" class="mini-input" placeholder="Handle or username" required>
-                            <button type="submit" class="mini-btn primary">Connect</button>
-                        </form>
+                        {% if p.platform == 'youtube' %}
+                        <a href="/auth/google" class="mini-btn primary">Connect Google / YouTube</a>
+                        {% elif p.platform == 'discord' %}
+                        <a href="/auth/discord" class="mini-btn primary">Connect Discord</a>
+                        {% else %}
+                        <a href="/auth/platform/{{ p.platform }}" class="mini-btn primary">Connect {{ p.platform|capitalize if p.platform != 'x' else 'X' }}</a>
+                        {% endif %}
                         {% endif %}
                     </div>
                     {% endfor %}

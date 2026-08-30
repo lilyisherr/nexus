@@ -10,6 +10,8 @@ import os
 import json
 import secrets
 import logging
+import base64
+import hashlib
 from datetime import datetime, timedelta
 from functools import wraps
 import requests
@@ -1199,6 +1201,152 @@ def login_required(f):
             return redirect('/auth/login')
         return f(*args, **kwargs)
     return decorated_function
+
+
+PLATFORM_OAUTH = {
+    'twitch': {
+        'client_id': os.getenv('TWITCH_CLIENT_ID'),
+        'client_secret': os.getenv('TWITCH_CLIENT_SECRET'),
+        'authorize_url': 'https://id.twitch.tv/oauth2/authorize',
+        'token_url': 'https://id.twitch.tv/oauth2/token',
+        'user_url': 'https://api.twitch.tv/helix/users',
+        'scope': 'user:read:email',
+    },
+    'kick': {
+        'client_id': os.getenv('KICK_CLIENT_ID'),
+        'client_secret': os.getenv('KICK_CLIENT_SECRET'),
+        'authorize_url': 'https://id.kick.com/oauth/authorize',
+        'token_url': 'https://id.kick.com/oauth/token',
+        'user_url': 'https://api.kick.com/public/v1/users',
+        'scope': 'user:read',
+    },
+    'x': {
+        'client_id': os.getenv('X_CLIENT_ID'),
+        'client_secret': os.getenv('X_CLIENT_SECRET'),
+        'authorize_url': 'https://twitter.com/i/oauth2/authorize',
+        'token_url': 'https://api.twitter.com/2/oauth2/token',
+        'user_url': 'https://api.twitter.com/2/users/me?user.fields=profile_image_url,username,name',
+        'scope': 'users.read tweet.read offline.access',
+    },
+    'tiktok': {
+        'client_id': os.getenv('TIKTOK_CLIENT_KEY'),
+        'client_secret': os.getenv('TIKTOK_CLIENT_SECRET'),
+        'authorize_url': 'https://www.tiktok.com/v2/auth/authorize/',
+        'token_url': 'https://open.tiktokapis.com/v2/oauth/token/',
+        'user_url': 'https://open.tiktokapis.com/v2/user/info/?fields=display_name,avatar_url,open_id',
+        'scope': 'user.info.basic',
+    },
+}
+
+
+@app.route('/auth/platform/<platform>')
+@login_required
+def platform_login(platform):
+    from urllib.parse import urlencode
+    provider = PLATFORM_OAUTH.get(platform)
+    if not provider or not provider['client_id'] or not provider['client_secret']:
+        return redirect('/settings?error=platform_not_configured')
+
+    state = secrets.token_urlsafe(32)
+    session['platform_oauth_state'] = state
+    session['platform_oauth_name'] = platform
+    redirect_uri = url_for('platform_callback', platform=platform, _external=True)
+    params = {
+        'client_id': provider['client_id'],
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': provider['scope'],
+        'state': state,
+    }
+    if platform == 'tiktok':
+        params['client_key'] = params.pop('client_id')
+    if platform in {'kick', 'x', 'tiktok'}:
+        verifier = secrets.token_urlsafe(64)
+        challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
+        session['platform_oauth_verifier'] = verifier
+        params['code_challenge'] = challenge
+        params['code_challenge_method'] = 'S256'
+    return redirect(provider['authorize_url'] + '?' + urlencode(params))
+
+
+@app.route('/auth/platform/<platform>/callback')
+@login_required
+def platform_callback(platform):
+    provider = PLATFORM_OAUTH.get(platform)
+    if not provider or platform != session.pop('platform_oauth_name', None) or request.args.get('state') != session.pop('platform_oauth_state', None):
+        return redirect('/settings?error=platform_auth_state')
+    code = request.args.get('code')
+    if not code:
+        return redirect('/settings?error=platform_auth_denied')
+
+    redirect_uri = url_for('platform_callback', platform=platform, _external=True)
+    try:
+        token_data = {
+            'client_id': provider['client_id'],
+            'client_secret': provider['client_secret'],
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri,
+        }
+        if platform == 'tiktok':
+            token_data['client_key'] = token_data.pop('client_id')
+        if platform in {'kick', 'x', 'tiktok'}:
+            token_data['code_verifier'] = session.pop('platform_oauth_verifier', '')
+        token_response = requests.post(provider['token_url'], data=token_data, timeout=10)
+        token_response.raise_for_status()
+        tokens = token_response.json()
+        access_token = tokens.get('access_token')
+        if not access_token:
+            raise ValueError('Provider did not return an access token')
+
+        headers = {'Authorization': f'Bearer {access_token}'}
+        if platform == 'twitch':
+            headers['Client-Id'] = provider['client_id']
+        profile_response = requests.get(provider['user_url'], headers=headers, timeout=10)
+        profile_response.raise_for_status()
+        profile = profile_response.json()
+        if platform == 'twitch':
+            profile = (profile.get('data') or [{}])[0]
+        elif platform == 'tiktok':
+            profile = profile.get('data', {}).get('user', {})
+        else:
+            profile = (profile.get('data') or [{}])[0]
+
+        username = profile.get('login') or profile.get('username') or profile.get('display_name') or profile.get('name')
+        if not username:
+            raise ValueError('Provider profile was incomplete')
+        connection = UserPlatformConnection.query.filter_by(user_id=session['user_id'], platform=platform).first()
+        if not connection:
+            connection = UserPlatformConnection(user_id=session['user_id'], platform=platform)
+            db.session.add(connection)
+        connection.username = username
+        connection.display_name = profile.get('display_name') or profile.get('name') or username
+        connection.profile_url = profile.get('profile_url') or f'https://{platform}.com/{username}'
+        connection.status = 'connected'
+        connection.auth_provider = platform
+        connection.access_token = access_token
+        connection.refresh_token = tokens.get('refresh_token')
+        connection.updated_at = datetime.utcnow()
+        db.session.commit()
+        return redirect('/settings?platforms=updated')
+    except Exception as exc:
+        logging.warning('Platform OAuth failed for %s: %s', platform, exc)
+        db.session.rollback()
+        return redirect('/settings?error=platform_auth_failed')
+
+
+@app.route('/settings/platforms/<platform>/disconnect', methods=['POST'])
+@login_required
+def disconnect_platform(platform):
+    if request.form.get('csrf_token') != session.get('csrf_token', ''):
+        return redirect('/settings?error=invalid_request')
+    if platform not in PLATFORM_OAUTH:
+        return redirect('/settings?error=platform_invalid')
+    connection = UserPlatformConnection.query.filter_by(user_id=session['user_id'], platform=platform).first()
+    if connection:
+        db.session.delete(connection)
+        db.session.commit()
+    return redirect('/settings?platforms=disconnected')
 
 
 def _build_user_platform_data(user):
