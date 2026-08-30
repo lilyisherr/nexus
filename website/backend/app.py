@@ -2424,6 +2424,8 @@ def dashboard():
         bs['settings'].bot_moderator_ok for bs in bot_settings
     ) if bot_settings else False
 
+    platform_data = _build_user_platform_data(user)
+
     return render_template(
         'dashboard.html',
         user=user,
@@ -2438,6 +2440,7 @@ def dashboard():
         command_logs=command_logs,
         bot_moderator_ok=bot_moderator_ok,
         viewing_as=viewing_as,
+        platform_data=platform_data,
     )
 
 

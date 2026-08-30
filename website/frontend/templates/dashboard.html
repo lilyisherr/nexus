@@ -500,418 +500,204 @@
     <div class="dash-container">
 
         {% if viewing_as %}
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:12px;margin-bottom:18px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i class="fas fa-eye" style="color:#818cf8;font-size:13px;"></i>
-                </div>
-                <div>
-                    <div style="font-size:13px;font-weight:700;color:#e2e8f0;">Admin Preview Mode</div>
-                    <div style="font-size:12px;color:#64748b;">Viewing as <strong style="color:#818cf8;">{{ user.username or user.email }}</strong> — this is their dashboard</div>
-                </div>
-            </div>
-            <a href="/nx-admin/exit-view-as" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid rgba(99,102,241,0.3);border-radius:8px;font-size:12px;font-weight:600;color:#818cf8;text-decoration:none;background:rgba(99,102,241,0.08);white-space:nowrap;">
-                <i class="fas fa-arrow-left" style="font-size:10px;"></i> Exit Preview
-            </a>
-        </div>
-        {% endif %}
-
-        <div class="dash-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div class="admin-preview-banner">
+            <div class="admin-preview-icon"><i class="fas fa-eye"></i></div>
             <div>
+                <div class="admin-preview-label">Admin Preview Mode</div>
+                <div class="admin-preview-text">Viewing as <strong>{{ user.username or user.email }}</strong> — this is their workspace</div>
+            </div>
+            <a href="/nx-admin/exit-view-as" class="admin-preview-exit">Exit Preview</a>
+        </div>
+        {% endif %}
+
+        <div class="dash-header">
+            <div>
+                <span class="eyebrow">Creator workspace</span>
                 <h1>{% if viewing_as %}{{ user.username or user.email }}'s Dashboard{% else %}Welcome back, {{ (user.youtube_channel_name or user.username or 'Creator').split(' ')[0] }}{% endif %}</h1>
-                <p style="margin-top:2px;">{{ channels|length }} channel{{ 's' if channels|length != 1 }} synced &middot; Bot {{ 'enabled' if user.bot_enabled else 'paused' }}</p>
+                <p>{{ channels|length }} channel{{ 's' if channels|length != 1 }} synced &middot; Bot {{ 'enabled' if user.bot_enabled else 'paused' }}</p>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                {% if not viewing_as %}
-                <a href="/bot/dashboard" class="bot-link-btn secondary"><i class="fab fa-discord"></i> Discord Panel</a>
+            <div class="header-actions">
                 <a href="/settings" class="bot-link-btn secondary"><i class="fas fa-cog"></i> Settings</a>
-                {% else %}
-                <a href="/nx-admin/users/{{ user.id }}" class="bot-link-btn secondary"><i class="fas fa-arrow-left"></i> Back to User</a>
-                {% endif %}
+                <a href="/videos" class="bot-link-btn primary"><i class="fas fa-play-circle"></i> Videos</a>
             </div>
         </div>
 
-        <div class="quick-nav">
-            <a href="/videos" class="qn-btn primary"><i class="fas fa-play-circle"></i> Videos</a>
-            {% if channels %}<a href="/channel/{{ channels[0].id }}/settings" class="qn-btn ghost"><i class="fas fa-robot"></i> Bot Settings</a>{% endif %}
-            <a href="/bot/dashboard" class="qn-btn ghost"><i class="fab fa-discord"></i> Discord Servers</a>
-            {% if channels %}<a href="/channel/{{ channels[0].id }}" class="qn-btn ghost"><i class="fas fa-chart-line"></i> Analytics</a>{% endif %}
-            <a href="/setup" class="qn-btn ghost"><i class="fas fa-wand-magic-sparkles"></i> Setup Wizard</a>
-            <a href="/help" class="qn-btn ghost"><i class="fas fa-question-circle"></i> Help</a>
+        <div class="workspace-tabs">
+            <button class="workspace-tab active" data-panel="overview">Overview</button>
+            <button class="workspace-tab" data-panel="channels">Channels</button>
+            <button class="workspace-tab" data-panel="channel-settings">Channel Settings</button>
+            <button class="workspace-tab" data-panel="discord">Discord</button>
+            <button class="workspace-tab" data-panel="kick">Kick</button>
+            <button class="workspace-tab" data-panel="tiktok">TikTok</button>
+            <button class="workspace-tab" data-panel="user">User</button>
         </div>
 
-        {% if not bot_moderator_ok %}
-        <div class="mod-banner">
-            <div class="mod-banner-icon">
-                <i class="fas fa-exclamation-triangle" style="color: #d97706; font-size: 14px;"></i>
-            </div>
-            <div style="flex: 1;">
-                <div class="mod-banner-title">Add nexusbetabot as a moderator</div>
-                <div class="mod-banner-text">The bot needs mod access to work. Add <strong>nexusbetabot</strong> as a moderator in YouTube Studio &rarr; Settings &rarr; Community &rarr; Moderators. <a href="/faq">Learn more</a></div>
-            </div>
-            {% if not viewing_as %}
-            <form method="POST" action="/dashboard/confirm-moderator" style="flex-shrink:0;">
-                <button type="submit" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(217,119,6,0.15);border:1px solid rgba(217,119,6,0.3);border-radius:8px;font-size:12px;font-weight:600;color:#d97706;cursor:pointer;white-space:nowrap;">
-                    <i class="fas fa-check" style="font-size:10px;"></i> I've done this
-                </button>
-            </form>
-            {% endif %}
-        </div>
-        {% endif %}
+        <div class="workspace-panels">
+            <div class="workspace-panel active" id="panel-overview">
+                {% set total_subs = channels | sum(attribute='subscriber_count') %}
+                {% set total_views = channels | sum(attribute='view_count') %}
+                {% set total_videos = channels | sum(attribute='video_count') %}
 
-        <div class="top-grid">
-            <div class="bot-panel">
-                <div class="bot-panel-top">
-                    <div class="bot-status-ring {{ 'on' if user.bot_enabled else 'off' }}">
-                        <div class="dot"></div>
+                <div class="stats-row">
+                    <div class="s-card purple">
+                        <div class="s-card-top"><div class="s-card-label">Subscribers</div><div class="s-card-icon"><i class="fas fa-users"></i></div></div>
+                        <div class="s-card-val">{{ "{:,}".format(total_subs) }}</div>
+                        <div class="s-card-sub">across {{ channels|length }} channel{{ 's' if channels|length != 1 }}</div>
                     </div>
-                    <div class="bot-panel-info">
-                        <strong>Nexus Bot {{ 'Enabled' if user.bot_enabled else 'Disabled' }}</strong>
-                        <span id="bot-label">{{ 'Ready for ' ~ (channels|length) ~ ' channel' ~ ('s' if channels|length != 1 else '') if user.bot_enabled else 'Bot is paused' }}</span>
+                    <div class="s-card blue">
+                        <div class="s-card-top"><div class="s-card-label">Views</div><div class="s-card-icon"><i class="fas fa-eye"></i></div></div>
+                        <div class="s-card-val">{{ "{:,}".format(total_views) }}</div>
+                        <div class="s-card-sub">all time</div>
                     </div>
-                    <label class="tgl">
-                        <input type="checkbox" id="bot-toggle" {{ 'checked' if user.bot_enabled }}>
-                        <span class="tgl-track"></span>
-                    </label>
+                    <div class="s-card green">
+                        <div class="s-card-top"><div class="s-card-label">Videos</div><div class="s-card-icon"><i class="fas fa-video"></i></div></div>
+                        <div class="s-card-val">{{ "{:,}".format(total_videos) }}</div>
+                        <div class="s-card-sub">published</div>
+                    </div>
+                    <div class="s-card yellow">
+                        <div class="s-card-top"><div class="s-card-label">Commands</div><div class="s-card-icon"><i class="fas fa-terminal"></i></div></div>
+                        <div class="s-card-val">{{ custom_cmd_count + builtin_cmd_count }}</div>
+                        <div class="s-card-sub">{{ builtin_cmd_count }} built-in</div>
+                    </div>
                 </div>
-                <div class="bot-panel-links">
-                    <a href="/videos" class="bot-link-btn primary"><i class="fas fa-play-circle"></i> Videos</a>
-                    {% if channels %}<a href="/channel/{{ channels[0].id }}/settings" class="bot-link-btn secondary"><i class="fas fa-cog"></i> Bot Settings</a>{% endif %}
-                </div>
-            </div>
 
-            <div class="channels-panel">
-                <div class="channels-panel-header">
-                    <h3><i class="fas fa-tv" style="color:#6366f1;margin-right:6px;font-size:13px;"></i>Your Channels</h3>
-                    <span class="count">{{ channels|length }} tracked</span>
-                </div>
-                {% if channels %}
-                {% for ch in channels %}
-                <div class="ch-row">
-                    {% if ch.channel_thumbnail %}
-                    <img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">
-                    {% else %}
-                    <div class="ch-init">{{ ch.channel_name[0]|upper }}</div>
-                    {% endif %}
-                    <div class="ch-info">
-                        <a href="/channel/{{ ch.id }}" class="ch-name">{{ ch.channel_name }}</a>
-                        <div class="ch-stats">
-                            <span><i class="fas fa-users"></i> {{ "{:,}".format(ch.subscriber_count) }}</span>
-                            <span><i class="fas fa-eye"></i> {{ "{:,}".format(ch.view_count) }}</span>
-                            <span><i class="fas fa-video"></i> {{ ch.video_count }}</span>
-                        </div>
-                    </div>
-                    <div class="ch-actions">
-                        <a href="/channel/{{ ch.id }}" class="icon-btn" title="View"><i class="fas fa-chart-line"></i></a>
-                        <a href="/channel/{{ ch.id }}/settings" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></a>
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <div class="empty-st">
-                    <i class="fas fa-video"></i>
-                    <h3>No channels yet</h3>
-                    <p>Sign in with Google to auto-detect your channel</p>
+                {% if channels and user.bot_enabled %}
+                <div id="live-status-card" class="live-card">
+                    <div id="live-dot" class="live-dot"></div>
+                    <div class="live-info"><strong id="live-title">Checking stream status...</strong><span id="live-sub">Bot is watching for your live stream</span></div>
+                    <span id="live-msgs-badge" class="live-msgs" style="display:none;"></span>
                 </div>
                 {% endif %}
-            </div>
-        </div>
 
-        {% set total_subs = channels | sum(attribute='subscriber_count') %}
-        {% set total_views = channels | sum(attribute='view_count') %}
-        {% set total_videos = channels | sum(attribute='video_count') %}
-
-        <div class="stats-row">
-            <div class="s-card purple">
-                <div class="s-card-top">
-                    <div class="s-card-label">Subscribers</div>
-                    <div class="s-card-icon"><i class="fas fa-users"></i></div>
-                </div>
-                <div class="s-card-val">{{ "{:,}".format(total_subs) }}</div>
-                <div class="s-card-sub">across {{ channels|length }} channel{{ 's' if channels|length != 1 }}</div>
-            </div>
-            <div class="s-card blue">
-                <div class="s-card-top">
-                    <div class="s-card-label">Total Views</div>
-                    <div class="s-card-icon"><i class="fas fa-eye"></i></div>
-                </div>
-                <div class="s-card-val">{{ "{:,}".format(total_views) }}</div>
-                <div class="s-card-sub">all time</div>
-            </div>
-            <div class="s-card green">
-                <div class="s-card-top">
-                    <div class="s-card-label">Videos</div>
-                    <div class="s-card-icon"><i class="fas fa-play-circle"></i></div>
-                </div>
-                <div class="s-card-val">{{ "{:,}".format(total_videos) }}</div>
-                <div class="s-card-sub">published</div>
-            </div>
-            <div class="s-card yellow">
-                <div class="s-card-top">
-                    <div class="s-card-label">Commands</div>
-                    <div class="s-card-icon"><i class="fas fa-terminal"></i></div>
-                </div>
-                <div class="s-card-val">{{ custom_cmd_count + builtin_cmd_count }}</div>
-                <div class="s-card-sub">{{ builtin_cmd_count }} built-in, {{ custom_cmd_count }} custom</div>
-            </div>
-        </div>
-
-        {% if channels and user.bot_enabled %}
-        <div id="live-status-card" class="live-card">
-            <div id="live-dot" class="live-dot"></div>
-            <div class="live-info">
-                <strong id="live-title">Checking stream status...</strong>
-                <span id="live-sub">Bot is watching for your live stream</span>
-            </div>
-            <span id="live-msgs-badge" class="live-msgs" style="display:none;"></span>
-        </div>
-        {% endif %}
-
-        <div class="section-lbl">Creator workspace</div>
-        {% set s = bot_settings[0].settings if bot_settings else none %}
-        {% set ch_id = bot_settings[0].channel.id if bot_settings else 0 %}
-        <div class="g2">
-            <div class="card">
-                <div class="card-h">
-                    <div>
-                        <h3><i class="fas fa-layer-group" style="color:#6366f1;margin-right:6px;font-size:13px;"></i>Platform stack</h3>
-                        <div class="sub">Nexus across your creator toolkit</div>
-                    </div>
-                </div>
-                <div class="mod-grid">
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(239,68,68,0.08);color:#ef4444;"><i class="fab fa-youtube"></i></div>
-                        <div class="mod-item-info"><div class="m-name">YouTube</div><div class="m-desc">Connected · live moderation active</div></div>
-                        <span class="badge badge-on">Live</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(99,102,241,0.08);color:#6366f1;"><i class="fab fa-discord"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Discord</div><div class="m-desc">Bot hub · community tools</div></div>
-                        <span class="badge badge-count">Ready</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(117,63,255,0.08);color:#7c3aed;"><i class="fab fa-twitch"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Twitch</div><div class="m-desc">Connect channel · same dashboard</div></div>
-                        <span class="badge badge-off">Setup</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(16,185,129,0.08);color:#10b981;"><i class="fas fa-play-circle"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Kick</div><div class="m-desc">Unified moderation + alerts</div></div>
-                        <span class="badge badge-off">Setup</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(59,130,246,0.08);color:#3b82f6;"><i class="fab fa-x-twitter"></i></div>
-                        <div class="mod-item-info"><div class="m-name">X</div><div class="m-desc">Auto-post stream links when live</div></div>
-                        <span class="badge badge-off">Planned</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(244,63,94,0.08);color:#ec4899;"><i class="fab fa-tiktok"></i></div>
-                        <div class="mod-item-info"><div class="m-name">TikTok</div><div class="m-desc">Creator workflow sync</div></div>
-                        <span class="badge badge-off">Planned</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-h">
-                    <div><h3><i class="fas fa-bolt" style="color:#8b5cf6;margin-right:6px;font-size:13px;"></i>Automation</h3><div class="sub">Quick controls for your live setup</div></div>
-                    {% if channels %}<a href="/channel/{{ channels[0].id }}/settings" class="icon-btn" title="Full Settings"><i class="fas fa-cog"></i></a>{% endif %}
-                </div>
-                <div class="mod-grid">
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(99,102,241,0.08);color:#6366f1;"><i class="fas fa-shield-alt"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Spam Filter</div><div class="m-desc">Blocks repeated characters</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.spam_filter_enabled) }} onchange="quickToggle({{ ch_id }}, 'spam_filter_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(59,130,246,0.08);color:#3b82f6;"><i class="fas fa-link"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Link Protection</div><div class="m-desc">Blocks links from non-mods</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.link_filter_enabled) }} onchange="quickToggle({{ ch_id }}, 'link_filter_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(16,185,129,0.08);color:#10b981;"><i class="fas fa-stopwatch"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Timed Messages</div><div class="m-desc">{{ timer_count }} timer{{ 's' if timer_count != 1 }}</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.timed_messages_enabled) }} onchange="quickToggle({{ ch_id }}, 'timed_messages_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(139,92,246,0.08);color:#8b5cf6;"><i class="fas fa-code"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Custom Commands</div><div class="m-desc">{{ custom_cmd_count }} active</div></div>
-                        <span class="badge badge-count">{{ custom_cmd_count }}</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(245,158,11,0.08);color:#f59e0b;"><i class="fas fa-broadcast-tower"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Live Alerts</div><div class="m-desc">Discord + social announcements</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.welcome_message_enabled) }} onchange="quickToggle({{ ch_id }}, 'welcome_message_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(239,68,68,0.08);color:#ef4444;"><i class="fas fa-user-slash"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Anti-Raid</div><div class="m-desc">Blocks suspicious new accounts</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.anti_raid_enabled) }} onchange="quickToggle({{ ch_id }}, 'anti_raid_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-lbl">Viewers &amp; Activity</div>
-        <div class="g-full">
-            <div class="card">
-                <div class="card-h">
-                    <div>
-                        <h3><i class="fas fa-users-cog" style="color:#6366f1;margin-right:6px;font-size:13px;"></i>Viewers ({{ viewers|length }})</h3>
-                        <div class="sub">People who've chatted on your channel</div>
-                    </div>
-                    <div class="tabs">
-                        <button class="tab-btn active" data-tab="viewers" onclick="switchTab('viewers')">Viewers</button>
-                        <button class="tab-btn" data-tab="cmdlogs" onclick="switchTab('cmdlogs')">Command Log</button>
-                    </div>
-                </div>
-                <div class="card-b flush">
-                    <div class="tab-panel active" id="tab-viewers">
-                        {% if viewers %}
-                        <table class="dt">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Watchtime</th>
-                                    <th>Messages</th>
-                                    <th>Timeouts</th>
-                                    <th>Status</th>
-                                    <th>Last Seen</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for v in viewers %}
-                                <tr id="viewer-{{ v.id }}">
-                                    <td>
-                                        <div class="viewer-user">
-                                            <div class="viewer-avatar">{{ (v.display_name or v.username or 'U')[0]|upper }}</div>
-                                            <div>
-                                                <div style="font-weight:600;color:#1e293b;font-size:13px;">{{ v.display_name or v.username }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex;align-items:center;gap:6px;">
-                                            <span style="font-weight:600;color:#1e293b;font-size:12px;">{% if v.watchtime_minutes >= 60 %}{{ (v.watchtime_minutes // 60) }}h {{ v.watchtime_minutes % 60 }}m{% else %}{{ v.watchtime_minutes }}m{% endif %}</span>
-                                            <div class="wt-bar"><div class="wt-fill" style="width:{{ [v.watchtime_minutes / 10, 100] | min }}%;"></div></div>
-                                        </div>
-                                    </td>
-                                    <td style="font-weight:500;">{{ "{:,}".format(v.messages_sent) }}</td>
-                                    <td>
-                                        {% if v.timeout_count > 0 %}
-                                        <span class="badge badge-ban">{{ v.timeout_count }}</span>
-                                        {% else %}
-                                        <span style="color:#cbd5e1;">0</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if v.is_banned %}
-                                        <span class="badge badge-ban"><i class="fas fa-ban" style="font-size:9px;"></i> Banned</span>
-                                        {% else %}
-                                        <span class="badge badge-on">Active</span>
-                                        {% endif %}
-                                    </td>
-                                    <td style="font-size:12px;color:#94a3b8;">{{ v.last_seen.strftime('%b %d, %I:%M %p') if v.last_seen else 'N/A' }}</td>
-                                    <td>
-                                        <div style="display:flex;gap:4px;">
-                                            <button class="icon-btn" title="Timeout" onclick="timeoutViewer({{ v.id }}, {{ v.channel_id }})"><i class="fas fa-hourglass-half"></i></button>
-                                            <button class="icon-btn danger" title="{{ 'Unban' if v.is_banned else 'Ban' }}" onclick="toggleBan({{ v.id }}, {{ v.channel_id }}, {{ 'false' if v.is_banned else 'true' }})">
-                                                <i class="fas {{ 'fa-unlock' if v.is_banned else 'fa-ban' }}"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        {% else %}
-                        <div class="empty-st">
-                            <i class="fas fa-user-friends"></i>
-                            <h3>No viewers tracked yet</h3>
-                            <p>Viewer data shows up when people chat during a live stream</p>
+                <div class="card-grid two-up">
+                    <div class="card-panel">
+                        <div class="card-panel-head"><h3><i class="fas fa-robot"></i> Bot status</h3></div>
+                        <div class="panel-content">
+                            <div class="inline-status"><span class="status-dot {{ 'online' if user.bot_enabled else 'offline' }}"></span><strong>{{ 'Online' if user.bot_enabled else 'Paused' }}</strong></div>
+                            <p>Keep moderation, commands, and live chat automation active.</p>
+                            <label class="tgl"><input type="checkbox" id="bot-toggle" {{ 'checked' if user.bot_enabled }}><span class="tgl-track"></span></label>
                         </div>
-                        {% endif %}
                     </div>
-                    <div class="tab-panel" id="tab-cmdlogs">
-                        {% if command_logs %}
-                        <table class="dt">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Command</th>
-                                    <th>Response</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cl in command_logs %}
-                                <tr>
-                                    <td>
-                                        <div class="viewer-user">
-                                            <div class="viewer-avatar">{{ (cl.username or 'U')[0]|upper }}</div>
-                                            <span style="font-weight:500;color:#1e293b;">{{ cl.username }}</span>
-                                        </div>
-                                    </td>
-                                    <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:12px;color:#6366f1;font-weight:600;">{{ cl.command }}</code></td>
-                                    <td style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ cl.response or '-' }}</td>
-                                    <td style="font-size:12px;color:#94a3b8;">{{ cl.timestamp.strftime('%b %d, %I:%M %p') if cl.timestamp else 'N/A' }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        {% else %}
-                        <div class="empty-st">
-                            <i class="fas fa-terminal"></i>
-                            <h3>No commands logged yet</h3>
-                            <p>Logs show up here when viewers use bot commands</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="section-lbl">Analytics</div>
-        <div class="g3">
-            <div class="card">
-                <div class="card-h"><div><h3>Subscriber Growth</h3><div class="sub">Last 30 days</div></div></div>
-                <div class="card-b"><div class="chart-wrap"><canvas id="subChart"></canvas></div></div>
-            </div>
-            <div class="card">
-                <div class="card-h"><div><h3>Views by Channel</h3><div class="sub">Total breakdown</div></div></div>
-                <div class="card-b"><div class="chart-wrap"><canvas id="viewsChart"></canvas></div></div>
-            </div>
-            <div class="card">
-                <div class="card-h"><div><h3>Channel Distribution</h3><div class="sub">Subscriber share</div></div></div>
-                <div class="card-b"><div class="chart-wrap"><canvas id="distChart"></canvas></div></div>
-            </div>
-        </div>
-
-        {% if video_stats %}
-        <div class="section-lbl">Video Performance</div>
-        <div class="g-full">
-            <div class="card">
-                <div class="card-h"><div><h3>Recent Videos</h3><div class="sub">How your latest uploads are doing</div></div></div>
-                <div class="card-b flush">
-                    <table class="dt">
-                        <thead><tr><th>Video</th><th>Views</th><th>Likes</th><th>Comments</th><th>Published</th></tr></thead>
-                        <tbody>
-                            {% for v in video_stats[:15] %}
-                            <tr>
-                                <td><div class="vid-cell">{% if v.thumbnail_url %}<img src="{{ v.thumbnail_url }}" class="vid-thumb">{% endif %}<span class="vid-title" title="{{ v.title }}">{{ v.title or 'Untitled' }}</span></div></td>
-                                <td style="font-weight:600;color:#1e293b;">{{ "{:,}".format(v.view_count) }}</td>
-                                <td>{{ "{:,}".format(v.like_count) }}</td>
-                                <td>{{ "{:,}".format(v.comment_count) }}</td>
-                                <td style="font-size:12px;">{{ v.published_at.strftime('%b %d, %Y') if v.published_at else 'N/A' }}</td>
-                            </tr>
+                    <div class="card-panel">
+                        <div class="card-panel-head"><h3><i class="fas fa-layer-group"></i> Platform stack</h3></div>
+                        <div class="panel-content compact-list">
+                            {% for p in platform_data %}
+                            <div class="mini-platform-row">
+                                <div class="mini-platform-name">{{ 'X' if p.platform == 'x' else p.platform|capitalize }}</div>
+                                <span class="mini-platform-state {{ 'on' if p.connected else 'off' }}">{{ 'Connected' if p.connected else 'Setup' }}</span>
+                            </div>
                             {% endfor %}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-channels">
+                <div class="card-panel full">
+                    <div class="card-panel-head"><h3><i class="fas fa-tv"></i> Your channels</h3></div>
+                    <div class="panel-content">
+                        {% if channels %}
+                        {% for ch in channels %}
+                        <div class="channel-summary-row">
+                            {% if ch.channel_thumbnail %}<img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">{% else %}<div class="channel-avatar">{{ ch.channel_name[0]|upper }}</div>{% endif %}
+                            <div class="channel-summary-info">
+                                <div class="channel-name">{{ ch.channel_name }}</div>
+                                <div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views</div>
+                            </div>
+                            <div class="channel-summary-actions">
+                                <a href="/channel/{{ ch.id }}" class="small-btn">Open</a>
+                                <a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Settings</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-state"><i class="fas fa-video"></i><p>No channels connected yet.</p></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-channel-settings">
+                <div class="card-panel full">
+                    <div class="card-panel-head"><h3><i class="fas fa-sliders-h"></i> Channel settings</h3></div>
+                    <div class="panel-content settings-stack">
+                        {% if channels %}
+                        {% for ch in channels %}
+                        <div class="settings-stack-item">
+                            <div class="settings-stack-name">{{ ch.channel_name }}</div>
+                            <div class="settings-stack-actions">
+                                <a href="/channel/{{ ch.id }}/settings" class="small-btn">Bot settings</a>
+                                <a href="/channel/{{ ch.id }}" class="small-btn outline">Analytics</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-state"><i class="fas fa-robot"></i><p>Add a YouTube channel to see channel controls.</p></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-discord">
+                <div class="card-panel full">
+                    <div class="card-panel-head"><h3><i class="fab fa-discord"></i> Discord</h3></div>
+                    <div class="panel-content">
+                        <div class="settings-stack-item">
+                            <div class="settings-stack-name">Discord server controls</div>
+                            <div class="settings-stack-actions">
+                                <a href="/bot/dashboard" class="small-btn">Open panel</a>
+                                <a href="/settings" class="small-btn outline">Account settings</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-kick">
+                <div class="card-panel full">
+                    <div class="card-panel-head"><h3><i class="fas fa-play-circle"></i> Kick</h3></div>
+                    <div class="panel-content">
+                        <div class="settings-stack-item">
+                            <div class="settings-stack-name">Kick live alerts and chat sync</div>
+                            <div class="settings-stack-actions">
+                                <button class="small-btn disabled" disabled>Connect Kick</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-tiktok">
+                <div class="card-panel full">
+                    <div class="card-panel-head"><h3><i class="fab fa-tiktok"></i> TikTok</h3></div>
+                    <div class="panel-content">
+                        <div class="settings-stack-item">
+                            <div class="settings-stack-name">TikTok creator sync</div>
+                            <div class="settings-stack-actions">
+                                <button class="small-btn disabled" disabled>Connect TikTok</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-panel" id="panel-user">
+                <div class="card-panel full">
+                    <div class="card-panel-head"><h3><i class="fas fa-user"></i> User settings</h3></div>
+                    <div class="panel-content settings-stack">
+                        <div class="settings-stack-item">
+                            <div class="settings-stack-name">Profile & account</div>
+                            <div class="settings-stack-actions"><a href="/settings" class="small-btn">Open account settings</a></div>
+                        </div>
+                        <div class="settings-stack-item">
+                            <div class="settings-stack-name">Connected platforms</div>
+                            <div class="settings-stack-actions"><a href="/settings#sec-integrations" class="small-btn outline">Manage links</a></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        {% endif %}
 
     </div>
 
