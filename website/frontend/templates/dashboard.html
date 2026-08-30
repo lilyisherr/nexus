@@ -644,10 +644,18 @@
                     <div class="card-panel-head"><h3><i class="fab fa-discord"></i> Discord</h3></div>
                     <div class="panel-content">
                         <div class="settings-stack-item">
-                            <div class="settings-stack-name">Discord server controls</div>
+                            <div>
+                                <div class="settings-stack-name">{{ user.discord_username or 'Discord not linked' }}</div>
+                                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">{{ 'Connected to your Nexus account' if user.discord_user_id else 'Link Discord to manage the bot and live notifications.' }}</div>
+                            </div>
                             <div class="settings-stack-actions">
-                                <a href="/bot/dashboard" class="small-btn">Open panel</a>
-                                <a href="/settings" class="small-btn outline">Account settings</a>
+                                {% if user.discord_user_id %}
+                                <a href="/bot/dashboard" class="small-btn">Open bot panel</a>
+                                <a href="/settings" class="small-btn outline">Manage link</a>
+                                {% else %}
+                                <a href="/settings" class="small-btn">Connect Discord</a>
+                                <a href="/bot/dashboard" class="small-btn outline">Bot dashboard</a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -772,6 +780,36 @@
             setTimeout(function() { t.classList.remove('show'); }, 3000);
         }
 
+        var botToggle = document.getElementById('bot-toggle');
+        if (botToggle) {
+            botToggle.addEventListener('change', function() {
+                var on = this.checked;
+                var ring = document.querySelector('.bot-status-ring');
+                var botTitle = document.querySelector('.bot-panel-info strong');
+                var botLabel = document.getElementById('bot-label');
+
+                if (ring) {
+                    ring.className = 'bot-status-ring ' + (on ? 'on' : 'off');
+                }
+                if (botTitle) {
+                    botTitle.textContent = 'Nexus Bot ' + (on ? 'Online' : 'Offline');
+                }
+                if (botLabel) {
+                    botLabel.textContent = on ? 'Watching {{ channels|length }} channel{{ "s" if channels|length != 1 }}' : 'Bot is paused';
+                }
+
+                fetch('/api/bot/toggle', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ enabled: on })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function() { showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success'); })
+                .catch(function() { showToast('Failed to update', 'error'); });
+            });
+        }
+
         function timeoutViewer(viewerId, channelId) {
             fetch('/api/channels/' + channelId + '/viewers/' + viewerId + '/timeout', {
                 method: 'POST', credentials: 'same-origin',
@@ -800,18 +838,6 @@
             })
             .catch(function() { showToast('Failed', 'error'); });
         }
-
-        var botToggle = document.getElementById('bot-toggle');
-        if (botToggle) botToggle.addEventListener('change', function() {
-            var on = this.checked;
-            document.querySelector('.bot-status-ring').className = 'bot-status-ring ' + (on ? 'on' : 'off');
-            document.querySelector('.bot-panel-info strong').textContent = 'Nexus Bot ' + (on ? 'Online' : 'Offline');
-            document.getElementById('bot-label').textContent = on ? 'Watching {{ channels|length }} channel{{ "s" if channels|length != 1 }}' : 'Bot is paused';
-            fetch('/api/bot/toggle', { method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'same-origin', body: JSON.stringify({enabled:on}) })
-            .then(function(r) { return r.json(); })
-            .then(function() { showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success'); })
-            .catch(function() { showToast('Failed to update', 'error'); });
-        });
 
         var cNames = [{% for ch in channels %}'{{ ch.channel_name|replace("'", "\\'") }}'{% if not loop.last %},{% endif %}{% endfor %}];
         var cSubs = [{% for ch in channels %}{{ ch.subscriber_count }}{% if not loop.last %},{% endif %}{% endfor %}];

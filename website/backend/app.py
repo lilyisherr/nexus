@@ -1221,10 +1221,14 @@ def _build_user_platform_data(user):
         else:
             conn = connections.get(platform)
             connected = bool(conn and conn.status == 'connected')
-            display_name = conn.display_name or conn.username or 'Not connected'
+            display_name = 'Not connected'
+            username = 'Not connected'
+            profile_url = '#'
+            if conn:
+                display_name = conn.display_name or conn.username or 'Not connected'
+                username = conn.username or 'Not connected'
+                profile_url = conn.profile_url or '#'
             status_label = 'Connected' if connected else 'Not connected'
-            profile_url = conn.profile_url or '#'
-            username = conn.username or 'Not connected'
 
         rows.append({
             'platform': platform,
