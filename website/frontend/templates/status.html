@@ -720,15 +720,16 @@
                 </svg>
                 {% endif %}
             </div>
+            <div class="eyebrow">Live service checks</div>
             <h1 id="overallStatusText">{{ overall_status }}</h1>
-            <p id="healthSummaryText">{{ operational_count }} of {{ total_services }} services operational{% if degraded_count > 0 %} &mdash; {{ degraded_count }} degraded{% endif %}</p>
+            <p id="healthSummaryText">{{ operational_count }} of {{ total_services }} checks online{% if degraded_count > 0 %} &mdash; {{ degraded_count }} degraded{% endif %}</p>
             <div class="checked-time" id="checkedAtText">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 Last checked: {{ checked_at }}
             </div>
             <div class="auto-refresh-badge" id="refreshBadge">
                 <span class="refresh-dot"></span>
-                Auto-refreshes every 60s
+                Refreshing automatically
             </div>
         </div>
     </div>

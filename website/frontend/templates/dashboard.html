@@ -667,13 +667,54 @@
         </div>
         {% endif %}
 
-        <div class="section-lbl">Bot Modules <span style="font-size:10px;color:#94a3b8;font-weight:400;margin-left:6px;">toggles save instantly</span></div>
+        <div class="section-lbl">Creator workspace</div>
         {% set s = bot_settings[0].settings if bot_settings else none %}
         {% set ch_id = bot_settings[0].channel.id if bot_settings else 0 %}
         <div class="g2">
             <div class="card">
                 <div class="card-h">
-                    <div><h3><i class="fas fa-shield-alt" style="color:#6366f1;margin-right:6px;font-size:13px;"></i>Moderation</h3><div class="sub">Keeps chat clean</div></div>
+                    <div>
+                        <h3><i class="fas fa-layer-group" style="color:#6366f1;margin-right:6px;font-size:13px;"></i>Platform stack</h3>
+                        <div class="sub">Nexus across your creator toolkit</div>
+                    </div>
+                </div>
+                <div class="mod-grid">
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(239,68,68,0.08);color:#ef4444;"><i class="fab fa-youtube"></i></div>
+                        <div class="mod-item-info"><div class="m-name">YouTube</div><div class="m-desc">Connected · live moderation active</div></div>
+                        <span class="badge badge-on">Live</span>
+                    </div>
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(99,102,241,0.08);color:#6366f1;"><i class="fab fa-discord"></i></div>
+                        <div class="mod-item-info"><div class="m-name">Discord</div><div class="m-desc">Bot hub · community tools</div></div>
+                        <span class="badge badge-count">Ready</span>
+                    </div>
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(117,63,255,0.08);color:#7c3aed;"><i class="fab fa-twitch"></i></div>
+                        <div class="mod-item-info"><div class="m-name">Twitch</div><div class="m-desc">Connect channel · same dashboard</div></div>
+                        <span class="badge badge-off">Setup</span>
+                    </div>
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(16,185,129,0.08);color:#10b981;"><i class="fas fa-play-circle"></i></div>
+                        <div class="mod-item-info"><div class="m-name">Kick</div><div class="m-desc">Unified moderation + alerts</div></div>
+                        <span class="badge badge-off">Setup</span>
+                    </div>
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(59,130,246,0.08);color:#3b82f6;"><i class="fab fa-x-twitter"></i></div>
+                        <div class="mod-item-info"><div class="m-name">X</div><div class="m-desc">Auto-post stream links when live</div></div>
+                        <span class="badge badge-off">Planned</span>
+                    </div>
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(244,63,94,0.08);color:#ec4899;"><i class="fab fa-tiktok"></i></div>
+                        <div class="mod-item-info"><div class="m-name">TikTok</div><div class="m-desc">Creator workflow sync</div></div>
+                        <span class="badge badge-off">Planned</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-h">
+                    <div><h3><i class="fas fa-bolt" style="color:#8b5cf6;margin-right:6px;font-size:13px;"></i>Automation</h3><div class="sub">Quick controls for your live setup</div></div>
                     {% if channels %}<a href="/channel/{{ channels[0].id }}/settings" class="icon-btn" title="Full Settings"><i class="fas fa-cog"></i></a>{% endif %}
                 </div>
                 <div class="mod-grid">
@@ -688,61 +729,22 @@
                         <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.link_filter_enabled) }} onchange="quickToggle({{ ch_id }}, 'link_filter_enabled', this.checked)"><span class="qtgl-track"></span></label>
                     </div>
                     <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(245,158,11,0.08);color:#f59e0b;"><i class="fas fa-font"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Caps Filter</div><div class="m-desc">Limits excessive caps</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.caps_filter_enabled) }} onchange="quickToggle({{ ch_id }}, 'caps_filter_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(239,68,68,0.08);color:#ef4444;"><i class="fas fa-ban"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Blocked Words</div><div class="m-desc">Your custom word list</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.blocked_words_enabled) }} onchange="quickToggle({{ ch_id }}, 'blocked_words_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(16,185,129,0.08);color:#10b981;"><i class="fas fa-clock"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Slow Mode</div><div class="m-desc">{{ s.slow_mode_seconds if s else 5 }}s between messages</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.slow_mode_enabled) }} onchange="quickToggle({{ ch_id }}, 'slow_mode_enabled', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(99,102,241,0.08);color:#6366f1;"><i class="fas fa-user-friends"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Followers Only</div><div class="m-desc">Restrict chat to followers</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.follower_only_mode) }} onchange="quickToggle({{ ch_id }}, 'follower_only_mode', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-h">
-                    <div><h3><i class="fas fa-comments" style="color:#8b5cf6;margin-right:6px;font-size:13px;"></i>Engagement</h3><div class="sub">Commands and auto replies</div></div>
-                    {% if channels %}<a href="/channel/{{ channels[0].id }}/settings" class="icon-btn" title="Full Settings"><i class="fas fa-cog"></i></a>{% endif %}
-                </div>
-                <div class="mod-grid">
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(99,102,241,0.08);color:#6366f1;"><i class="fas fa-terminal"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Built-in Commands</div><div class="m-desc">watchtime, uptime, 8ball, etc.</div></div>
-                        <span class="badge badge-count">{{ builtin_cmd_count }}</span>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(139,92,246,0.08);color:#8b5cf6;"><i class="fas fa-code"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Custom Commands</div><div class="m-desc">{{ custom_cmd_count }} command{{ 's' if custom_cmd_count != 1 }}</div></div>
-                        <span class="badge badge-count">{{ custom_cmd_count }}</span>
-                    </div>
-                    <div class="mod-item">
                         <div class="mod-item-icon" style="background:rgba(16,185,129,0.08);color:#10b981;"><i class="fas fa-stopwatch"></i></div>
                         <div class="mod-item-info"><div class="m-name">Timed Messages</div><div class="m-desc">{{ timer_count }} timer{{ 's' if timer_count != 1 }}</div></div>
                         <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.timed_messages_enabled) }} onchange="quickToggle({{ ch_id }}, 'timed_messages_enabled', this.checked)"><span class="qtgl-track"></span></label>
                     </div>
                     <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(245,158,11,0.08);color:#f59e0b;"><i class="fas fa-comment-dots"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Welcome Messages</div><div class="m-desc">Greet new viewers</div></div>
+                        <div class="mod-item-icon" style="background:rgba(139,92,246,0.08);color:#8b5cf6;"><i class="fas fa-code"></i></div>
+                        <div class="mod-item-info"><div class="m-name">Custom Commands</div><div class="m-desc">{{ custom_cmd_count }} active</div></div>
+                        <span class="badge badge-count">{{ custom_cmd_count }}</span>
+                    </div>
+                    <div class="mod-item">
+                        <div class="mod-item-icon" style="background:rgba(245,158,11,0.08);color:#f59e0b;"><i class="fas fa-broadcast-tower"></i></div>
+                        <div class="mod-item-info"><div class="m-name">Live Alerts</div><div class="m-desc">Discord + social announcements</div></div>
                         <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.welcome_message_enabled) }} onchange="quickToggle({{ ch_id }}, 'welcome_message_enabled', this.checked)"><span class="qtgl-track"></span></label>
                     </div>
                     <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(239,68,68,0.08);color:#ef4444;"><i class="fas fa-medal"></i></div>
-                        <div class="mod-item-info"><div class="m-name">Auto-Thank Subs</div><div class="m-desc">Thanks new subscribers</div></div>
-                        <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.auto_thank_subs) }} onchange="quickToggle({{ ch_id }}, 'auto_thank_subs', this.checked)"><span class="qtgl-track"></span></label>
-                    </div>
-                    <div class="mod-item">
-                        <div class="mod-item-icon" style="background:rgba(59,130,246,0.08);color:#3b82f6;"><i class="fas fa-hand-paper"></i></div>
+                        <div class="mod-item-icon" style="background:rgba(239,68,68,0.08);color:#ef4444;"><i class="fas fa-user-slash"></i></div>
                         <div class="mod-item-info"><div class="m-name">Anti-Raid</div><div class="m-desc">Blocks suspicious new accounts</div></div>
                         <label class="qtgl"><input type="checkbox" {{ 'checked' if (s and s.anti_raid_enabled) }} onchange="quickToggle({{ ch_id }}, 'anti_raid_enabled', this.checked)"><span class="qtgl-track"></span></label>
                     </div>

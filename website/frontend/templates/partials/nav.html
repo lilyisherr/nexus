@@ -14,7 +14,6 @@
             <li><a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a></li>
             <li><a href="/blog" class="nav-link {% if request.path.startswith('/blog') %}active{% endif %}">Blog</a></li>
             <li><a href="/help" class="nav-link {% if request.path == '/help' %}active{% endif %}">Help</a></li>
-            <li><a href="/github" class="nav-link {% if request.path == '/github' %}active{% endif %}">GitHub</a></li>
             <li class="nav-user-menu">
                 <a href="#" class="nav-user-trigger" onclick="event.preventDefault(); document.getElementById('userDropdown').classList.toggle('show');">
                     <div class="user-avatar-container">
@@ -68,7 +67,6 @@
             <li><a href="/blog" class="nav-link {% if request.path.startswith('/blog') %}active{% endif %}">Blog</a></li>
             <li><a href="/about" class="nav-link {% if request.path == '/about' %}active{% endif %}">About</a></li>
             <li><a href="/status" class="nav-link {% if request.path == '/status' %}active{% endif %}">Status</a></li>
-            <li><a href="/github" class="nav-link {% if request.path == '/github' %}active{% endif %}">GitHub</a></li>
             <li class="nav-right-actions">
                 <a href="/faq" class="nav-link nav-link-subtle">FAQ</a>
                 <a href="/auth/login" class="btn btn-primary nav-btn-cta">Get Started</a>

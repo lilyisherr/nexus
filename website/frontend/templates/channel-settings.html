@@ -1598,34 +1598,61 @@
 
             <div id="tab-integrations" class="tab-panel">
                 <div class="panel-section">
-                    <h3 class="section-heading">Other Platforms</h3>
-                    <p class="section-description">I am working on adding more integrations. These are next on the roadmap.</p>
+                    <h3 class="section-heading">Creator integrations</h3>
+                    <p class="section-description">Unify the tools behind your streams so Twitch, Kick, YouTube, X, and TikTok all feel like one connected workspace.</p>
 
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px;">
-                        <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; opacity: 0.6; position: relative;">
-                            <span style="position: absolute; top: 14px; right: 14px; background: #6366f1; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">COMING SOON</span>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9146FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2H3v16h5v4l4-4h5l4-4V2z"/><path d="M10 6v6"/><path d="M14 6v6"/></svg>
-                                <div style="font-weight: 600; font-size: 15px;">Twitch</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px;">
+                        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; background: rgba(99,102,241,0.02);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9146FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2H3v16h5v4l4-4h5l4-4V2z"/><path d="M10 6v6"/><path d="M14 6v6"/></svg>
+                                    <div style="font-weight: 600; font-size: 15px;">Twitch</div>
+                                </div>
+                                <span style="font-size: 10px; font-weight: 700; color: #7c3aed; background: rgba(124,58,237,0.08); padding: 4px 8px; border-radius: 999px;">Connect</span>
                             </div>
-                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Track your Twitch subs, followers, and viewers alongside YouTube in one dashboard. The bot will moderate your Twitch chat with the same rules you already have configured.</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Keep moderation, commands, and creator data in one place across Twitch and YouTube.</div>
                         </div>
-                        <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; opacity: 0.6; position: relative;">
-                            <span style="position: absolute; top: 14px; right: 14px; background: #6366f1; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">COMING SOON</span>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#53FC18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-                                <div style="font-weight: 600; font-size: 15px;">Kick</div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; background: rgba(16,185,129,0.02);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#53FC18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                                    <div style="font-weight: 600; font-size: 15px;">Kick</div>
+                                </div>
+                                <span style="font-size: 10px; font-weight: 700; color: #16a34a; background: rgba(22,163,74,0.08); padding: 4px 8px; border-radius: 999px;">Connect</span>
                             </div>
-                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Connect your Kick channel. Same analytics, same custom commands, same moderation rules across both YouTube and Kick.</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Use the same moderation rules and command flow for Kick without rebuilding your setup every stream.</div>
                         </div>
-                        <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; opacity: 0.6; position: relative;">
-                            <span style="position: absolute; top: 14px; right: 14px; background: #6366f1; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;">COMING SOON</span>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1DA1F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
-                                <div style="font-weight: 600; font-size: 15px;">Twitter / X</div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; background: rgba(59,130,246,0.02);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1DA1F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+                                    <div style="font-weight: 600; font-size: 15px;">X</div>
+                                </div>
+                                <span style="font-size: 10px; font-weight: 700; color: #2563eb; background: rgba(37,99,235,0.08); padding: 4px 8px; border-radius: 999px;">Auto-post</span>
                             </div>
-                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Auto-post to Twitter/X when you go live on YouTube so your followers know you're streaming.</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Trigger a tweet when you go live with your stream title, link, and a custom announcement template.</div>
                         </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; background: rgba(236,72,153,0.02);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2a4 4 0 0 1 4 4v2.4a4 4 0 0 1-4 4H9.5a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h5z"/><path d="M9 14.5v2.8A4.7 4.7 0 0 0 13.7 22h0A4.7 4.7 0 0 0 18.4 17.3v-2.8"/><path d="M12 8v4"/><path d="M10 10h4"/></svg>
+                                    <div style="font-weight: 600; font-size: 15px;">TikTok</div>
+                                </div>
+                                <span style="font-size: 10px; font-weight: 700; color: #be185d; background: rgba(190,24,93,0.08); padding: 4px 8px; border-radius: 999px;">Planned</span>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Keep social posting and streaming announcements aligned with your broader content calendar.</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 22px; border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; background: rgba(99,102,241,0.03);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
+                            <div style="font-weight: 700; font-size: 15px;">Nexus Stream Studio</div>
+                            <span style="font-size: 10px; font-weight: 700; color: #7c3aed; background: rgba(124,58,237,0.08); padding: 4px 8px; border-radius: 999px;">Coming Soon</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">A live-stream control layer for creators who want Nexus to feel like OBS or Streamlabs without needing a separate app. Think scene switching, overlays, stream controls, and quick creator actions from one place.</div>
                     </div>
                 </div>
 

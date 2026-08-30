@@ -1,5 +1,23 @@
 BLOG_POSTS = [
     {
+        "slug": "nexus-dashboard-cleanup-and-platform-plan",
+        "title": "A Cleaner Dashboard, a More Real Product, and a Better Multi-Platform Direction",
+        "date": "August 29, 2026",
+        "date_short": "Aug 29, 2026",
+        "tag": "devlog",
+        "tag_label": "Dev Log",
+        "summary": "Today I cleaned up the dashboard, simplified the channel settings, and tightened the product story around Twitch, Kick, X, and TikTok.",
+        "content": """
+            <p>Today was mostly a cleanup and trust pass. The dashboard was feeling too busy, the channel settings were overlapping too much, and the public-facing copy still had a few places where it sounded like a placeholder instead of a real product.</p>
+            <p>I focused on three things. First, I simplified the dashboard itself so the main actions are clearer and the top-level platform overview reads as a creator workspace instead of a cluttered control panel. The idea is to make it obvious what is active, what is connected, and what is still planned without making the page feel fake or over-designed.</p>
+            <p>Second, I cleaned up the channel settings integration area. Twitch, Kick, X, and TikTok are now described as part of the same creator stack instead of a bunch of disconnected "coming soon" cards. The page now reads like a real product story: a connected platform ecosystem, not a set of placeholders.</p>
+            <p>Third, I tightened the public messaging around the roadmap. The site now talks more like a product with a direction, and less like a generic SaaS template. That includes the X auto-post idea for live announcements, the Kick/Twitch interlink concept, and the future Nexus Stream Studio idea that can eventually act more like a lightweight OBS/Streamlabs-style control layer.</p>
+            <p>That last piece matters because the website should feel grounded, not flashy. It needs to feel like a tool creators can actually trust, not like a template that has been filled with AI-sounding copy. Real product direction matters more than hype. The goal is clarity, not noise.</p>
+            <p>I also added a more direct multi-platform direction: YouTube, Discord, Twitch, Kick, X, and TikTok are all part of the same thinking now. The product isn't just "a YouTube bot" anymore. It's becoming a creator operations layer that can support live streaming, community tools, and cross-platform publishing from one place.</p>
+            <p>There is still more cleanup to do, but this was a good reset. It makes the app feel more deliberate and gives the product a better visual foundation without drifting into that overly polished "AI website" look.</p>
+        """
+    },
+    {
         "slug": "admin-panel-overhaul",
         "title": "The Admin Panel Finally Does What I Need It To",
         "date": "March 14, 2026",
