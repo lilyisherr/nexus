@@ -137,6 +137,83 @@
             padding: 20px 24px;
         }
 
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .platform-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f8fafc;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .platform-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .platform-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .platform-meta {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+            min-height: 36px;
+        }
+
+        .platform-actions,
+        .platform-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .mini-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+        }
+
+        .mini-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #475569;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .mini-btn.primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
         .profile-grid {
             display: grid;
             grid-template-columns: auto 1fr;
@@ -968,54 +1045,43 @@
             <div class="section-head">
                 <div class="sec-icon blue"><i class="fas fa-plug"></i></div>
                 <div>
-                    <h2>Integrations</h2>
-                    <div class="sec-sub">Services linked to your Nexus account</div>
+                    <h2>Workspace connections</h2>
+                    <div class="sec-sub">One place to manage your creator stack</div>
                 </div>
             </div>
             <div class="section-body">
-                <div class="integration-row">
-                    <div class="integration-icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">
-                        <i class="fab fa-youtube"></i>
+                <div class="platform-grid">
+                    {% for p in platform_data %}
+                    <div class="platform-card">
+                        <div class="platform-card-top">
+                            <div class="integration-icon" style="background: rgba({{ 99 if p.platform in ['youtube','discord'] else 59 if p.platform == 'twitch' else 16 if p.platform == 'kick' else 59 if p.platform == 'x' else 236 }} ,{{ 102 if p.platform in ['youtube','discord'] else 130 if p.platform == 'twitch' else 185 if p.platform == 'kick' else 130 if p.platform == 'x' else 72 }},{{ 241 if p.platform in ['youtube','discord'] else 246 if p.platform == 'twitch' else 129 if p.platform == 'kick' else 246 if p.platform == 'x' else 153 }},0.1); color: {{ '#ef4444' if p.platform == 'youtube' else '#5865f2' if p.platform == 'discord' else '#9146ff' if p.platform == 'twitch' else '#10b981' if p.platform == 'kick' else '#2563eb' if p.platform == 'x' else '#ec4899' }};">
+                                {% if p.platform == 'youtube' %}<i class="fab fa-youtube"></i>
+                                {% elif p.platform == 'discord' %}<i class="fab fa-discord"></i>
+                                {% elif p.platform == 'twitch' %}<i class="fab fa-twitch"></i>
+                                {% elif p.platform == 'kick' %}<i class="fas fa-play-circle"></i>
+                                {% elif p.platform == 'x' %}<i class="fab fa-x-twitter"></i>
+                                {% else %}<i class="fab fa-tiktok"></i>
+                                {% endif %}
+                            </div>
+                            <span class="status-badge {{ 'connected' if p.connected else 'disconnected' }}">{{ p.status_label }}</span>
+                        </div>
+                        <div class="platform-name">{{ p.platform|capitalize if p.platform != 'x' else 'X' }}</div>
+                        <div class="platform-meta">{{ p.display_name }}</div>
+                        {% if p.connected %}
+                        <div class="platform-actions">
+                            <a href="{{ p.profile_url }}" class="mini-btn" target="_blank" rel="noopener noreferrer">Open</a>
+                        </div>
+                        {% else %}
+                        <form method="POST" action="/settings/platforms" class="platform-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="platform" value="{{ p.platform }}">
+                            <input type="hidden" name="action" value="connect">
+                            <input type="text" name="username" class="mini-input" placeholder="Handle or username" required>
+                            <button type="submit" class="mini-btn primary">Connect</button>
+                        </form>
+                        {% endif %}
                     </div>
-                    <div class="integration-info">
-                        <div class="int-name">YouTube</div>
-                        <div class="int-desc">{{ user.youtube_channel_name or 'No channel linked' }}</div>
-                    </div>
-                    {% if user.youtube_channel_id %}
-                    <span class="status-badge connected">Connected</span>
-                    {% else %}
-                    <span class="status-badge disconnected">Not Connected</span>
-                    {% endif %}
-                </div>
-                <div class="integration-row">
-                    <div class="integration-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
-                        <i class="fab fa-google"></i>
-                    </div>
-                    <div class="integration-info">
-                        <div class="int-name">Google Account</div>
-                        <div class="int-desc">{{ user.email }}</div>
-                    </div>
-                    <span class="status-badge connected">Connected</span>
-                </div>
-                <div class="integration-row">
-                    <div class="integration-icon" style="background: rgba(88,101,242,0.1); color: #5865f2;">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="integration-info">
-                        <div class="int-name">Nexus YouTube Bot</div>
-                        <div class="int-desc">Connect the Nexus Discord bot to manage your server from the dashboard</div>
-                    </div>
-                    <span style="font-size:11px;background:rgba(245,158,11,0.15);color:#d97706;padding:4px 12px;border-radius:20px;font-weight:600;white-space:nowrap;">Coming Soon</span>
-                </div>
-                <div class="integration-row">
-                    <div class="integration-icon" style="background: rgba(16,185,129,0.1); color: #10b981;">
-                        <i class="fas fa-file-import"></i>
-                    </div>
-                    <div class="integration-info">
-                        <div class="int-name">Nightbot Import</div>
-                        <div class="int-desc">Import commands from Nightbot in your bot settings under Commands tab</div>
-                    </div>
-                    <span class="status-badge connected">Available</span>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -1214,6 +1280,9 @@
         }
         if (params.get('discord') === 'disconnected') {
             showToast('Discord account disconnected.', 'success');
+        }
+        if (params.get('platforms') === 'updated') {
+            showToast('Platform connections updated.', 'success');
         }
         if (params.get('bot') === 'unlinked') {
             showToast('Nexus Bot unlinked from your account.', 'success');

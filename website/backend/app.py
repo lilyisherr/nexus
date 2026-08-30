@@ -2,7 +2,7 @@ import sys
 if __name__ == '__main__' or 'app' not in sys.modules:
     sys.modules['app'] = sys.modules[__name__]
 
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for, Response
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for, Response, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -112,6 +112,7 @@ class User(db.Model):
     
     channels = db.relationship('Channel', backref='owner', lazy=True, cascade='all, delete-orphan')
     stats = db.relationship('ChannelStats', backref='user', lazy=True, cascade='all, delete-orphan')
+    platform_connections = db.relationship('UserPlatformConnection', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def get_notification_preferences(self):
         if self.notification_preferences:
@@ -134,7 +135,40 @@ class User(db.Model):
             'notification_preferences': self.get_notification_preferences(),
             'discord_user_id': self.discord_user_id,
             'discord_username': self.discord_username,
+            'connected_platforms': [pc.to_dict() for pc in self.platform_connections],
             'created_at': self.created_at.isoformat(),
+        }
+
+
+class UserPlatformConnection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    platform = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(255), nullable=True)
+    display_name = db.Column(db.String(255), nullable=True)
+    profile_url = db.Column(db.String(500), nullable=True)
+    status = db.Column(db.String(20), default='connected')
+    auth_provider = db.Column(db.String(50), nullable=True)
+    access_token = db.Column(db.Text, nullable=True)
+    refresh_token = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'platform', name='uq_user_platform'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'platform': self.platform,
+            'username': self.username,
+            'display_name': self.display_name,
+            'profile_url': self.profile_url,
+            'status': self.status,
+            'auth_provider': self.auth_provider,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
 
 
@@ -1165,6 +1199,85 @@ def login_required(f):
             return redirect('/auth/login')
         return f(*args, **kwargs)
     return decorated_function
+
+
+def _build_user_platform_data(user):
+    connections = {c.platform: c for c in UserPlatformConnection.query.filter_by(user_id=user.id).all()}
+    platform_order = ['youtube', 'discord', 'twitch', 'kick', 'x', 'tiktok']
+    rows = []
+    for platform in platform_order:
+        if platform == 'youtube':
+            connected = bool(user.youtube_channel_id)
+            display_name = user.youtube_channel_name or 'No channel connected'
+            status_label = 'Connected' if connected else 'Not connected'
+            profile_url = '/dashboard' if connected else '#'
+            username = user.youtube_channel_name or 'Not connected'
+        elif platform == 'discord':
+            connected = bool(user.discord_user_id)
+            display_name = user.discord_username or 'No Discord linked'
+            status_label = 'Connected' if connected else 'Not connected'
+            profile_url = 'https://discord.com/' if connected else '#'
+            username = user.discord_username or 'Not connected'
+        else:
+            conn = connections.get(platform)
+            connected = bool(conn and conn.status == 'connected')
+            display_name = conn.display_name or conn.username or 'Not connected'
+            status_label = 'Connected' if connected else 'Not connected'
+            profile_url = conn.profile_url or '#'
+            username = conn.username or 'Not connected'
+
+        rows.append({
+            'platform': platform,
+            'display_name': display_name,
+            'status_label': status_label,
+            'connected': connected,
+            'profile_url': profile_url,
+            'username': username,
+        })
+    return rows
+
+
+@app.route('/api/platforms')
+@login_required
+def get_user_platforms():
+    user = User.query.get(session['user_id'])
+    return jsonify(_build_user_platform_data(user))
+
+
+@app.route('/settings/platforms', methods=['POST'])
+@login_required
+def save_platform_connections():
+    user = User.query.get(session['user_id'])
+    if not user:
+        return redirect('/auth/login')
+
+    platform = (request.form.get('platform') or '').strip().lower()
+    action = (request.form.get('action') or 'connect').strip().lower()
+    username = (request.form.get('username') or '').strip() or None
+    display_name = (request.form.get('display_name') or '').strip() or username
+    profile_url = (request.form.get('profile_url') or '').strip() or None
+
+    if platform not in {'twitch', 'kick', 'x', 'tiktok'}:
+        return redirect('/settings?error=platform_invalid')
+
+    if action == 'disconnect':
+        connection = UserPlatformConnection.query.filter_by(user_id=user.id, platform=platform).first()
+        if connection:
+            db.session.delete(connection)
+            db.session.commit()
+        return redirect('/settings?platforms=updated')
+
+    connection = UserPlatformConnection.query.filter_by(user_id=user.id, platform=platform).first()
+    if not connection:
+        connection = UserPlatformConnection(user_id=user.id, platform=platform)
+        db.session.add(connection)
+    connection.username = username or connection.username
+    connection.display_name = display_name or connection.display_name
+    connection.profile_url = profile_url or connection.profile_url
+    connection.status = 'connected'
+    connection.updated_at = datetime.utcnow()
+    db.session.commit()
+    return redirect('/settings?platforms=updated')
 
 
 @app.route('/api/user/profile')
@@ -2491,10 +2604,13 @@ def account_settings():
         except Exception:
             pass
 
+    platform_data = _build_user_platform_data(user)
+
     return render_template('settings.html', user=user, channels=channels, notif_prefs=notif_prefs,
                            csrf_token=session['csrf_token'], nexus_bot_linked=nexus_bot_linked,
                            nexus_bot_user=nexus_bot_user, bot_online=bot_online,
-                           bot_avatar_url=bot_avatar_url, bot_username=bot_username)
+                           bot_avatar_url=bot_avatar_url, bot_username=bot_username,
+                           platform_data=platform_data)
 
 
 @app.route('/settings/preferences', methods=['POST'])
