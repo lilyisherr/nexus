@@ -114,58 +114,6 @@ def admin_workspace():
 @admin_required
 def legacy_dashboard_alias():
     return redirect('/dashboard#overview', code=302)
-
-
-# The primary Nexus dashboard is now the single workspace for overview, settings, and analytics.
-# The legacy admin UI is kept only for internal tools; public-facing entry points redirect here.
-
-
-# Original admin dashboard logic intentionally removed from public routes.
-    from app import db, User, Channel, BlogPost, BotContactMessage, BotUser, ServerConfig, BotHeartbeat, ChannelBotSettings, StreamSession
-    from sqlalchemy import func, distinct
-    user_count = User.query.count()
-    channel_count = Channel.query.count()
-    blog_count = BlogPost.query.count()
-    message_count = BotContactMessage.query.count()
-    unread_messages = BotContactMessage.query.filter_by(read=False).count()
-    bot_user_count = BotUser.query.count()
-    server_count = ServerConfig.query.count()
-    active_bots = ChannelBotSettings.query.filter_by(bot_enabled=True).count()
-    
-    # T002: Currently Live Stat
-    yesterday = datetime.utcnow() - timedelta(hours=24)
-    currently_live_count = db.session.query(func.count(distinct(ChannelBotSettings.channel_id)))\
-        .join(StreamSession, StreamSession.channel_id == ChannelBotSettings.channel_id)\
-        .filter(ChannelBotSettings.bot_enabled == True)\
-        .filter(StreamSession.start_time >= yesterday).scalar() or 0
-
-    # T002: User growth chart (7-day registration count)
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
-    new_users_week = User.query.filter(User.created_at >= seven_days_ago).count()
-
-    heartbeat = BotHeartbeat.query.order_by(BotHeartbeat.last_heartbeat.desc()).first()
-    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
-    recent_messages = BotContactMessage.query.order_by(BotContactMessage.created_at.desc()).limit(5).all()
-    
-    # T002: Recent Streams
-    recent_streams = StreamSession.query.order_by(StreamSession.start_time.desc()).limit(8).all()
-    from app import _build_status_payload
-    health = _build_status_payload()
-    from changelog_data import changelog_data
-    latest_changelog = changelog_data[0] if changelog_data else None
-    
-    admin_count = User.query.filter_by(is_admin=True).count()
-    return render_template('admin/dashboard.html',
-        user_count=user_count, channel_count=channel_count, blog_count=blog_count,
-        message_count=message_count, unread_messages=unread_messages,
-        bot_user_count=bot_user_count, server_count=server_count,
-        heartbeat=heartbeat, recent_users=recent_users, recent_messages=recent_messages,
-        active_bots=active_bots, admin_count=admin_count,
-        currently_live_count=currently_live_count, new_users_week=new_users_week,
-        recent_streams=recent_streams, health=health,
-        changelog=changelog_data, latest_changelog=latest_changelog)
-
-
 @admin_bp.route('/users')
 @admin_required
 def users():
