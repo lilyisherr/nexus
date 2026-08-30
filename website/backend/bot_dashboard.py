@@ -276,10 +276,66 @@ def dashboard():
         except Exception:
             pass
 
+    latest_changelog = changelog_data[0] if changelog_data else None
     return render_template('bot/dashboard.html', servers=user_guilds, bot_user=bot_user,
                            bot_online=bot_online, bot_avatar_url=bot_avatar_url, bot_username=bot_username,
                            hosting_connected=hosting_connected, hosting_info=hosting_info,
-                           discord_client_id=DISCORD_CLIENT_ID, yt_live_status=yt_live_status)
+                           discord_client_id=DISCORD_CLIENT_ID, yt_live_status=yt_live_status,
+                           changelog=changelog_data, latest_changelog=latest_changelog)
+
+
+@bot_bp.route('/changelog/send', methods=['POST'])
+@bot_admin_required
+def send_changelog():
+    from app import BotUser
+    channel_id = request.form.get('channel_id', '').strip()
+    version_index = request.form.get('version_index', '0')
+    if not channel_id:
+        return jsonify({'error': 'Discord channel ID is required'}), 400
+    try:
+        entry = changelog_data[int(version_index)]
+    except (ValueError, IndexError):
+        return jsonify({'error': 'Invalid changelog version'}), 400
+    if not DISCORD_BOT_TOKEN:
+        return jsonify({'error': 'DISCORD_BOT_TOKEN is not configured'}), 400
+
+    type_colors = {'feature': 0x10b981, 'improvement': 0x6366f1, 'fix': 0xf59e0b}
+    type_labels = {'feature': 'New Feature', 'improvement': 'Improvement', 'fix': 'Bug Fix'}
+    changes = entry.get('changes', [])
+    description = entry.get('description', '')
+    changes_text = '\n'.join(f'• {change}' for change in changes)
+    embed_description = '\n\n'.join(part for part in (description, changes_text) if part)[:4096]
+    payload = {
+        'embeds': [{
+            'title': f'{entry["version"]} — {entry["title"]}',
+            'description': embed_description,
+            'color': type_colors.get(entry.get('type', 'improvement'), 0x6366f1),
+            'url': 'https://nexusbeta.vercel.app/changelog',
+            'fields': [
+                {'name': 'Type', 'value': type_labels.get(entry.get('type', 'improvement'), 'Update'), 'inline': True},
+                {'name': 'Released', 'value': entry.get('date', ''), 'inline': True},
+                {'name': 'Changes', 'value': str(len(changes)), 'inline': True},
+            ],
+            'footer': {'text': 'Nexus Bot • Full changelog at nexusbeta.vercel.app/changelog', 'icon_url': 'https://nexusbeta.vercel.app/static/img/logo.png'},
+            'timestamp': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S') + '+00:00',
+        }]
+    }
+    ping_role_id = request.form.get('ping_role_id', '').strip()
+    if ping_role_id:
+        payload['content'] = f'<@&{ping_role_id}>'
+    try:
+        response = requests.post(
+            f'https://discord.com/api/v10/channels/{channel_id}/messages',
+            json=payload,
+            headers={'Authorization': f'Bot {DISCORD_BOT_TOKEN}', 'Content-Type': 'application/json'},
+            timeout=10,
+        )
+        if response.status_code in (200, 201):
+            return jsonify({'ok': True, 'version': entry['version']})
+        error = response.json()
+        return jsonify({'error': error.get('message', 'Discord rejected the message')}), 400
+    except Exception as exc:
+        return jsonify({'error': str(exc)}), 500
 
 
 @bot_bp.route('/server/<guild_id>')

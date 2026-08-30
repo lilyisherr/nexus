@@ -84,6 +84,18 @@
 .ql-card:hover { background: #1a1a24; border-color: rgba(99,102,241,0.2); color: #e2e8f0; }
 .ql-card i { font-size: 14px; }
 
+.changelog-panel { background:#16161d; border:1px solid rgba(99,102,241,0.08); border-radius:12px; padding:18px 20px; margin-bottom:28px; }
+.changelog-panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.changelog-panel-head h2 { font-size:15px; color:#e2e8f0; }
+.changelog-panel-head a { font-size:12px; color:#818cf8; }
+.changelog-summary { color:#94a3b8; font-size:13px; line-height:1.5; margin-bottom:14px; }
+.changelog-form { display:flex; gap:8px; flex-wrap:wrap; }
+.changelog-form select, .changelog-form input { min-height:36px; border:1px solid #334155; border-radius:7px; background:#0f0f14; color:#e2e8f0; padding:7px 10px; font-size:12px; }
+.changelog-form select { flex:1; min-width:220px; }
+.changelog-form input { width:190px; }
+.changelog-send-status { width:100%; font-size:12px; color:#34d399; }
+@media(max-width:600px){ .changelog-form select, .changelog-form input, .changelog-form button { width:100%; min-width:0; } }
+
 {% endblock %}
 
 {% block content %}
@@ -218,6 +230,25 @@
             <a href="/bot/contact" class="ql-card"><i class="fas fa-envelope" style="color:#f472b6;"></i> Contact</a>
         </div>
 
+        {% if latest_changelog %}
+        <div class="changelog-panel">
+            <div class="changelog-panel-head">
+                <h2><i class="fas fa-scroll" style="color:#fbbf24;margin-right:7px;"></i> Latest changelog</h2>
+                <a href="/changelog" target="_blank" rel="noopener noreferrer">View public changelog</a>
+            </div>
+            <div class="changelog-summary"><strong style="color:#e2e8f0;">{{ latest_changelog.version }} — {{ latest_changelog.title }}</strong><br>{{ latest_changelog.description }}</div>
+            <form class="changelog-form" id="botChangelogForm">
+                <select name="version_index" aria-label="Changelog version">
+                    {% for entry in changelog %}<option value="{{ loop.index0 }}">{{ entry.version }} — {{ entry.title }}</option>{% endfor %}
+                </select>
+                <input type="text" name="channel_id" placeholder="Discord channel ID" required>
+                <input type="text" name="ping_role_id" placeholder="Role ID (optional)">
+                <button type="submit" class="btn btn-discord btn-sm"><i class="fab fa-discord"></i> Send update</button>
+                <span class="changelog-send-status" id="changelogSendStatus"></span>
+            </form>
+        </div>
+        {% endif %}
+
         {% if servers %}
         {% set active = servers | selectattr('bot_in_server') | list %}
         {% set inactive = servers | rejectattr('bot_in_server') | list %}
@@ -292,4 +323,19 @@
 
     </div>
 </div>
+<script>
+document.getElementById('botChangelogForm')?.addEventListener('submit', function(event) {
+    event.preventDefault();
+    var form = this;
+    var status = document.getElementById('changelogSendStatus');
+    var button = form.querySelector('button');
+    button.disabled = true;
+    status.textContent = 'Sending...';
+    fetch('/bot/changelog/send', {method:'POST', body:new FormData(form), credentials:'same-origin'})
+        .then(function(response) { return response.json().then(function(data) { return {ok:response.ok, data:data}; }); })
+        .then(function(result) { status.textContent = result.ok ? result.data.version + ' sent to Discord.' : (result.data.error || 'Could not send update.'); status.style.color = result.ok ? '#34d399' : '#f87171'; })
+        .catch(function() { status.textContent = 'Could not reach the server.'; status.style.color = '#f87171'; })
+        .finally(function() { button.disabled = false; });
+});
+</script>
 {% endblock %}

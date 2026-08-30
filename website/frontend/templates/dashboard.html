@@ -442,6 +442,9 @@
         .video-summary > div { min-width: 0; }
         .video-thumb { width: 56px; height: 32px; border-radius: 5px; object-fit: cover; background: #e5e7eb; flex: 0 0 auto; }
         .video-summary .settings-stack-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
+        .youtube-channel-analytics { flex: 1; min-width: 0; }
+        .youtube-metrics { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; color: #94a3b8; font-size: 11px; }
+        .youtube-metrics strong { color: #1e293b; font-size: 12px; }
         .empty-state { color: #94a3b8; padding: 24px 0; text-align: center; font-size: 13px; }
 
         .wt-bar { height: 5px; background: #f1f5f9; border-radius: 3px; overflow: hidden; width: 60px; }
@@ -525,6 +528,7 @@
         body.dark-theme .small-btn.outline { background: #1e293b; border-color: #475569; color: #cbd5e1; }
         body.dark-theme .small-btn.disabled { background: #334155; border-color: #475569; }
         body.dark-theme .video-thumb { background: #334155; }
+        body.dark-theme .youtube-metrics strong { color: #f1f5f9; }
         body.dark-theme .dt th { background: #0f172a; color: #94a3b8; border-bottom-color: #334155; }
         body.dark-theme .dt td { color: #94a3b8; border-bottom-color: #334155; }
         body.dark-theme .dt tr:hover { background: #334155; }
@@ -640,20 +644,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-panel full" style="margin-top:16px;">
-                    <div class="card-panel-head"><h3><i class="fas fa-tv"></i> Channels and controls</h3></div>
-                    <div class="panel-content">
-                        {% for ch in channels %}
-                        <div class="channel-summary-row">
-                            {% if ch.channel_thumbnail %}<img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">{% else %}<div class="channel-avatar">{{ ch.channel_name[0]|upper }}</div>{% endif %}
-                            <div class="channel-summary-info"><div class="channel-name">{{ ch.channel_name }}</div><div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views &middot; {{ ch.video_count }} videos</div></div>
-                            <div class="channel-summary-actions"><a href="/channel/{{ ch.id }}" class="small-btn">Analytics</a><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Settings</a><form method="POST" action="/settings/disconnect-channel/{{ ch.id }}" onsubmit="return confirm('Unlink {{ ch.channel_name }} from Nexus?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="small-btn outline" title="Unlink channel" aria-label="Unlink channel"><i class="fas fa-link-slash"></i></button></form></div>
-                        </div>
-                        {% else %}
-                        <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels connected yet.</p><a href="/setup" class="small-btn">Connect YouTube</a></div>
-                        {% endfor %}
-                    </div>
-                </div>
             </div>
 
             <div class="workspace-panel" id="panel-youtube">
@@ -664,8 +654,8 @@
                             <div class="settings-stack">
                                 {% for ch in channels %}
                                 <div class="settings-stack-item">
-                                    <div><div class="settings-stack-name">{{ ch.channel_name }}</div><div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views</div></div>
-                                    <div class="settings-stack-actions"><a href="/channel/{{ ch.id }}" class="small-btn">Open analytics</a><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Bot settings</a></div>
+                                    <div class="youtube-channel-analytics"><div class="settings-stack-name">{{ ch.channel_name }}</div><div class="youtube-metrics"><span><strong>{{ "{:,}".format(ch.subscriber_count) }}</strong> subscribers</span><span><strong>{{ "{:,}".format(ch.view_count) }}</strong> views</span><span><strong>{{ "{:,}".format(ch.video_count) }}</strong> videos</span></div></div>
+                                    <div class="settings-stack-actions"><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Bot settings</a></div>
                                 </div>
                                 {% else %}
                                 <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels connected yet.</p></div>
@@ -689,49 +679,18 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="workspace-panel" id="panel-channels">
                 <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fas fa-tv"></i> Your channels</h3></div>
+                    <div class="card-panel-head"><h3><i class="fas fa-tv"></i> Channels and controls</h3></div>
                     <div class="panel-content">
-                        {% if channels %}
                         {% for ch in channels %}
                         <div class="channel-summary-row">
                             {% if ch.channel_thumbnail %}<img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">{% else %}<div class="channel-avatar">{{ ch.channel_name[0]|upper }}</div>{% endif %}
-                            <div class="channel-summary-info">
-                                <div class="channel-name">{{ ch.channel_name }}</div>
-                                <div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views</div>
-                            </div>
-                            <div class="channel-summary-actions">
-                                <a href="/channel/{{ ch.id }}" class="small-btn">Open</a>
-                                <a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Settings</a>
-                            </div>
+                            <div class="channel-summary-info"><div class="channel-name">{{ ch.channel_name }}</div><div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views &middot; {{ ch.video_count }} videos</div></div>
+                            <div class="channel-summary-actions"><a href="/channel/{{ ch.id }}" class="small-btn">Analytics</a><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Settings</a><form method="POST" action="/settings/disconnect-channel/{{ ch.id }}" onsubmit="return confirm('Unlink {{ ch.channel_name }} from Nexus?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="small-btn outline" title="Unlink channel" aria-label="Unlink channel"><i class="fas fa-link-slash"></i></button></form></div>
                         </div>
                         {% endfor %}
                         {% else %}
-                        <div class="empty-state"><i class="fas fa-video"></i><p>No channels connected yet.</p></div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="workspace-panel" id="panel-channel-settings">
-                <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fas fa-sliders-h"></i> Channel settings</h3></div>
-                    <div class="panel-content settings-stack">
-                        {% if channels %}
-                        {% for ch in channels %}
-                        <div class="settings-stack-item">
-                            <div class="settings-stack-name">{{ ch.channel_name }}</div>
-                            <div class="settings-stack-actions">
-                                <a href="/channel/{{ ch.id }}/settings" class="small-btn">Bot settings</a>
-                                <a href="/channel/{{ ch.id }}" class="small-btn outline">Analytics</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% else %}
-                        <div class="empty-state"><i class="fas fa-robot"></i><p>Add a YouTube channel to see channel controls.</p></div>
+                        <div class="empty-state"><i class="fas fa-video"></i><p>No YouTube channels connected yet.</p><a href="/setup" class="small-btn">Connect YouTube</a></div>
                         {% endif %}
                     </div>
                 </div>
