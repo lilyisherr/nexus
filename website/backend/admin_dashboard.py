@@ -113,6 +113,8 @@ def dashboard():
     recent_streams = StreamSession.query.order_by(StreamSession.start_time.desc()).limit(8).all()
     from app import _build_status_payload
     health = _build_status_payload()
+    from changelog_data import changelog_data
+    latest_changelog = changelog_data[0] if changelog_data else None
     
     admin_count = User.query.filter_by(is_admin=True).count()
     return render_template('admin/dashboard.html',
@@ -122,7 +124,8 @@ def dashboard():
         heartbeat=heartbeat, recent_users=recent_users, recent_messages=recent_messages,
         active_bots=active_bots, admin_count=admin_count,
         currently_live_count=currently_live_count, new_users_week=new_users_week,
-        recent_streams=recent_streams, health=health)
+        recent_streams=recent_streams, health=health,
+        changelog=changelog_data, latest_changelog=latest_changelog)
 
 
 @admin_bp.route('/users')

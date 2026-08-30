@@ -5,6 +5,20 @@ import sys
 import subprocess
 from pathlib import Path
 
+
+def start_discord_bot(project_root):
+    if not os.getenv('DISCORD_BOT_TOKEN') or os.getenv('NEXUS_DISABLE_AUTO_BOT') == '1':
+        return None
+
+    bot_path = project_root / 'discord_bot'
+    bot_file = bot_path / 'bot.py'
+    if not bot_file.exists():
+        print('⚠️  Discord bot entry point not found; starting website only.')
+        return None
+
+    print('🤖 Starting Discord bot alongside the website...')
+    return subprocess.Popen([sys.executable, 'bot.py'], cwd=bot_path, env=os.environ.copy())
+
 def main():
     print("""
     ╔════════════════════════════════════════════════════════════╗
@@ -15,6 +29,7 @@ def main():
     """)
 
     backend_path = Path(__file__).parent / "website" / "backend"
+    project_root = Path(__file__).parent
 
     if not backend_path.exists():
         print("❌ Error: website/backend directory not found!")
@@ -38,10 +53,17 @@ def main():
         print("   python setup.py")
         print("   cd ../..")
 
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_file)
+    except ImportError:
+        pass
+
     print("\n🚀 Starting Nexus Web Server...")
     print("📱 Visit: http://localhost:5000 (or check PORT env var for custom port)")
     print("🛑 Press Ctrl+C to stop\n")
 
+    bot_process = start_discord_bot(project_root)
     try:
         os.chdir(backend_path)
         subprocess.run([sys.executable, "app.py"], check=True)
@@ -54,6 +76,14 @@ def main():
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         sys.exit(1)
+    finally:
+        if bot_process and bot_process.poll() is None:
+            print("\n🛑 Stopping Discord bot...")
+            bot_process.terminate()
+            try:
+                bot_process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                bot_process.kill()
 
 if __name__ == "__main__":
     main()

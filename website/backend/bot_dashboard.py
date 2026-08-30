@@ -166,6 +166,11 @@ def logout():
 def dashboard():
     from app import BotUser, ServerConfig
     bot_user_id = session.get('bot_user_id')
+    if not bot_user_id and session.get('user_id'):
+        linked_bot_user = BotUser.query.filter_by(nexus_user_id=session['user_id']).first()
+        if linked_bot_user:
+            bot_user_id = linked_bot_user.id
+            session['bot_user_id'] = bot_user_id
     if not bot_user_id:
         return redirect('/bot/login?next=/bot/dashboard')
     bot_user = BotUser.query.get(bot_user_id)
@@ -287,7 +292,6 @@ def dashboard():
 @bot_bp.route('/changelog/send', methods=['POST'])
 @bot_admin_required
 def send_changelog():
-    from app import BotUser
     channel_id = request.form.get('channel_id', '').strip()
     version_index = request.form.get('version_index', '0')
     if not channel_id:
@@ -296,7 +300,8 @@ def send_changelog():
         entry = changelog_data[int(version_index)]
     except (ValueError, IndexError):
         return jsonify({'error': 'Invalid changelog version'}), 400
-    if not DISCORD_BOT_TOKEN:
+    bot_token = os.getenv('DISCORD_BOT_TOKEN', '')
+    if not bot_token:
         return jsonify({'error': 'DISCORD_BOT_TOKEN is not configured'}), 400
 
     type_colors = {'feature': 0x10b981, 'improvement': 0x6366f1, 'fix': 0xf59e0b}
@@ -327,7 +332,7 @@ def send_changelog():
         response = requests.post(
             f'https://discord.com/api/v10/channels/{channel_id}/messages',
             json=payload,
-            headers={'Authorization': f'Bot {DISCORD_BOT_TOKEN}', 'Content-Type': 'application/json'},
+            headers={'Authorization': f'Bot {bot_token}', 'Content-Type': 'application/json'},
             timeout=10,
         )
         if response.status_code in (200, 201):

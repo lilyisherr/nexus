@@ -101,6 +101,25 @@
     </div>
 </div>
 
+{% if latest_changelog %}
+<div class="admin-table-wrapper" style="margin-bottom:24px;">
+    <div class="admin-table-header">
+        <h3><i class="fas fa-scroll" style="color:#fbbf24;margin-right:6px;"></i> Changelog to Discord</h3>
+        <a href="{{ url_for('admin_dashboard.changelog_admin') }}" class="btn btn-secondary btn-sm">Full changelog</a>
+    </div>
+    <div style="padding:18px 24px;">
+        <p style="font-size:13px;color:#94a3b8;margin:0 0 14px;"><strong style="color:#e2e8f0;">{{ latest_changelog.version }} — {{ latest_changelog.title }}</strong><br>{{ latest_changelog.description }}</p>
+        <form id="adminChangelogForm" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select name="version_index" aria-label="Changelog version" style="flex:1;min-width:220px;">{% for entry in changelog %}<option value="{{ loop.index0 }}">{{ entry.version }} — {{ entry.title }}</option>{% endfor %}</select>
+            <input name="channel_id" placeholder="Discord channel ID" required style="width:190px;">
+            <input name="ping_role_id" placeholder="Role ID (optional)" style="width:170px;">
+            <button type="submit" class="btn btn-discord btn-sm"><i class="fab fa-discord"></i> Send update</button>
+            <span id="adminChangelogStatus" style="width:100%;font-size:12px;"></span>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <div class="section-header"><h2><i class="fas fa-bolt" style="color:#fbbf24;font-size:13px;"></i> Quick Actions</h2></div>
 <div class="quick-actions">
     <a href="{{ url_for('admin_dashboard.users') }}" class="qa-card">
@@ -305,4 +324,20 @@
     </table>
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('adminChangelogForm')?.addEventListener('submit', function(event) {
+    event.preventDefault();
+    var form = this;
+    var status = document.getElementById('adminChangelogStatus');
+    var data = new FormData(form);
+    data.append('csrf_token', '{{ admin_csrf_token }}');
+    status.textContent = 'Sending...';
+    fetch('{{ url_for("admin_dashboard.changelog_send") }}', {method:'POST', body:data, credentials:'same-origin'})
+        .then(function(response) { return response.json().then(function(result) { return {ok:response.ok, result:result}; }); })
+        .then(function(result) { status.textContent = result.ok ? result.result.version + ' sent to Discord.' : (result.result.error || 'Could not send update.'); status.style.color = result.ok ? '#34d399' : '#f87171'; })
+        .catch(function() { status.textContent = 'Could not reach the server.'; status.style.color = '#f87171'; });
+});
+</script>
 {% endblock %}
