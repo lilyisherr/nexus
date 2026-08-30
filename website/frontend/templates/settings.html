@@ -1070,6 +1070,7 @@
                         {% if p.connected %}
                         <div class="platform-actions">
                             <a href="{{ p.profile_url }}" class="mini-btn" target="_blank" rel="noopener noreferrer">Open</a>
+                            <a href="/platform/{{ p.platform }}/analytics" class="mini-btn primary">Analytics</a>
                         </div>
                         {% else %}
                         <form method="POST" action="/settings/platforms" class="platform-form">

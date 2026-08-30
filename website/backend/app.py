@@ -2,7 +2,7 @@ import sys
 if __name__ == '__main__' or 'app' not in sys.modules:
     sys.modules['app'] = sys.modules[__name__]
 
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for, Response, flash
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for, Response, flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -2549,26 +2549,63 @@ def videos_page():
     )
 
 
+def _platform_analytics_snapshot(user, platform):
+    channels = Channel.query.filter_by(user_id=user.id).all()
+    platform_data = _build_user_platform_data(user)
+    info = next((item for item in platform_data if item['platform'] == platform), {'connected': False, 'display_name': 'Not connected', 'status_label': 'Not connected', 'profile_url': '#', 'username': 'Not connected'})
+
+    if platform == 'youtube':
+        connected = bool(user.youtube_channel_id)
+        title = user.youtube_channel_name or 'YouTube'
+        metrics = [
+            {'label': 'Channels', 'value': str(len(channels))},
+            {'label': 'Subscribers', 'value': '{:,}'.format(sum(ch.subscriber_count for ch in channels))},
+            {'label': 'Views', 'value': '{:,}'.format(sum(ch.view_count for ch in channels))},
+            {'label': 'Videos', 'value': '{:,}'.format(sum(ch.video_count for ch in channels))},
+        ]
+        detail = 'YouTube analytics are tracked from your connected channels and live stats.' if connected else 'Connect your YouTube channel in the settings area to start tracking analytics.'
+    else:
+        connection = UserPlatformConnection.query.filter_by(user_id=user.id, platform=platform).first()
+        connected = bool(connection and connection.status == 'connected')
+        title = (connection.display_name or connection.username or platform.title()) if connected else platform.title()
+        metrics = [
+            {'label': 'Status', 'value': 'Connected' if connected else 'Setup'},
+            {'label': 'Followers', 'value': '0'},
+            {'label': 'Live Views', 'value': '0'},
+            {'label': 'Alerts', 'value': 'TBA'},
+        ]
+        detail = f'{platform.title()} is connected and ready for live workflow tracking.' if connected else f'Connect {platform.title()} in settings to start collecting stream and community data.'
+
+    return {
+        'platform': platform,
+        'title': title,
+        'display_name': info['display_name'],
+        'status': info['status_label'],
+        'connected': connected,
+        'profile_url': info['profile_url'],
+        'detail': detail,
+        'metrics': metrics,
+        'channels': channels,
+    }
+
+
+@app.route('/platform/<platform>/analytics')
+@login_required
+def platform_analytics(platform):
+    platform = (platform or '').lower()
+    allowed = {'youtube', 'twitch', 'kick', 'tiktok'}
+    if platform not in allowed:
+        abort(404)
+
+    user = User.query.get(session['user_id'])
+    snapshot = _platform_analytics_snapshot(user, platform)
+    return render_template('platform_analytics.html', user=user, platform=snapshot)
+
+
 @app.route('/analytics')
 @login_required
 def analytics():
-    user = User.query.get(session['user_id'])
-    channels = Channel.query.filter_by(user_id=user.id).all()
-
-    channel_ids = [ch.id for ch in channels]
-
-    thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).date()
-    stats_data = ChannelStats.query.filter(
-        ChannelStats.user_id == user.id,
-        ChannelStats.stat_date >= thirty_days_ago
-    ).order_by(ChannelStats.stat_date.asc()).all()
-
-    return render_template(
-        'dashboard.html',
-        user=user,
-        channels=channels,
-        stats_data=stats_data,
-    )
+    return redirect('/platform/youtube/analytics', code=302)
 
 
 @app.route('/settings')
