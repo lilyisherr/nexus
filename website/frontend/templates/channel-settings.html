@@ -877,41 +877,23 @@
             </div>
 
             <div class="tab-bar">
-                <button class="tab-btn active" data-tab="general">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    General
-                </button>
-                <button class="tab-btn" data-tab="moderation">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Moderation
-                </button>
-                <button class="tab-btn" data-tab="filters">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                    Filters
-                </button>
-                <button class="tab-btn" data-tab="commands">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                    Commands
-                </button>
-                <button class="tab-btn" data-tab="timers">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Timers
-                </button>
-                <button class="tab-btn" data-tab="templates">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                    Templates
-                </button>
+                <button class="tab-btn active" data-tab="general">Overview</button>
+                <button class="tab-btn" data-tab="moderation">Safety</button>
+                <button class="tab-btn" data-tab="filters">Filters</button>
+                <button class="tab-btn" data-tab="commands">Commands</button>
+                <button class="tab-btn" data-tab="timers">Timers</button>
+                <button class="tab-btn" data-tab="templates">Presets</button>
             </div>
 
             <div id="tab-general" class="tab-panel active">
                 <div class="panel-section">
-                    <h3 class="section-heading">Bot Configuration</h3>
-                    <p class="section-description">Master switch and core settings for your YouTube chat bot. When disabled, the bot will not respond to any commands or moderate chat.</p>
+                    <h3 class="section-heading">Stream Controls</h3>
+                    <p class="section-description">Turn the bot on, choose the trigger, and keep the replies instant.</p>
 
                     <div class="toggle-wrapper" style="padding-top: 0;">
                         <div class="toggle-info">
                             <div class="toggle-title">Bot Status</div>
-                            <div class="toggle-desc">Enable or disable the bot for this channel</div>
+                            <div class="toggle-desc">Enable or disable live chat responses</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="bot-enabled" {% if settings.bot_enabled %}checked{% endif %}>
@@ -921,122 +903,91 @@
                 </div>
 
                 <div class="panel-section">
-                    <div class="form-group">
-                        <label class="form-label" for="chat-prefix">Command Prefix</label>
-                        <div class="form-row">
-                            <input type="text" id="chat-prefix" class="form-input form-input-sm" value="{{ settings.chat_prefix or '!' }}" maxlength="3">
-                            <span class="form-suffix">Example: {{ settings.chat_prefix or '!' }}help</span>
+                    <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="chat-prefix">Command Prefix</label>
+                            <input type="text" id="chat-prefix" class="form-input" value="{{ settings.chat_prefix or '!' }}" maxlength="3">
                         </div>
-                        <p class="form-hint">Character that triggers bot commands</p>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="response-delay">Reply Delay</label>
+                            <div class="form-row">
+                                <input type="number" id="response-delay" class="form-input form-input-sm" min="0" max="15" value="{{ settings.response_delay or 0 }}">
+                                <span class="form-suffix">sec</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="response-delay">Reply Speed</label>
-                        <div class="form-row">
-                            <input type="number" id="response-delay" class="form-input form-input-sm" min="0" max="15" value="{{ settings.response_delay or 0 }}">
-                            <span class="form-suffix">seconds</span>
-                        </div>
-                        <p class="form-hint">0 = instant reply; higher values slow the bot down for a more relaxed feel.</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="join-message">Stream Start Message</label>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label class="form-label" for="join-message">Join Message</label>
                         <textarea id="join-message" class="form-input form-textarea" placeholder="Welcome to the stream! Type !help for commands.">{{ settings.join_message or '' }}</textarea>
-                        <p class="form-hint">Shows when the stream goes live. Leave blank to keep it off.</p>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="command-cooldown">Command Cooldown</label>
-                        <div class="form-row">
-                            <input type="number" id="command-cooldown" class="form-input form-input-sm" min="0" max="120" value="{{ settings.command_cooldown or 5 }}">
-                            <span class="form-suffix">seconds between command uses (global)</span>
+                    <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:16px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="command-cooldown">Cooldown</label>
+                            <input type="number" id="command-cooldown" class="form-input" min="0" max="120" value="{{ settings.command_cooldown or 5 }}">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="command-user-cooldown">Per-User Cooldown</label>
+                            <input type="number" id="command-user-cooldown" class="form-input" min="0" max="300" value="{{ settings.command_user_cooldown or 10 }}">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="max-commands-per-minute">Rate Limit</label>
+                            <input type="number" id="max-commands-per-minute" class="form-input" min="1" max="100" value="{{ settings.max_commands_per_minute or 20 }}">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="command-user-cooldown">Per-User Cooldown</label>
-                        <div class="form-row">
-                            <input type="number" id="command-user-cooldown" class="form-input form-input-sm" min="0" max="300" value="{{ settings.command_user_cooldown or 10 }}">
-                            <span class="form-suffix">seconds per user between uses</span>
+                    <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="command-permission-default">Default Permission</label>
+                            <select id="command-permission-default" class="form-select">
+                                <option value="everyone" {% if settings.command_permission_default == 'everyone' %}selected{% endif %}>Everyone</option>
+                                <option value="subscriber" {% if settings.command_permission_default == 'subscriber' %}selected{% endif %}>Subscriber</option>
+                                <option value="moderator" {% if settings.command_permission_default == 'moderator' %}selected{% endif %}>Moderator</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="command-response-style">Response Style</label>
-                        <select id="command-response-style" class="form-select">
-                            <option value="chat" {% if settings.command_response_style == 'chat' %}selected{% endif %}>Chat</option>
-                        </select>
-                        <p class="form-hint">How the bot delivers command responses</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="command-permission-default">Default Command Permission</label>
-                        <select id="command-permission-default" class="form-select">
-                            <option value="everyone" {% if settings.command_permission_default == 'everyone' %}selected{% endif %}>Everyone</option>
-                            <option value="subscriber" {% if settings.command_permission_default == 'subscriber' %}selected{% endif %}>Subscriber</option>
-                            <option value="moderator" {% if settings.command_permission_default == 'moderator' %}selected{% endif %}>Moderator</option>
-                        </select>
-                        <p class="form-hint">Default permission level for new commands</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="max-commands-per-minute">Max Commands Per Minute</label>
-                        <div class="form-row">
-                            <input type="number" id="max-commands-per-minute" class="form-input form-input-sm" min="1" max="100" value="{{ settings.max_commands_per_minute or 20 }}">
-                            <span class="form-suffix">commands per minute (rate limit)</span>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="command-response-style">Response Style</label>
+                            <select id="command-response-style" class="form-select">
+                                <option value="chat" {% if settings.command_response_style == 'chat' %}selected{% endif %}>Chat</option>
+                            </select>
                         </div>
-                        <p class="form-hint">Maximum number of commands the bot will process per minute</p>
                     </div>
                 </div>
 
-
                 <div class="panel-section">
-                    <h3 class="section-heading">Viewer Engagement</h3>
-                    <p class="section-description">Configure automatic viewer engagement features.</p>
-
+                    <h3 class="section-heading">Viewer Extras</h3>
                     <div class="toggle-wrapper" style="padding-top: 0;">
                         <div class="toggle-info">
                             <div class="toggle-title">Auto-Greet New Viewers</div>
-                            <div class="toggle-desc">Automatically send a greeting message when a new viewer chats for the first time</div>
+                            <div class="toggle-desc">Send a hello when a new viewer chats</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="auto-greet-new-viewers" {% if settings.auto_greet_new_viewers %}checked{% endif %}>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    <div class="form-group" style="margin-top: 8px;">
+                    <div class="form-group" style="margin-top:12px;">
                         <label class="form-label" for="auto-greet-message">Greeting Message</label>
                         <textarea id="auto-greet-message" class="form-input form-textarea">{{ settings.auto_greet_message or 'Welcome to the stream, {user}! Enjoy your stay.' }}</textarea>
-                        <p class="form-hint">Use {user} for the viewer's name. Sent only once per viewer per stream session.</p>
-                    </div>
-
-                    <div class="toggle-wrapper" style="opacity: 0.5; pointer-events: none;">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Viewer Loyalty Tracking <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px;">Coming Soon</span></div>
-                            <div class="toggle-desc">Track returning viewers and their watch time to build loyalty tiers</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="viewer-loyalty-tracking" disabled {% if settings.viewer_loyalty_tracking %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
                     </div>
                 </div>
 
                 <div class="panel-footer">
                     <span class="save-status" id="general-status"></span>
-                    <button class="btn btn-primary" id="save-general">Save General Settings</button>
+                    <button class="btn btn-primary" id="save-general">Save Stream Settings</button>
                 </div>
             </div>
 
             <div id="tab-moderation" class="tab-panel">
                 <div class="panel-section">
-                    <h3 class="section-heading">Spam Protection</h3>
-                    <p class="section-description">Automatically detect and remove spam messages from your live chat. Control repeated characters, message length limits, emoji flooding, and duplicate message detection.</p>
+                    <h3 class="section-heading">Quick Safety</h3>
+                    <p class="section-description">Keep the chat safe without wading through endless settings.</p>
 
                     <div class="toggle-wrapper" style="padding-top: 0;">
                         <div class="toggle-info">
                             <div class="toggle-title">Spam Filter</div>
-                            <div class="toggle-desc">Automatically delete detected spam messages</div>
+                            <div class="toggle-desc">Catch repeated or spammy messages</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="spam-filter" {% if settings.spam_filter_enabled %}checked{% endif %}>
@@ -1044,61 +995,10 @@
                         </label>
                     </div>
 
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label class="form-label" for="max-repeat-chars">Max Repeated Characters</label>
-                        <div class="form-row">
-                            <input type="number" id="max-repeat-chars" class="form-input form-input-sm" min="3" max="20" value="{{ settings.max_repeat_chars or 5 }}">
-                            <span class="form-suffix">characters (e.g., "AAAAA" = 5)</span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="max-msg-length">Max Message Length</label>
-                        <div class="form-row">
-                            <input type="number" id="max-msg-length" class="form-input form-input-sm" min="50" max="1000" value="{{ settings.max_message_length or 200 }}">
-                            <span class="form-suffix">characters per message</span>
-                        </div>
-                    </div>
-
                     <div class="toggle-wrapper">
                         <div class="toggle-info">
-                            <div class="toggle-title">Emoji Spam Filter</div>
-                            <div class="toggle-desc">Limit excessive emoji usage in messages</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="emoji-spam-filter" {% if settings.emoji_spam_filter_enabled %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 8px;">
-                        <label class="form-label" for="max-emojis">Max Emojis Per Message</label>
-                        <div class="form-row">
-                            <input type="number" id="max-emojis" class="form-input form-input-sm" min="1" max="100" value="{{ settings.max_emojis or 10 }}">
-                            <span class="form-suffix">emojis allowed per message</span>
-                        </div>
-                    </div>
-
-                    <div class="toggle-wrapper">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Duplicate Message Filter</div>
-                            <div class="toggle-desc">Block users from posting the same message repeatedly</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="duplicate-msg-filter" {% if settings.duplicate_message_filter %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3 class="section-heading">Link Protection</h3>
-                    <p class="section-description">Block unauthorized links from being posted in your live chat. Whitelist trusted domains to allow specific URLs while blocking everything else.</p>
-
-                    <div class="toggle-wrapper" style="padding-top: 0;">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Block External Links</div>
-                            <div class="toggle-desc">Delete messages containing links from non-moderators</div>
+                            <div class="toggle-title">Link Filter</div>
+                            <div class="toggle-desc">Block unknown links unless approved</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="link-filter" {% if settings.link_filter_enabled %}checked{% endif %}>
@@ -1106,181 +1006,70 @@
                         </label>
                     </div>
 
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label class="form-label" for="link-whitelist">Whitelisted Domains</label>
-                        <textarea id="link-whitelist" class="form-input form-textarea" placeholder="youtube.com&#10;discord.gg&#10;twitch.tv">{{ settings.link_whitelist | join('\n') if settings.link_whitelist else '' }}</textarea>
-                        <p class="form-hint">One domain per line - these will always be allowed</p>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3 class="section-heading">Caps Protection</h3>
-                    <p class="section-description">Prevent viewers from shouting in all caps. Messages exceeding the configured percentage of uppercase characters will trigger a warning.</p>
-
-                    <div class="toggle-wrapper" style="padding-top: 0;">
+                    <div class="toggle-wrapper">
                         <div class="toggle-info">
-                            <div class="toggle-title">Caps Lock Filter</div>
-                            <div class="toggle-desc">Warn users with too many uppercase characters</div>
+                            <div class="toggle-title">Caps Filter</div>
+                            <div class="toggle-desc">Warn people who are shouting</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="caps-filter" {% if settings.caps_filter_enabled %}checked{% endif %}>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-
-                    <div class="form-group" style="margin-top: 16px;">
-                        <label class="form-label" for="max-caps-percent">Max Caps Percentage</label>
-                        <div class="form-row">
-                            <input type="number" id="max-caps-percent" class="form-input form-input-sm" min="30" max="100" value="{{ settings.max_caps_percent or 70 }}">
-                            <span class="form-suffix">% of message can be uppercase</span>
-                        </div>
-                    </div>
                 </div>
 
-
                 <div class="panel-section">
-                    <h3 class="section-heading">Auto Messages</h3>
-                    <p class="section-description">Automatically greet new chatters and thank subscribers. These messages help build community engagement and make viewers feel welcome during your live streams.</p>
-
+                    <h3 class="section-heading">Welcome & Subscriber Messages</h3>
                     <div class="toggle-wrapper" style="padding-top: 0;">
                         <div class="toggle-info">
                             <div class="toggle-title">Welcome Message</div>
-                            <div class="toggle-desc">Greet new chatters automatically</div>
+                            <div class="toggle-desc">Greet first-time chatters automatically</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="welcome-enabled" {% if settings.welcome_message_enabled %}checked{% endif %}>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    <div class="form-group" style="margin-top: 8px;">
+                    <div class="form-group" style="margin-top:12px;">
                         <textarea id="welcome-message" class="form-input form-textarea" placeholder="Welcome to the stream, {user}!">{{ settings.welcome_message or '' }}</textarea>
-                        <p class="form-hint">Use {user} for the viewer's name</p>
                     </div>
 
                     <div class="toggle-wrapper">
                         <div class="toggle-info">
                             <div class="toggle-title">Auto-Thank Subscribers</div>
-                            <div class="toggle-desc">Automatically thank new subscribers in chat</div>
+                            <div class="toggle-desc">Send a thank-you when someone subscribes</div>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="auto-thank-subs" {% if settings.auto_thank_subs %}checked{% endif %}>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    <div class="form-group" style="margin-top: 8px;">
+                    <div class="form-group" style="margin-top:12px;">
                         <textarea id="auto-thank-message" class="form-input form-textarea">{{ settings.auto_thank_message or 'Thanks for subscribing, {user}!' }}</textarea>
-                        <p class="form-hint">Use {user} for the subscriber's name</p>
                     </div>
                 </div>
 
                 <div class="panel-section">
-                    <h3 class="section-heading">Auto-Moderation</h3>
-                    <p class="section-description">Fine-tune the overall moderation sensitivity and enable advanced protection features like anti-raid detection, bot banning, and deleted message logging.</p>
-
-                    <div class="form-group">
-                        <label class="form-label" for="auto-mod-sensitivity">Auto-Mod Sensitivity</label>
-                        <div class="form-row">
-                            <input type="range" id="auto-mod-sensitivity" min="1" max="5" step="1" value="{{ settings.auto_mod_sensitivity or 3 }}" style="max-width: 200px; accent-color: var(--primary-color);">
-                            <span class="form-suffix" id="auto-mod-sensitivity-label">Level {{ settings.auto_mod_sensitivity or 3 }}</span>
+                    <h3 class="section-heading">Simple Limits</h3>
+                    <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="max-msg-length">Max Message Length</label>
+                            <input type="number" id="max-msg-length" class="form-input" min="50" max="1000" value="{{ settings.max_message_length or 200 }}">
                         </div>
-                        <p class="form-hint">1 = Relaxed, 3 = Balanced, 5 = Strict</p>
-                    </div>
-
-                    <div class="toggle-wrapper">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Anti-Raid Protection</div>
-                            <div class="toggle-desc">Automatically detect and block raid attacks</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="anti-raid-enabled" {% if settings.anti_raid_enabled %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 8px;">
-                        <label class="form-label" for="anti-raid-min-account-age">Minimum Account Age</label>
-                        <div class="form-row">
-                            <input type="number" id="anti-raid-min-account-age" class="form-input form-input-sm" min="0" max="10080" value="{{ settings.anti_raid_min_account_age or 60 }}">
-                            <span class="form-suffix">minutes (block accounts newer than this during raids)</span>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" for="max-caps-percent">Caps Limit</label>
+                            <input type="number" id="max-caps-percent" class="form-input" min="30" max="100" value="{{ settings.max_caps_percent or 70 }}">
                         </div>
                     </div>
-
-                    <div class="toggle-wrapper">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Auto-Ban Known Bots</div>
-                            <div class="toggle-desc">Automatically ban accounts identified as spam bots</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="auto-ban-bots" {% if settings.auto_ban_bots %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="toggle-wrapper">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Log Deleted Messages</div>
-                            <div class="toggle-desc">Keep a record of messages removed by moderation</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="log-deleted-messages" {% if settings.log_deleted_messages %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label class="form-label" for="link-whitelist">Allowed Domains</label>
+                        <textarea id="link-whitelist" class="form-input form-textarea" placeholder="youtube.com&#10;discord.gg&#10;twitch.tv">{{ settings.link_whitelist | join('\n') if settings.link_whitelist else '' }}</textarea>
                     </div>
                 </div>
-
-                <div class="panel-section">
-                    <h3 class="section-heading">Auto-Ban Patterns</h3>
-                    <p class="section-description">Define username or message patterns that trigger an automatic ban. Useful for blocking known spam bot naming conventions and repetitive spam attacks.</p>
-
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                        <div>
-                            <p class="section-description" style="margin-bottom: 0;">Each pattern matches against usernames or message content. Use simple text or regex.</p>
-                        </div>
-                        <button class="btn btn-primary" id="add-ban-pattern-btn" style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add Pattern
-                        </button>
-                    </div>
-
-                    <div id="ban-pattern-list"></div>
-
-                    <div id="no-ban-patterns" class="empty-state" style="display: none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                        <p>No auto-ban patterns configured. Click "Add Pattern" to create one.</p>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h3 class="section-heading">First-Time Chatter Restrictions</h3>
-                    <p class="section-description">Apply additional scrutiny to users chatting in your channel for the first time. Hold their messages for review, block links, or enforce slow mode until they are recognized as regular viewers.</p>
-
-                    <div class="toggle-wrapper" style="padding-top: 0;">
-                        <div class="toggle-info">
-                            <div class="toggle-title">Restrict First-Time Chatters</div>
-                            <div class="toggle-desc">Apply special rules to users who have never chatted in your channel before</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="first-time-chatter-restrict" {% if settings.first_time_chatter_restrict %}checked{% endif %}>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 12px;">
-                        <label class="form-label" for="first-time-chatter-mode">Restriction Mode</label>
-                        <select id="first-time-chatter-mode" class="form-select">
-                            <option value="none" {% if not settings.first_time_chatter_mode or settings.first_time_chatter_mode == 'none' %}selected{% endif %}>No restriction</option>
-                            <option value="hold" {% if settings.first_time_chatter_mode == 'hold' %}selected{% endif %}>Hold for review</option>
-                            <option value="links_blocked" {% if settings.first_time_chatter_mode == 'links_blocked' %}selected{% endif %}>Block links only</option>
-                            <option value="slow" {% if settings.first_time_chatter_mode == 'slow' %}selected{% endif %}>Enforce slow mode</option>
-                        </select>
-                        <p class="form-hint">Choose how first-time chatters are handled until they are recognized</p>
-                    </div>
-                </div>
-
 
                 <div class="panel-footer">
                     <span class="save-status" id="moderation-status"></span>
-                    <button class="btn btn-primary" id="save-moderation">Save Moderation Settings</button>
+                    <button class="btn btn-primary" id="save-moderation">Save Safety Settings</button>
                 </div>
             </div>
 
