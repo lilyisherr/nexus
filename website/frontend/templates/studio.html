@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Studio – Coming Soon</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#9146ff">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background: #0e0e10; color: #efeff1; margin: 0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+        .studio-hero {
+            max-width: 720px; margin: 0 auto; padding: 80px 24px;
+            text-align: center;
+        }
+        .studio-icon {
+            width: 88px; height: 88px; border-radius: 20px;
+            background: linear-gradient(135deg, #9146ff, #772ce8);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 28px; font-size: 36px; color: #fff;
+            box-shadow: 0 12px 40px rgba(145, 70, 255, 0.4);
+        }
+        h1 { font-size: 32px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.5px; }
+        .subtitle { font-size: 16px; color: #adadb8; line-height: 1.5; margin-bottom: 32px; }
+        .badge {
+            display: inline-block; font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            background: rgba(145,70,255,0.2); color: #bf94ff;
+            padding: 6px 14px; border-radius: 20px; margin-bottom: 20px;
+        }
+        .features {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+            text-align: left; margin: 40px 0;
+        }
+        @media (max-width: 640px) { .features { grid-template-columns: 1fr; } }
+        .feat {
+            background: #18181b; border: 1px solid #2a2a2e; border-radius: 12px;
+            padding: 18px;
+        }
+        .feat i { color: #9146ff; font-size: 20px; margin-bottom: 10px; display: block; }
+        .feat strong { font-size: 14px; display: block; margin-bottom: 4px; }
+        .feat p { font-size: 12px; color: #adadb8; margin: 0; line-height: 1.4; }
+        .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            text-decoration: none; border: none; cursor: pointer;
+        }
+        .btn-primary { background: #9146ff; color: #fff; }
+        .btn-primary:hover { background: #772ce8; color: #fff; }
+        .btn-ghost { background: transparent; border: 1px solid #3f3f46; color: #adadb8; }
+        .btn-ghost:hover { border-color: #9146ff; color: #bf94ff; }
+    </style>
+</head>
+<body>
+    {% include 'partials/navbar.html' ignore missing %}
+
+    <div class="studio-hero">
+        <div class="studio-icon"><i class="fas fa-broadcast-tower"></i></div>
+        <div class="badge">Coming Soon</div>
+        <h1>Nexus Studio</h1>
+        <p class="subtitle">
+            Stream directly from Nexus — camera, mic, screen share, scenes, and chat in one place.
+            Built for YouTube creators who want a simple OBS / Streamlabs-style experience without leaving the dashboard.
+        </p>
+
+        <div class="features">
+            <div class="feat">
+                <i class="fas fa-video"></i>
+                <strong>Camera & Mic</strong>
+                <p>Select devices and preview before you go live.</p>
+            </div>
+            <div class="feat">
+                <i class="fas fa-desktop"></i>
+                <strong>Screen Share</strong>
+                <p>Share your game or desktop with one click.</p>
+            </div>
+            <div class="feat">
+                <i class="fas fa-comments"></i>
+                <strong>Live Chat</strong>
+                <p>Moderate and reply without switching tabs.</p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/dashboard" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            <a href="/status" class="btn btn-ghost">System Status</a>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' ignore missing %}
+</body>
+</html>
