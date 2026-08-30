@@ -457,6 +457,8 @@
             .stats-row { grid-template-columns: repeat(2, 1fr); }
             .g2, .g3 { grid-template-columns: 1fr; }
             .card-grid.two-up { grid-template-columns: 1fr; }
+            .channel-summary-row { align-items: flex-start; flex-wrap: wrap; }
+            .channel-summary-actions { width: 100%; margin-left: 48px; justify-content: flex-start; }
             .dash-container { padding: 20px 16px 40px; }
         }
         @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
@@ -573,8 +575,6 @@
         <div class="workspace-tabs">
             <button class="workspace-tab active" data-panel="overview">Overview</button>
             <button class="workspace-tab" data-panel="youtube">YouTube</button>
-            <button class="workspace-tab" data-panel="channels">Channels</button>
-            <button class="workspace-tab" data-panel="channel-settings">Channel Settings</button>
             <button class="workspace-tab" data-panel="discord">Discord</button>
             <button class="workspace-tab" data-panel="kick">Kick</button>
             <button class="workspace-tab" data-panel="tiktok">TikTok</button>
@@ -638,6 +638,20 @@
                             </div>
                             {% endfor %}
                         </div>
+                    </div>
+                </div>
+                <div class="card-panel full" style="margin-top:16px;">
+                    <div class="card-panel-head"><h3><i class="fas fa-tv"></i> Channels and controls</h3></div>
+                    <div class="panel-content">
+                        {% for ch in channels %}
+                        <div class="channel-summary-row">
+                            {% if ch.channel_thumbnail %}<img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">{% else %}<div class="channel-avatar">{{ ch.channel_name[0]|upper }}</div>{% endif %}
+                            <div class="channel-summary-info"><div class="channel-name">{{ ch.channel_name }}</div><div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subscribers &middot; {{ "{:,}".format(ch.view_count) }} views &middot; {{ ch.video_count }} videos</div></div>
+                            <div class="channel-summary-actions"><a href="/channel/{{ ch.id }}" class="small-btn">Analytics</a><a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Settings</a><form method="POST" action="/settings/disconnect-channel/{{ ch.id }}" onsubmit="return confirm('Unlink {{ ch.channel_name }} from Nexus?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" class="small-btn outline" title="Unlink channel" aria-label="Unlink channel"><i class="fas fa-link-slash"></i></button></form></div>
+                        </div>
+                        {% else %}
+                        <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels connected yet.</p><a href="/setup" class="small-btn">Connect YouTube</a></div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

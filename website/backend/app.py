@@ -2577,6 +2577,8 @@ def dashboard():
     ) if bot_settings else False
 
     platform_data = _build_user_platform_data(user)
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
 
     return render_template(
         'dashboard.html',
@@ -2593,6 +2595,7 @@ def dashboard():
         bot_moderator_ok=bot_moderator_ok,
         viewing_as=viewing_as,
         platform_data=platform_data,
+        csrf_token=session['csrf_token'],
     )
 
 
