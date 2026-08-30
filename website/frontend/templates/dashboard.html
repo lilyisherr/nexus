@@ -725,12 +725,12 @@
                     </div>
 
                     <div class="card-panel full">
-                        <div class="card-panel-head"><h3><i class="fas fa-video"></i> Stream settings</h3></div>
+                        <div class="card-panel-head"><h3><i class="fas fa-video"></i> Nexus Studio</h3></div>
                         <div class="panel-content compact-list">
                             {% if channels %}
                                 {% for ch in channels %}
                                 <div class="settings-stack-item" style="display:block; border-bottom:1px solid #f1f5f9; padding:16px 0;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px;">
                                         <div class="settings-stack-name">{{ ch.channel_name }}</div>
                                         <label class="qtgl">
                                             <input type="checkbox" class="channel-stream-toggle" data-channel-id="{{ ch.id }}" {% if ch.bot_settings and ch.bot_settings.bot_enabled %}checked{% endif %}>
@@ -740,10 +740,10 @@
 
                                     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;">
                                         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
-                                            <div style="font-size:12px;font-weight:700;color:#475569; letter-spacing:0.04em; text-transform:uppercase;">OBS / Streamlabs ingest</div>
+                                            <div style="font-size:12px;font-weight:700;color:#475569; letter-spacing:0.04em; text-transform:uppercase;">Encoder setup</div>
                                             <button type="button" class="small-btn outline stream-copy-setup" data-channel-id="{{ ch.id }}">Copy setup</button>
                                         </div>
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                                             <div>
                                                 <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">RTMP server</div>
                                                 <input type="text" class="stream-ingest-input" data-field="stream_ingest_url" data-channel-id="{{ ch.id }}" value="{{ ch.stream_ingest_url or 'rtmp://a.rtmp.youtube.com/live2' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
@@ -753,15 +753,46 @@
                                                 <input type="password" class="stream-ingest-input" data-field="stream_key" data-channel-id="{{ ch.id }}" value="{{ ch.stream_key or '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
                                             </div>
                                         </div>
-                                        <div style="margin-top:10px; font-size:12px; color:#64748b; line-height:1.5;">
-                                            Use these values in OBS or Streamlabs: RTMP server = ingest URL, Stream key = your YouTube stream key. Nexus stores this per channel so you can push directly from your encoder.
-                                        </div>
                                         <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                                            <button class="small-btn save-stream-setup" data-channel-id="{{ ch.id }}">Save stream key</button>
+                                            <button class="small-btn save-stream-setup" data-channel-id="{{ ch.id }}">Save ingest</button>
                                         </div>
                                     </div>
 
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:8px;">
+                                        <div>
+                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Microphone</div>
+                                            <select class="studio-device-select" data-channel-id="{{ ch.id }}" data-kind="microphone" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                                <option value="">System default</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Camera</div>
+                                            <select class="studio-device-select" data-channel-id="{{ ch.id }}" data-kind="camera" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                                <option value="">No camera</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Output mode</div>
+                                            <select class="studio-mode-select" data-channel-id="{{ ch.id }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                                <option value="streamlabs">Streamlabs</option>
+                                                <option value="obs">OBS</option>
+                                                <option value="browser">Browser preview</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;">
+                                        <button class="small-btn outline load-studio-devices" data-channel-id="{{ ch.id }}">Load devices</button>
+                                        <button class="small-btn" data-channel-id="{{ ch.id }}" data-action="start-preview">Start preview</button>
+                                        <button class="small-btn outline" data-channel-id="{{ ch.id }}" data-action="share-screen">Share screen</button>
+                                        <button class="small-btn outline" data-channel-id="{{ ch.id }}" data-action="stop-preview">Stop</button>
+                                    </div>
+
+                                    <div style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; background:#0f172a; height:200px; display:flex; align-items:center; justify-content:center;">
+                                        <video id="studio-preview-{{ ch.id }}" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; background:linear-gradient(135deg,#0f172a,#1e293b);"></video>
+                                    </div>
+
+                                    <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                                         <div>
                                             <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Command prefix</div>
                                             <input type="text" class="stream-setting-input" data-field="chat_prefix" data-channel-id="{{ ch.id }}" value="{{ (ch.bot_settings.chat_prefix if ch.bot_settings else '!') }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
@@ -776,7 +807,7 @@
                                         <textarea class="stream-setting-input" data-field="join_message" data-channel-id="{{ ch.id }}" rows="2" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;resize:vertical;">{{ ch.bot_settings.join_message if ch.bot_settings and ch.bot_settings.join_message else '' }}</textarea>
                                     </div>
                                     <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                                        <button class="small-btn save-stream-settings" data-channel-id="{{ ch.id }}">Save stream settings</button>
+                                        <button class="small-btn save-stream-settings" data-channel-id="{{ ch.id }}">Save bot settings</button>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -935,6 +966,114 @@
             });
         });
 
+        function saveStudioPrefs(channelId) {
+            var prefs = {
+                microphone: document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]').value,
+                camera: document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]').value,
+                mode: document.querySelector('.studio-mode-select[data-channel-id="' + channelId + '"]').value
+            };
+            localStorage.setItem('nexus_studio_' + channelId, JSON.stringify(prefs));
+            showToast('Studio preferences saved', 'success');
+        }
+
+        function loadStudioPrefs(channelId) {
+            var raw = localStorage.getItem('nexus_studio_' + channelId);
+            if (!raw) return;
+            try {
+                var prefs = JSON.parse(raw);
+                var mic = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]');
+                var camera = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]');
+                var mode = document.querySelector('.studio-mode-select[data-channel-id="' + channelId + '"]');
+                if (mic && prefs.microphone) mic.value = prefs.microphone;
+                if (camera && prefs.camera) camera.value = prefs.camera;
+                if (mode && prefs.mode) mode.value = prefs.mode;
+            } catch (e) {}
+        }
+
+        function populateStudioDevices(channelId) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                showToast('This browser does not support device selection', 'error');
+                return;
+            }
+            navigator.mediaDevices.enumerateDevices().then(function(devices) {
+                var micSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]');
+                var cameraSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]');
+                if (!micSelect || !cameraSelect) return;
+
+                var micOptions = ['<option value="">System default</option>'];
+                var camOptions = ['<option value="">No camera</option>'];
+                devices.forEach(function(device) {
+                    if (device.kind === 'audioinput') {
+                        micOptions.push('<option value="' + device.deviceId + '">' + (device.label || 'Microphone') + '</option>');
+                    }
+                    if (device.kind === 'videoinput') {
+                        camOptions.push('<option value="' + device.deviceId + '">' + (device.label || 'Camera') + '</option>');
+                    }
+                });
+                micSelect.innerHTML = micOptions.join('');
+                cameraSelect.innerHTML = camOptions.join('');
+                loadStudioPrefs(channelId);
+            });
+        }
+
+        document.querySelectorAll('.load-studio-devices').forEach(function(button) {
+            button.addEventListener('click', function() {
+                populateStudioDevices(this.dataset.channelId);
+            });
+        });
+
+        document.querySelectorAll('[data-action="start-preview"]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var channelId = this.dataset.channelId;
+                var micSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]');
+                var cameraSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]');
+                var video = document.getElementById('studio-preview-' + channelId);
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showToast('Browser media capture is not supported here', 'error');
+                    return;
+                }
+                var constraints = {
+                    video: cameraSelect && cameraSelect.value ? { deviceId: { exact: cameraSelect.value } } : { facingMode: 'user' },
+                    audio: micSelect && micSelect.value ? { deviceId: { exact: micSelect.value } } : true
+                };
+                navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+                    if (video) video.srcObject = stream;
+                    saveStudioPrefs(channelId);
+                }).catch(function() {
+                    showToast('Could not start camera and microphone preview', 'error');
+                });
+            });
+        });
+
+        document.querySelectorAll('[data-action="share-screen"]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var channelId = this.dataset.channelId;
+                var video = document.getElementById('studio-preview-' + channelId);
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                    showToast('Screen sharing is not supported in this browser', 'error');
+                    return;
+                }
+                navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then(function(stream) {
+                    if (video) video.srcObject = stream;
+                    showToast('Screen share active', 'success');
+                }).catch(function() {
+                    showToast('Screen share was cancelled', 'error');
+                });
+            });
+        });
+
+        document.querySelectorAll('[data-action="stop-preview"]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var channelId = this.dataset.channelId;
+                var video = document.getElementById('studio-preview-' + channelId);
+                if (video && video.srcObject) {
+                    video.srcObject.getTracks().forEach(function(track) { track.stop(); });
+                    video.srcObject = null;
+                }
+                showToast('Preview stopped', 'success');
+            });
+        });
+
         document.querySelectorAll('.save-stream-settings').forEach(function(button) {
             button.addEventListener('click', function() {
                 var channelId = this.dataset.channelId;
@@ -995,6 +1134,42 @@
                 } else {
                     showToast('Clipboard unavailable', 'error');
                 }
+            });
+        });
+
+        document.querySelectorAll('.studio-device-select, .studio-mode-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                saveStudioPrefs(this.dataset.channelId);
+            });
+        });
+
+        document.querySelectorAll('.channel-stream-toggle').forEach(function(toggle) {
+            toggle.addEventListener('change', function() {
+                var channelId = this.dataset.channelId;
+                fetch('/api/channels/' + channelId + '/bot/toggle', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ enabled: this.checked })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function() { showToast('Stream automation updated', 'success'); pollLiveStatus(); })
+                .catch(function() { showToast('Failed to update stream settings', 'error'); });
+            });
+        });
+
+        document.querySelectorAll('.channel-bot-toggle').forEach(function(toggle) {
+            toggle.addEventListener('change', function() {
+                var channelId = this.dataset.channelId;
+                fetch('/api/channels/' + channelId + '/bot/toggle', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ enabled: this.checked })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function() { showToast('Bot status updated', 'success'); pollLiveStatus(); })
+                .catch(function() { showToast('Failed to update bot status', 'error'); });
             });
         });
 
