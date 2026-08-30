@@ -637,13 +637,24 @@
                     </div>
                 </div>
 
-                {% if channels and user.bot_enabled %}
-                <div id="live-status-card" class="live-card">
-                    <div id="live-dot" class="live-dot"></div>
-                    <div class="live-info"><strong id="live-title">Checking stream status...</strong><span id="live-sub">Bot is watching for chat commands</span></div>
-                    <span id="live-msgs-badge" class="live-msgs" style="display:none;"></span>
+                <div class="card-panel full" style="margin-top:16px;">
+                    <div class="card-panel-head"><h3><i class="fas fa-signal"></i> Live stream status</h3></div>
+                    <div class="panel-content compact-list" id="channel-live-status-list">
+                        {% if channels %}
+                            {% for ch in channels %}
+                            <div class="settings-stack-item live-channel-row" data-channel-id="{{ ch.id }}">
+                                <div>
+                                    <div class="settings-stack-name">{{ ch.channel_name }}</div>
+                                    <div class="channel-meta">Checking live status...</div>
+                                </div>
+                                <span class="badge badge-off">Offline</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state"><i class="fas fa-tv"></i><p>No channels connected yet.</p></div>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
 
             <div class="workspace-panel" id="panel-youtube">
@@ -703,12 +714,52 @@
             </div>
 
             <div class="workspace-panel" id="panel-settings">
-                <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fas fa-user-cog"></i> Account and platform settings</h3></div>
-                    <div class="panel-content compact-list">
-                        <div class="settings-stack-item"><div class="settings-stack-name">Profile</div><div class="settings-stack-actions"><a href="/dashboard#user" class="small-btn outline">Manage</a></div></div>
-                        <div class="settings-stack-item"><div class="settings-stack-name">YouTube bot config</div><div class="settings-stack-actions"><a href="/channel/{{ channels[0].id }}/settings" class="small-btn outline" {% if not channels %}disabled{% endif %}>Open</a></div></div>
-                        <div class="settings-stack-item"><div class="settings-stack-name">Platform links</div><div class="settings-stack-actions"><a href="/settings" class="small-btn outline">Connections</a></div></div>
+                <div class="card-grid two-up">
+                    <div class="card-panel full">
+                        <div class="card-panel-head"><h3><i class="fas fa-user-cog"></i> Account settings</h3></div>
+                        <div class="panel-content compact-list">
+                            <div class="settings-stack-item"><div class="settings-stack-name">Profile</div><div class="settings-stack-actions"><a href="/dashboard#user" class="small-btn outline">Manage</a></div></div>
+                            <div class="settings-stack-item"><div class="settings-stack-name">Platform links</div><div class="settings-stack-actions"><a href="/settings" class="small-btn outline">Connections</a></div></div>
+                            <div class="settings-stack-item"><div class="settings-stack-name">Help and setup guides</div><div class="settings-stack-actions"><a href="/help" class="small-btn outline">Open</a></div></div>
+                        </div>
+                    </div>
+
+                    <div class="card-panel full">
+                        <div class="card-panel-head"><h3><i class="fas fa-video"></i> Stream settings</h3></div>
+                        <div class="panel-content compact-list">
+                            {% if channels %}
+                                {% for ch in channels %}
+                                <div class="settings-stack-item" style="display:block; border-bottom:1px solid #f1f5f9; padding:16px 0;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                                        <div class="settings-stack-name">{{ ch.channel_name }}</div>
+                                        <label class="qtgl">
+                                            <input type="checkbox" class="channel-stream-toggle" data-channel-id="{{ ch.id }}" {% if ch.bot_settings and ch.bot_settings.bot_enabled %}checked{% endif %}>
+                                            <span class="qtgl-track"></span>
+                                        </label>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                                        <div>
+                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Command prefix</div>
+                                            <input type="text" class="stream-setting-input" data-field="chat_prefix" data-channel-id="{{ ch.id }}" value="{{ (ch.bot_settings.chat_prefix if ch.bot_settings else '!') }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                        </div>
+                                        <div>
+                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Reply delay (sec)</div>
+                                            <input type="number" min="0" max="15" class="stream-setting-input" data-field="response_delay" data-channel-id="{{ ch.id }}" value="{{ (ch.bot_settings.response_delay if ch.bot_settings else 0) }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:10px;">
+                                        <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Join message</div>
+                                        <textarea class="stream-setting-input" data-field="join_message" data-channel-id="{{ ch.id }}" rows="2" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;resize:vertical;">{{ ch.bot_settings.join_message if ch.bot_settings and ch.bot_settings.join_message else '' }}</textarea>
+                                    </div>
+                                    <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                                        <button class="small-btn save-stream-settings" data-channel-id="{{ ch.id }}">Save stream settings</button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-state"><i class="fas fa-video"></i><p>No stream settings yet.</p></div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -735,6 +786,32 @@
             .catch(function() { showToast('Could not save setting', 'error'); });
         }
 
+        function renderLiveChannelStatus(data) {
+            var list = document.getElementById('channel-live-status-list');
+            if (!list || !data || !data.channels) return;
+
+            var rows = Array.from(list.querySelectorAll('.live-channel-row'));
+            data.channels.forEach(function(ch) {
+                var row = rows.find(function(r) { return Number(r.dataset.channelId) === Number(ch.channel_id); }) || document.createElement('div');
+                if (!row.classList || !row.classList.contains('live-channel-row')) {
+                    row.className = 'settings-stack-item live-channel-row';
+                    row.dataset.channelId = ch.channel_id;
+                }
+
+                var statusText = ch.is_live ? 'Live now' : 'Offline';
+                var badgeClass = ch.is_live ? 'badge-live' : 'badge-off';
+                var message = ch.is_live ? (ch.stream_title || 'Stream is live') : (ch.running ? 'Bot watching for a stream' : 'Bot is paused');
+
+                row.innerHTML = '<div><div class="settings-stack-name">' + (ch.channel_name || 'Channel') + '</div><div class="channel-meta">' + message + '</div></div><span class="badge ' + badgeClass + '">' + statusText + '</span>';
+                if (!row.parentNode) list.appendChild(row);
+            });
+
+            rows.forEach(function(r) {
+                var exists = data.channels.some(function(ch) { return Number(ch.channel_id) === Number(r.dataset.channelId); });
+                if (!exists) r.remove();
+            });
+        }
+
         function pollLiveStatus() {
             fetch('/api/bot/live-status', {credentials: 'same-origin'})
             .then(function(r) { return r.json(); })
@@ -749,30 +826,30 @@
                 var title = document.getElementById('live-title');
                 var sub = document.getElementById('live-sub');
                 var msgs = document.getElementById('live-msgs-badge');
-                if (!dot) return;
-                if (liveChannel) {
-                    dot.className = 'live-dot on';
-                    title.textContent = liveChannel.stream_title || 'Live Stream';
-                    sub.textContent = liveChannel.channel_name + ' \u2022 Bot is active';
-                    if (liveChannel.messages_processed > 0) {
-                        msgs.style.display = '';
-                        msgs.textContent = liveChannel.messages_processed + ' msgs processed';
+                if (dot && title && sub) {
+                    if (liveChannel) {
+                        dot.className = 'live-dot on';
+                        title.textContent = liveChannel.stream_title || 'Live Stream';
+                        sub.textContent = liveChannel.channel_name + ' \u2022 Bot is active';
+                        if (liveChannel.messages_processed > 0) {
+                            msgs.style.display = '';
+                            msgs.textContent = liveChannel.messages_processed + ' msgs processed';
+                        }
+                    } else {
+                        dot.className = 'live-dot';
+                        var anyRunning = d.channels && d.channels.some(function(ch) { return ch.running; });
+                        title.textContent = anyRunning ? 'Watching for your live stream\u2026' : 'Bot not running';
+                        sub.textContent = anyRunning ? 'Will detect within 30 seconds of going live' : 'Enable the bot to start monitoring';
+                        if (msgs) msgs.style.display = 'none';
                     }
-                } else {
-                    dot.className = 'live-dot';
-                    var anyRunning = d.channels && d.channels.some(function(ch) { return ch.running; });
-                    title.textContent = anyRunning ? 'Watching for your live stream\u2026' : 'Bot not running';
-                    sub.textContent = anyRunning ? 'Will detect within 30 seconds of going live' : 'Enable the bot to start monitoring';
-                    msgs.style.display = 'none';
                 }
+                renderLiveChannelStatus(d);
             })
             .catch(function() {});
         }
 
-        if (document.getElementById('live-dot')) {
-            pollLiveStatus();
-            setInterval(pollLiveStatus, 15000);
-        }
+        pollLiveStatus();
+        setInterval(pollLiveStatus, 15000);
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -807,20 +884,6 @@
         if (botToggle) {
             botToggle.addEventListener('change', function() {
                 var on = this.checked;
-                var ring = document.querySelector('.bot-status-ring');
-                var botTitle = document.querySelector('.bot-panel-info strong');
-                var botLabel = document.getElementById('bot-label');
-
-                if (ring) {
-                    ring.className = 'bot-status-ring ' + (on ? 'on' : 'off');
-                }
-                if (botTitle) {
-                    botTitle.textContent = 'Nexus Bot ' + (on ? 'Online' : 'Offline');
-                }
-                if (botLabel) {
-                    botLabel.textContent = on ? 'Watching {{ channels|length }} channel{{ "s" if channels|length != 1 }}' : 'Bot is paused';
-                }
-
                 fetch('/api/bot/toggle', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -828,10 +891,47 @@
                     body: JSON.stringify({ enabled: on })
                 })
                 .then(function(r) { return r.json(); })
-                .then(function() { showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success'); })
+                .then(function() { showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success'); pollLiveStatus(); })
                 .catch(function() { showToast('Failed to update', 'error'); });
             });
         }
+
+        document.querySelectorAll('.channel-stream-toggle').forEach(function(toggle) {
+            toggle.addEventListener('change', function() {
+                var channelId = this.dataset.channelId;
+                fetch('/api/channels/' + channelId + '/bot/toggle', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ enabled: this.checked })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function() { showToast('Stream automation updated', 'success'); pollLiveStatus(); })
+                .catch(function() { showToast('Failed to update stream settings', 'error'); });
+            });
+        });
+
+        document.querySelectorAll('.save-stream-settings').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var channelId = this.dataset.channelId;
+                var payload = {};
+                document.querySelectorAll('.stream-setting-input[data-channel-id="' + channelId + '"]').forEach(function(input) {
+                    var field = input.dataset.field;
+                    var value = input.value;
+                    if (field === 'response_delay') value = Number(value) || 0;
+                    payload[field] = value;
+                });
+                fetch('/api/channels/' + channelId + '/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function() { showToast('Stream settings saved', 'success'); pollLiveStatus(); })
+                .catch(function() { showToast('Could not save stream settings', 'error'); });
+            });
+        });
 
         function timeoutViewer(viewerId, channelId) {
             fetch('/api/channels/' + channelId + '/viewers/' + viewerId + '/timeout', {
