@@ -737,6 +737,30 @@
                                             <span class="qtgl-track"></span>
                                         </label>
                                     </div>
+
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
+                                            <div style="font-size:12px;font-weight:700;color:#475569; letter-spacing:0.04em; text-transform:uppercase;">OBS / Streamlabs ingest</div>
+                                            <button type="button" class="small-btn outline stream-copy-setup" data-channel-id="{{ ch.id }}">Copy setup</button>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                                            <div>
+                                                <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">RTMP server</div>
+                                                <input type="text" class="stream-ingest-input" data-field="stream_ingest_url" data-channel-id="{{ ch.id }}" value="{{ ch.stream_ingest_url or 'rtmp://a.rtmp.youtube.com/live2' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                            </div>
+                                            <div>
+                                                <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Stream key</div>
+                                                <input type="password" class="stream-ingest-input" data-field="stream_key" data-channel-id="{{ ch.id }}" value="{{ ch.stream_key or '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:10px; font-size:12px; color:#64748b; line-height:1.5;">
+                                            Use these values in OBS or Streamlabs: RTMP server = ingest URL, Stream key = your YouTube stream key. Nexus stores this per channel so you can push directly from your encoder.
+                                        </div>
+                                        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                                            <button class="small-btn save-stream-setup" data-channel-id="{{ ch.id }}">Save stream key</button>
+                                        </div>
+                                    </div>
+
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
                                         <div>
                                             <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Command prefix</div>
@@ -930,6 +954,47 @@
                 .then(function(r) { return r.json(); })
                 .then(function() { showToast('Stream settings saved', 'success'); pollLiveStatus(); })
                 .catch(function() { showToast('Could not save stream settings', 'error'); });
+            });
+        });
+
+        document.querySelectorAll('.save-stream-setup').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var channelId = this.dataset.channelId;
+                var payload = {};
+                document.querySelectorAll('.stream-ingest-input[data-channel-id="' + channelId + '"]').forEach(function(input) {
+                    var field = input.dataset.field;
+                    payload[field] = input.value;
+                });
+                fetch('/api/channels/' + channelId + '/stream-config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.error) throw new Error(d.error);
+                    showToast('OBS/Streamlabs stream key saved', 'success');
+                })
+                .catch(function() { showToast('Could not save stream key', 'error'); });
+            });
+        });
+
+        document.querySelectorAll('.stream-copy-setup').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var channelId = this.dataset.channelId;
+                var urlInput = document.querySelector('.stream-ingest-input[data-channel-id="' + channelId + '"][data-field="stream_ingest_url"]');
+                var keyInput = document.querySelector('.stream-ingest-input[data-channel-id="' + channelId + '"][data-field="stream_key"]');
+                var setup = 'RTMP Server: ' + (urlInput ? urlInput.value : 'rtmp://a.rtmp.youtube.com/live2') + '\n' + 'Stream Key: ' + (keyInput ? keyInput.value : '');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(setup).then(function() {
+                        showToast('Stream setup copied', 'success');
+                    }).catch(function() {
+                        showToast('Copy failed - copy manually', 'error');
+                    });
+                } else {
+                    showToast('Clipboard unavailable', 'error');
+                }
             });
         });
 

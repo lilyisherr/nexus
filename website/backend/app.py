@@ -184,6 +184,9 @@ class Channel(db.Model):
     view_count = db.Column(db.Integer, default=0)
     video_count = db.Column(db.Integer, default=0)
     tracking_enabled = db.Column(db.Boolean, default=True)
+    stream_ingest_url = db.Column(db.String(500), nullable=True)
+    stream_key = db.Column(db.Text, nullable=True)
+    stream_key_last_updated = db.Column(db.DateTime, nullable=True)
     last_synced = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -200,6 +203,9 @@ class Channel(db.Model):
             'view_count': self.view_count,
             'video_count': self.video_count,
             'tracking_enabled': self.tracking_enabled,
+            'stream_ingest_url': self.stream_ingest_url,
+            'stream_key': self.stream_key,
+            'stream_key_last_updated': self.stream_key_last_updated.isoformat() if self.stream_key_last_updated else None,
             'last_synced': self.last_synced.isoformat() if self.last_synced else None,
         }
 
@@ -1911,6 +1917,48 @@ def bot_live_status():
             'messages_processed': s.get('messages_processed', 0),
         })
     return jsonify({'channels': statuses})
+
+
+@app.route('/api/channels/<int:channel_id>/stream-config', methods=['GET'])
+@login_required
+def get_channel_stream_config(channel_id):
+    channel = Channel.query.get(channel_id)
+    if not channel or channel.user_id != session['user_id']:
+        return jsonify({'error': 'Channel not found'}), 404
+    return jsonify({
+        'id': channel.id,
+        'channel_name': channel.channel_name,
+        'stream_ingest_url': channel.stream_ingest_url or 'rtmp://a.rtmp.youtube.com/live2',
+        'stream_key': channel.stream_key or '',
+        'stream_key_last_updated': channel.stream_key_last_updated.isoformat() if channel.stream_key_last_updated else None,
+        'youtube_channel_id': channel.youtube_channel_id,
+    })
+
+
+@app.route('/api/channels/<int:channel_id>/stream-config', methods=['POST', 'PUT'])
+@login_required
+def update_channel_stream_config(channel_id):
+    channel = Channel.query.get(channel_id)
+    if not channel or channel.user_id != session['user_id']:
+        return jsonify({'error': 'Channel not found'}), 404
+
+    data = request.json or {}
+    if 'stream_ingest_url' in data:
+        value = (data.get('stream_ingest_url') or '').strip()
+        channel.stream_ingest_url = value or 'rtmp://a.rtmp.youtube.com/live2'
+    if 'stream_key' in data:
+        value = (data.get('stream_key') or '').strip()
+        channel.stream_key = value
+        channel.stream_key_last_updated = datetime.utcnow() if value else None
+    channel.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Stream config updated successfully',
+        'stream_ingest_url': channel.stream_ingest_url,
+        'stream_key': channel.stream_key,
+        'stream_key_last_updated': channel.stream_key_last_updated.isoformat() if channel.stream_key_last_updated else None,
+    })
 
 
 @app.route('/api/channels/<int:channel_id>/settings', methods=['GET'])
