@@ -3,872 +3,396 @@
 <head>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <meta charset="UTF-8">
-    <meta name="google-site-verification" content="9DfGRcrQ4mz7fDhXgfT5ZM-UZ0M45I4Z5q39CGplMng" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Nexus</title>
-    <meta name="description" content="Your Nexus dashboard. See your YouTube channels, manage your bot, and check stats.">
-    <meta name="keywords" content="Nexus dashboard, YouTube channel management, bot control">
-    <meta name="author" content="Nexus">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#6366f1">
-    <link rel="canonical" href="https://nexusbeta.vercel.app/dashboard">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nexusbeta.vercel.app/dashboard">
-    <meta property="og:title" content="Dashboard - Nexus">
-    <meta property="og:description" content="Your Nexus dashboard. See your YouTube channels, manage your bot, and check stats.">
-    <meta property="og:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
-    <meta property="og:image:width" content="1024">
-    <meta property="og:image:height" content="1024">
-    <meta property="og:site_name" content="Nexus">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Dashboard - Nexus">
-    <meta name="twitter:description" content="Your Nexus dashboard. See your YouTube channels, manage your bot, and check stats.">
-    <meta name="twitter:image" content="https://nexusbeta.vercel.app/static/img/logo.png">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { background: var(--light-bg); }
-
-        .dash-container {
-            max-width: 1320px;
-            margin: 0 auto;
-            padding: 28px 24px 60px;
+        :root {
+            --sl-bg: #0e0e10;
+            --sl-surface: #18181b;
+            --sl-surface-2: #1f1f23;
+            --sl-border: #2a2a2e;
+            --sl-text: #efeff1;
+            --sl-muted: #adadb8;
+            --sl-accent: #9146ff;
+            --sl-accent-hover: #772ce8;
+            --sl-success: #00c853;
+            --sl-danger: #ff5252;
+            --sl-warning: #ffb300;
+            --sl-radius: 8px;
         }
+        body { background: #f4f4f5; color: #1e293b; margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
+        body.dark-theme { background: var(--sl-bg); color: var(--sl-text); }
 
-        .dash-header {
+        .dash-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 48px; }
+
+        /* Header */
+        .dash-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .dash-top h1 { font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.3px; }
+        .dash-top p { font-size: 13px; color: #64748b; margin: 4px 0 0; }
+        body.dark-theme .dash-top p { color: var(--sl-muted); }
+
+        .dash-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+        .btn-studio {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, #9146ff, #772ce8);
+            color: #fff; font-weight: 600; font-size: 14px;
+            padding: 10px 18px; border-radius: 8px; border: none;
+            text-decoration: none; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(145, 70, 255, 0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn-studio:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(145, 70, 255, 0.45); color: #fff; }
+        .btn-studio i { font-size: 15px; }
+
+        .btn-ghost {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid #e2e8f0; color: #475569;
+            font-weight: 600; font-size: 13px; padding: 9px 14px; border-radius: 8px;
+            text-decoration: none; transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-ghost:hover { border-color: #9146ff; color: #9146ff; }
+        body.dark-theme .btn-ghost { background: var(--sl-surface); border-color: var(--sl-border); color: var(--sl-muted); }
+        body.dark-theme .btn-ghost:hover { border-color: var(--sl-accent); color: var(--sl-accent); }
+
+        /* Live status strip */
+        .live-strip {
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 14px 18px; display: flex; align-items: center; gap: 14px;
             margin-bottom: 20px;
         }
-
-        .dash-header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-            letter-spacing: -0.4px;
+        body.dark-theme .live-strip { background: var(--sl-surface); border-color: var(--sl-border); }
+        .live-dot { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
+        .live-dot.on { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.2); animation: pulse 1.6s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .live-info { flex: 1; min-width: 0; }
+        .live-info strong { font-size: 14px; display: block; }
+        .live-info span { font-size: 12px; color: #64748b; }
+        body.dark-theme .live-info span { color: var(--sl-muted); }
+        .live-badge {
+            font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+            background: rgba(145,70,255,0.12); color: #9146ff; white-space: nowrap;
         }
 
-        .dash-header p {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-top: 3px;
-        }
-
-        .top-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .bot-panel {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 22px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .bot-panel-top {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .bot-status-ring {
-            width: 52px; height: 52px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .bot-status-ring.on {
-            background: rgba(16,185,129,0.1);
-            box-shadow: 0 0 0 4px rgba(16,185,129,0.08);
-        }
-
-        .bot-status-ring.off {
-            background: rgba(148,163,184,0.1);
-        }
-
-        .bot-status-ring .dot {
-            width: 18px; height: 18px; border-radius: 50%;
-        }
-
-        .bot-status-ring.on .dot {
-            background: #10b981;
-            box-shadow: 0 0 10px rgba(16,185,129,0.5);
-            animation: pulse-g 2s infinite;
-        }
-
-        .bot-status-ring.off .dot {
-            background: #94a3b8;
-        }
-
-        @keyframes pulse-g { 0%,100% { box-shadow: 0 0 6px rgba(16,185,129,0.3); } 50% { box-shadow: 0 0 14px rgba(16,185,129,0.5); } }
-
-        .bot-panel-info { flex: 1; }
-        .bot-panel-info strong { font-size: 16px; font-weight: 700; color: #1e293b; display: block; }
-        .bot-panel-info span { font-size: 13px; color: #94a3b8; }
-
-        .tgl { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
-        .tgl input { opacity: 0; width: 0; height: 0; }
-        .tgl-track { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 26px; transition: 0.25s; }
-        .tgl-track:before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
-        .tgl input:checked + .tgl-track { background: #6366f1; }
-        .tgl input:checked + .tgl-track:before { transform: translateX(22px); }
-
-        .bot-panel-links {
-            display: flex; gap: 8px;
-        }
-
-        .bot-link-btn {
-            padding: 8px 16px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.15s;
-        }
-
-        .bot-link-btn.primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: #fff;
-        }
-
-        .bot-link-btn.primary:hover { opacity: 0.9; }
-
-        .bot-link-btn.secondary {
-            background: #f1f5f9;
-            color: #64748b;
-        }
-
-        .bot-link-btn.secondary:hover { background: #e2e8f0; color: #1e293b; }
-
-        .channels-panel {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            overflow: hidden;
-        }
-
-        .channels-panel-header {
-            padding: 16px 22px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .channels-panel-header h3 {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .channels-panel-header .count {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        .ch-row {
-            display: flex; align-items: center; gap: 14px;
-            padding: 12px 22px;
-            border-bottom: 1px solid #f8f9fc;
-            transition: background 0.1s;
-        }
-
-        .ch-row:last-child { border-bottom: none; }
-        .ch-row:hover { background: #fafbfd; }
-        .ch-row img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #e5e7eb; }
-
-        .ch-init {
-            width: 38px; height: 38px; border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 15px; flex-shrink: 0;
-        }
-
-        .ch-info { flex: 1; min-width: 0; }
-        .ch-name { font-size: 14px; font-weight: 600; color: #1e293b; text-decoration: none; }
-        .ch-name:hover { color: #6366f1; }
-        .ch-stats { display: flex; gap: 12px; margin-top: 2px; }
-        .ch-stats span { font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
-        .ch-stats span i { font-size: 10px; }
-        .ch-actions { display: flex; gap: 5px; flex-shrink: 0; }
-
-        .icon-btn {
-            width: 32px; height: 32px; border-radius: 8px;
-            border: 1px solid #e5e7eb; background: #fff;
-            color: #94a3b8; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.15s; font-size: 12px; text-decoration: none;
-        }
-
-        .icon-btn:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.05); }
-        .icon-btn.danger:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.05); }
-
-        .mod-banner {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border: 1px solid #f59e0b;
-            border-radius: 10px;
-            padding: 11px 18px;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13px;
-        }
-
-        .mod-banner-icon {
-            width: 30px; height: 30px; border-radius: 7px;
-            background: rgba(245,158,11,0.2);
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-
-        .mod-banner-title { font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 1px; }
-        .mod-banner-text { font-size: 11px; color: #a16207; line-height: 1.4; }
-        .mod-banner a { color: #92400e; font-weight: 600; text-decoration: underline; }
-
-        .quick-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-        .qn-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.15s; border: 1px solid transparent; }
-        .qn-btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
-        .qn-btn.primary:hover { opacity: 0.9; }
-        .qn-btn.ghost { background: #fff; border-color: #e5e7eb; color: #64748b; }
-        .qn-btn.ghost:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.04); }
-        body.dark-theme .qn-btn.ghost { background: #1e293b; border-color: #334155; color: #94a3b8; }
-        body.dark-theme .qn-btn.ghost:hover { border-color: #6366f1; color: #818cf8; background: rgba(99,102,241,0.08); }
-
+        /* Stats row */
         .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            margin-bottom: 22px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-bottom: 20px;
         }
-
-        .s-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
+        @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        .stat {
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
             padding: 16px 18px;
-            position: relative;
-            overflow: hidden;
         }
+        body.dark-theme .stat { background: var(--sl-surface); border-color: var(--sl-border); }
+        .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: #94a3b8; margin-bottom: 6px; }
+        .stat-val { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .stat-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
 
-        .s-card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
+        /* Main grid */
+        .main-grid {
+            display: grid; grid-template-columns: 1fr 340px; gap: 16px;
         }
-
-        .s-card.purple::after { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
-        .s-card.blue::after { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-        .s-card.green::after { background: linear-gradient(90deg, #10b981, #34d399); }
-        .s-card.yellow::after { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-
-        .s-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-
-        .s-card-icon {
-            width: 34px; height: 34px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
-        }
-
-        .s-card.purple .s-card-icon { background: rgba(99,102,241,0.1); color: #6366f1; }
-        .s-card.blue .s-card-icon { background: rgba(59,130,246,0.1); color: #3b82f6; }
-        .s-card.green .s-card-icon { background: rgba(16,185,129,0.1); color: #10b981; }
-        .s-card.yellow .s-card-icon { background: rgba(245,158,11,0.1); color: #f59e0b; }
-
-        .s-card-label { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .s-card-val { font-size: 24px; font-weight: 800; color: #1e293b; margin: 2px 0; letter-spacing: -0.5px; }
-        .s-card-sub { font-size: 11px; color: #cbd5e1; }
-
-        .section-lbl {
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; margin-top: 6px;
-        }
-
-        .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px; }
-        .g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 22px; }
-        .g-full { margin-bottom: 22px; }
+        @media (max-width: 980px) { .main-grid { grid-template-columns: 1fr; } }
 
         .card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            overflow: hidden; margin-bottom: 16px;
         }
-
+        body.dark-theme .card { background: var(--sl-surface); border-color: var(--sl-border); }
         .card-h {
-            padding: 14px 20px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 14px 18px; border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center; justify-content: space-between;
         }
+        body.dark-theme .card-h { border-bottom-color: var(--sl-border); }
+        .card-h h3 { font-size: 14px; font-weight: 700; margin: 0; }
+        .card-b { padding: 16px 18px; }
 
-        .card-h h3 { font-size: 14px; font-weight: 650; color: #1e293b; }
-        .card-h .sub { font-size: 11px; color: #94a3b8; margin-top: 1px; }
-        .card-b { padding: 18px 20px; }
-        .card-b.flush { padding: 0; }
-
-        .chart-wrap { position: relative; height: 230px; width: 100%; }
-
-        .mod-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            padding: 14px 18px;
+        /* Bot control */
+        .bot-row {
+            display: flex; align-items: center; gap: 14px;
         }
-
-        .mod-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
-            border-radius: 8px;
-            transition: background 0.1s;
+        .bot-status {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
+        .bot-status.on { background: rgba(0,200,83,0.12); }
+        .bot-status.off { background: rgba(148,163,184,0.15); }
+        .bot-status .dot { width: 14px; height: 14px; border-radius: 50%; }
+        .bot-status.on .dot { background: #00c853; box-shadow: 0 0 8px rgba(0,200,83,0.5); }
+        .bot-status.off .dot { background: #94a3b8; }
+        .bot-meta { flex: 1; }
+        .bot-meta strong { font-size: 15px; display: block; }
+        .bot-meta span { font-size: 12px; color: #64748b; }
+        body.dark-theme .bot-meta span { color: var(--sl-muted); }
 
-        .mod-item:hover { background: #fafbfd; }
+        /* Toggle (Streamlabs style) */
+        .tgl { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+        .tgl input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .tgl-track {
+            position: absolute; inset: 0; background: #cbd5e1; border-radius: 24px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .tgl-track:before {
+            content: ""; position: absolute; width: 18px; height: 18px;
+            left: 3px; bottom: 3px; background: #fff; border-radius: 50%;
+            transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .tgl input:checked + .tgl-track { background: #9146ff; }
+        .tgl input:checked + .tgl-track:before { transform: translateX(20px); }
 
-        .mod-item-icon {
-            width: 30px; height: 30px; border-radius: 7px;
+        /* Channel list */
+        .ch-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+        }
+        body.dark-theme .ch-item { border-bottom-color: var(--sl-border); }
+        .ch-item:last-child { border-bottom: none; }
+        .ch-item img, .ch-avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+        }
+        .ch-avatar {
+            background: linear-gradient(135deg, #9146ff, #772ce8);
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; flex-shrink: 0;
+            color: #fff; font-weight: 700; font-size: 14px;
         }
+        .ch-meta { flex: 1; min-width: 0; }
+        .ch-meta a { font-size: 14px; font-weight: 600; color: inherit; text-decoration: none; }
+        .ch-meta a:hover { color: #9146ff; }
+        .ch-meta span { font-size: 11px; color: #94a3b8; display: block; margin-top: 2px; }
+        .ch-actions { display: flex; gap: 6px; }
+        .icon-btn {
+            width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0;
+            background: #fff; color: #94a3b8; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; text-decoration: none; transition: 0.15s; cursor: pointer;
+        }
+        .icon-btn:hover { border-color: #9146ff; color: #9146ff; }
+        body.dark-theme .icon-btn { background: var(--sl-surface-2); border-color: var(--sl-border); color: var(--sl-muted); }
 
-        .mod-item-info { flex: 1; min-width: 0; }
-        .mod-item-info .m-name { font-size: 12px; font-weight: 600; color: #1e293b; }
-        .mod-item-info .m-desc { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Empty */
+        .empty { text-align: center; padding: 28px 16px; color: #94a3b8; }
+        .empty i { font-size: 28px; opacity: 0.35; margin-bottom: 8px; display: block; }
+        .empty p { font-size: 13px; margin: 0; }
 
-        .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
-        .badge-on { background: rgba(16,185,129,0.1); color: #059669; }
-        .badge-off { background: #f1f5f9; color: #94a3b8; }
-        .badge-count { background: rgba(99,102,241,0.1); color: #6366f1; }
-        .badge-live { background: rgba(239,68,68,0.1); color: #ef4444; }
-        .badge-done { background: rgba(59,130,246,0.1); color: #3b82f6; }
-        .badge-ban { background: rgba(239,68,68,0.1); color: #ef4444; }
+        /* Quick links */
+        .qlinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .qlink {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;
+            background: #fafafa; text-decoration: none; color: inherit;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .qlink:hover { border-color: #9146ff; background: rgba(145,70,255,0.04); }
+        body.dark-theme .qlink { background: var(--sl-surface-2); border-color: var(--sl-border); }
+        .qlink i { width: 28px; height: 28px; border-radius: 6px; background: rgba(145,70,255,0.12); color: #9146ff; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+        .qlink span { font-size: 13px; font-weight: 600; }
 
-        .qtgl { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; cursor: pointer; }
-        .qtgl input { opacity: 0; width: 0; height: 0; position: absolute; }
-        .qtgl-track { position: absolute; inset: 0; background: #cbd5e1; border-radius: 20px; transition: 0.2s; }
-        .qtgl-track:before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
-        .qtgl input:checked + .qtgl-track { background: #10b981; }
-        .qtgl input:checked + .qtgl-track:before { transform: translateX(16px); }
-        .qtgl input:disabled + .qtgl-track { opacity: 0.5; cursor: not-allowed; }
-
-        .live-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-        .live-dot { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
-        .live-dot.on { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.5); animation: livePulse 1.5s infinite; }
-        @keyframes livePulse { 0%,100% { box-shadow: 0 0 4px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 12px rgba(239,68,68,0.7); } }
-        .live-info { flex: 1; min-width: 0; }
-        .live-info strong { font-size: 13px; font-weight: 700; color: #1e293b; display: block; }
-        .live-info span { font-size: 12px; color: #94a3b8; }
-        .live-msgs { font-size: 11px; font-weight: 700; color: #6366f1; background: rgba(99,102,241,0.08); padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-
-        .dt { width: 100%; border-collapse: collapse; }
-        .dt th { text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; background: #fafbfd; }
-        .dt td { padding: 10px 20px; font-size: 13px; color: #64748b; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-        .dt tr:last-child td { border-bottom: none; }
-        .dt tr:hover { background: #fafbfd; }
-
-        .vid-cell { display: flex; align-items: center; gap: 10px; }
-        .vid-thumb { width: 64px; height: 36px; border-radius: 5px; object-fit: cover; background: #e5e7eb; flex-shrink: 0; }
-        .vid-title { font-weight: 500; color: #1e293b; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        .empty-st { text-align: center; padding: 32px 24px; color: #94a3b8; }
-        .empty-st i { font-size: 28px; margin-bottom: 10px; opacity: 0.3; display: block; }
-        .empty-st h3 { font-size: 14px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
-        .empty-st p { font-size: 13px; }
-
+        /* Toast */
         .toast {
-            position: fixed; top: 20px; right: 20px; z-index: 9999;
-            padding: 12px 20px; border-radius: 8px;
-            font-size: 13px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            transform: translateY(-20px); opacity: 0; transition: all 0.3s; pointer-events: none;
+            position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+            padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
+            color: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            transform: translateY(80px); opacity: 0; transition: 0.3s; pointer-events: none;
         }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #00c853; }
+        .toast.error { background: #ff5252; }
 
-        .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
-        .toast.success { background: #059669; color: #fff; }
-        .toast.error { background: #dc2626; color: #fff; }
-        .toast.info { background: #6366f1; color: #fff; }
-
-        .viewer-user { display: flex; align-items: center; gap: 8px; }
-        .viewer-avatar { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-
-        .tabs { display: flex; gap: 2px; margin-bottom: 0; background: #f1f5f9; border-radius: 8px; padding: 3px; }
-        .tab-btn { padding: 6px 14px; font-size: 12px; font-weight: 500; color: #64748b; border: none; background: transparent; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
-        .tab-btn.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-
-        .workspace-tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: 18px; padding-bottom: 2px; }
-        .workspace-tab { border: 1px solid #e5e7eb; background: #fff; color: #64748b; border-radius: 8px; padding: 9px 14px; font-size: 12px; font-weight: 650; cursor: pointer; white-space: nowrap; }
-        .workspace-tab.active { background: #1e293b; border-color: #1e293b; color: #fff; }
-        .workspace-panel { display: none; }
-        .workspace-panel.active { display: block; }
-
-        .card-grid.two-up { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-        .card-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
-        .card-panel.full { width: 100%; }
-        .card-panel-head { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
-        .card-panel-head h3 { color: #1e293b; font-size: 14px; font-weight: 700; }
-        .card-panel-head i { color: #6366f1; margin-right: 7px; }
-        .panel-content { padding: 18px 20px; }
-        .panel-content.compact-list { padding-top: 10px; padding-bottom: 10px; }
-        .inline-status { display: flex; align-items: center; gap: 8px; color: #1e293b; font-size: 14px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
-        .status-dot.online { background: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.1); }
-        .panel-content p { color: #64748b; font-size: 12px; line-height: 1.5; margin: 10px 0 14px; }
-        .mini-platform-row, .settings-stack-item, .channel-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-        .mini-platform-row:last-child, .settings-stack-item:last-child, .channel-summary-row:last-child { border-bottom: 0; }
-        .mini-platform-name, .settings-stack-name, .channel-name { color: #1e293b; font-size: 13px; font-weight: 650; }
-        .mini-platform-state { font-size: 11px; font-weight: 650; color: #94a3b8; }
-        .mini-platform-state.on { color: #059669; }
-        .settings-stack-actions, .channel-summary-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
-        .small-btn { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #6366f1; border-radius: 7px; background: #6366f1; color: #fff; padding: 7px 11px; font-size: 11px; font-weight: 650; text-decoration: none; cursor: pointer; }
-        .small-btn.outline { background: #fff; color: #64748b; border-color: #e5e7eb; }
-        .small-btn.disabled { background: #f1f5f9; color: #94a3b8; border-color: #e5e7eb; }
-        .channel-summary-row { justify-content: flex-start; }
-        .channel-summary-row img, .channel-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; }
-        .channel-avatar { display: flex; align-items: center; justify-content: center; background: #6366f1; color: #fff; font-weight: 700; }
-        .channel-summary-info { flex: 1; min-width: 0; }
-        .channel-meta { color: #94a3b8; font-size: 11px; margin-top: 3px; }
-        .video-summary { display: flex; align-items: center; gap: 10px; min-width: 0; }
-        .video-summary > div { min-width: 0; }
-        .video-thumb { width: 56px; height: 32px; border-radius: 5px; object-fit: cover; background: #e5e7eb; flex: 0 0 auto; }
-        .video-summary .settings-stack-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
-        .youtube-channel-analytics { flex: 1; min-width: 0; }
-        .youtube-metrics { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; color: #94a3b8; font-size: 11px; }
-        .youtube-metrics strong { color: #1e293b; font-size: 12px; }
-        .empty-state { color: #94a3b8; padding: 24px 0; text-align: center; font-size: 13px; }
-
-        .wt-bar { height: 5px; background: #f1f5f9; border-radius: 3px; overflow: hidden; width: 60px; }
-        .wt-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 3px; }
-
-        @media (max-width: 1200px) {
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .g3 { grid-template-columns: 1fr 1fr; }
-            .mod-grid { grid-template-columns: 1fr; }
+        /* Studio coming soon badge */
+        .soon {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;
+            margin-left: 4px;
         }
-        @media (max-width: 768px) {
-            .top-grid { grid-template-columns: 1fr; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .g2, .g3 { grid-template-columns: 1fr; }
-            .card-grid.two-up { grid-template-columns: 1fr; }
-            .channel-summary-row { align-items: flex-start; flex-wrap: wrap; }
-            .channel-summary-actions { width: 100%; margin-left: 48px; justify-content: flex-start; }
-            .dash-container { padding: 20px 16px 40px; }
-        }
-        @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
-
-        body.dark-theme { background: #0f172a; }
-        body.dark-theme .dash-container { background: #0f172a; }
-        body.dark-theme .dash-header h1 { color: #f1f5f9; }
-        body.dark-theme .dash-header p { color: #94a3b8; }
-        body.dark-theme .bot-panel,
-        body.dark-theme .channels-panel,
-        body.dark-theme .stat-card,
-        body.dark-theme .card { background: #1e293b; border-color: #334155; }
-        body.dark-theme .stat-card .stat-val,
-        body.dark-theme .card h3,
-        body.dark-theme .bot-panel-info strong { color: #f1f5f9; }
-        body.dark-theme .stat-card .stat-label,
-        body.dark-theme .card p,
-        body.dark-theme .bot-panel-info span,
-        body.dark-theme .channels-panel-header span { color: #94a3b8; }
-        body.dark-theme .ch-row { border-color: #334155; }
-        body.dark-theme .ch-row:hover { background: #334155; }
-        body.dark-theme .ch-row .ch-name { color: #f1f5f9; }
-        body.dark-theme .ch-row .ch-subs { color: #94a3b8; }
-        body.dark-theme .ch-row img { border-color: #334155; }
-        body.dark-theme .channels-panel-header { border-bottom-color: #334155; }
-        body.dark-theme .channels-panel-header h3 { color: #f1f5f9; }
-        body.dark-theme .channels-panel-header .count { color: #94a3b8; }
-        body.dark-theme .s-card { background: #1e293b; border-color: #334155; }
-        body.dark-theme .s-card-val { color: #f1f5f9; }
-        body.dark-theme .s-card-sub { color: #94a3b8; }
-        body.dark-theme .s-card-label { color: #94a3b8; }
-        body.dark-theme .icon-btn { background: #1e293b; border-color: #334155; color: #94a3b8; }
-        body.dark-theme .icon-btn:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.1); }
-        body.dark-theme .icon-btn.danger:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.1); }
-        body.dark-theme .bot-link-btn.secondary { background: #334155; color: #94a3b8; }
-        body.dark-theme .bot-link-btn.secondary:hover { background: #475569; color: #f1f5f9; }
-        body.dark-theme .tgl-track { background: #475569; }
-        body.dark-theme .tgl-track:before { background: #94a3b8; }
-        body.dark-theme .tgl input:checked + .tgl-track:before { background: #fff; }
-        body.dark-theme .mod-banner { background: linear-gradient(135deg, #422006, #451a03); border-color: #92400e; }
-        body.dark-theme .mod-banner-title { color: #fbbf24; }
-        body.dark-theme .mod-banner-text { color: #fcd34d; }
-        body.dark-theme .mod-banner a { color: #fbbf24; }
-        body.dark-theme .mod-banner-icon { background: rgba(245,158,11,0.15); }
-        body.dark-theme .card-h { border-bottom-color: #334155; }
-        body.dark-theme .card-h h3 { color: #f1f5f9; }
-        body.dark-theme .card-h .sub { color: #94a3b8; }
-        body.dark-theme .mod-item:hover { background: #334155; }
-        body.dark-theme .mod-item-info .m-name { color: #f1f5f9; }
-        body.dark-theme .mod-item-info .m-desc { color: #94a3b8; }
-        body.dark-theme .badge-off { background: #334155; color: #94a3b8; }
-        body.dark-theme .qtgl-track { background: #475569; }
-        body.dark-theme .live-card { background: #1e293b; border-color: #334155; }
-        body.dark-theme .live-info strong { color: #f1f5f9; }
-        body.dark-theme .tabs { background: #0f172a; }
-        body.dark-theme .tab-btn { color: #94a3b8; }
-        body.dark-theme .tab-btn.active { background: #334155; color: #f1f5f9; }
-        body.dark-theme .workspace-tab { background: #1e293b; border-color: #334155; color: #94a3b8; }
-        body.dark-theme .workspace-tab.active { background: #6366f1; border-color: #6366f1; color: #fff; }
-        body.dark-theme .card-panel { background: #1e293b; border-color: #334155; }
-        body.dark-theme .card-panel-head { border-color: #334155; }
-        body.dark-theme .card-panel-head h3, body.dark-theme .inline-status, body.dark-theme .mini-platform-name, body.dark-theme .settings-stack-name, body.dark-theme .channel-name { color: #f1f5f9; }
-        body.dark-theme .mini-platform-row, body.dark-theme .settings-stack-item, body.dark-theme .channel-summary-row { border-color: #334155; }
-        body.dark-theme .small-btn.outline { background: #1e293b; border-color: #475569; color: #cbd5e1; }
-        body.dark-theme .small-btn.disabled { background: #334155; border-color: #475569; }
-        body.dark-theme .video-thumb { background: #334155; }
-        body.dark-theme .youtube-metrics strong { color: #f1f5f9; }
-        body.dark-theme .dt th { background: #0f172a; color: #94a3b8; border-bottom-color: #334155; }
-        body.dark-theme .dt td { color: #94a3b8; border-bottom-color: #334155; }
-        body.dark-theme .dt tr:hover { background: #334155; }
-        body.dark-theme .vid-title { color: #f1f5f9; }
-        body.dark-theme .vid-thumb { background: #334155; }
-        body.dark-theme .empty-st h3 { color: #94a3b8; }
-        body.dark-theme .empty-st p { color: #64748b; }
-        body.dark-theme .wt-bar { background: #334155; }
-        body.dark-theme .section-lbl { color: #94a3b8; }
-        body.dark-theme .viewer-user div[style*="color:#1e293b"],
-        body.dark-theme .viewer-user span[style*="color:#1e293b"] { color: #f1f5f9 !important; }
-        body.dark-theme td[style*="color:#1e293b"] { color: #f1f5f9 !important; }
-        body.dark-theme span[style*="color:#1e293b"] { color: #f1f5f9 !important; }
-        body.dark-theme code[style*="background:#f1f5f9"] { background: #334155 !important; }
-        body.dark-theme span[style*="color:#cbd5e1"] { color: #64748b !important; }
     </style>
 </head>
 <body>
-    {% include 'partials/nav.html' %}
-    {% include 'partials/banner.html' %}
-    <div id="toast-el" class="toast"></div>
+    {% include 'partials/navbar.html' ignore missing %}
 
-    <div class="dash-container">
-
-        {% if viewing_as %}
-        <div class="admin-preview-banner">
-            <div class="admin-preview-icon"><i class="fas fa-eye"></i></div>
+    <div class="dash-wrap">
+        <div class="dash-top">
             <div>
-                <div class="admin-preview-label">Admin Preview Mode</div>
-                <div class="admin-preview-text">Viewing as <strong>{{ user.username or user.email }}</strong> — this is their workspace</div>
+                <h1>Dashboard</h1>
+                <p>Welcome back{% if user.username %}, {{ user.username }}{% endif %}</p>
             </div>
-            <a href="/nx-admin/exit-view-as" class="admin-preview-exit">Exit Preview</a>
+            <div class="dash-actions">
+                <a href="/studio" class="btn-studio" title="Open Nexus Studio (coming soon)">
+                    <i class="fas fa-broadcast-tower"></i>
+                    Go Live / Studio
+                    <span class="soon">Soon</span>
+                </a>
+                <a href="/channels" class="btn-ghost"><i class="fas fa-plus"></i> Add Channel</a>
+            </div>
         </div>
-        {% endif %}
 
-        <div class="dash-header">
+        <!-- Live status -->
+        <div class="live-strip" id="live-strip">
+            <div class="live-dot" id="live-dot"></div>
+            <div class="live-info">
+                <strong id="live-title">Checking stream status…</strong>
+                <span id="live-sub">Bot will detect when you go live</span>
+            </div>
+            <span class="live-badge" id="live-msgs" style="display:none;">0 msgs</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat">
+                <div class="stat-label">Channels</div>
+                <div class="stat-val">{{ channels|length if channels else 0 }}</div>
+                <div class="stat-sub">Connected</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Subscribers</div>
+                <div class="stat-val">{{ '{:,}'.format(channels|sum(attribute='subscriber_count') if channels else 0) }}</div>
+                <div class="stat-sub">Across channels</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Commands</div>
+                <div class="stat-val">{{ (custom_cmd_count or 0) + (builtin_cmd_count or 0) }}</div>
+                <div class="stat-sub">{{ custom_cmd_count or 0 }} custom · {{ builtin_cmd_count or 0 }} built-in</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Timers</div>
+                <div class="stat-val">{{ timer_count or 0 }}</div>
+                <div class="stat-sub">Active messages</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
             <div>
-                <span class="eyebrow">Creator workspace</span>
-                <h1>{% if viewing_as %}{{ user.username or user.email }}'s Dashboard{% else %}Welcome back, {{ (user.youtube_channel_name or user.username or 'Creator').split(' ')[0] }}{% endif %}</h1>
-                <p>{{ channels|length }} channel{{ 's' if channels|length != 1 }} synced &middot; Bot {{ 'enabled' if user.bot_enabled else 'paused' }}</p>
-            </div>
-            <div class="header-actions">
-                <a href="/dashboard#user" class="bot-link-btn secondary"><i class="fas fa-cog"></i> Workspace settings</a>
-                <a href="/help" class="bot-link-btn secondary"><i class="fas fa-question-circle"></i> Help</a>
-            </div>
-        </div>
-
-        <div class="workspace-tabs">
-            <button class="workspace-tab active" data-panel="overview">Overview</button>
-            <button class="workspace-tab" data-panel="youtube">YouTube</button>
-            <button class="workspace-tab" data-panel="automation">Automation</button>
-            <button class="workspace-tab" data-panel="settings">Settings</button>
-        </div>
-
-        <div class="workspace-panels">
-            <div class="workspace-panel active" id="panel-overview">
-                {% set total_subs = channels | sum(attribute='subscriber_count') %}
-                {% set total_views = channels | sum(attribute='view_count') %}
-                {% set total_videos = channels | sum(attribute='video_count') %}
-
-                <div class="stats-row">
-                    <div class="s-card purple">
-                        <div class="s-card-top"><div class="s-card-label">Subscribers</div><div class="s-card-icon"><i class="fas fa-users"></i></div></div>
-                        <div class="s-card-val">{{ "{:,}".format(total_subs) }}</div>
-                        <div class="s-card-sub">across {{ channels|length }} channel{{ 's' if channels|length != 1 }}</div>
-                    </div>
-                    <div class="s-card blue">
-                        <div class="s-card-top"><div class="s-card-label">Total views</div><div class="s-card-icon"><i class="fas fa-eye"></i></div></div>
-                        <div class="s-card-val">{{ "{:,}".format(total_views) }}</div>
-                        <div class="s-card-sub">all-time reach</div>
-                    </div>
-                    <div class="s-card green">
-                        <div class="s-card-top"><div class="s-card-label">Videos</div><div class="s-card-icon"><i class="fas fa-video"></i></div></div>
-                        <div class="s-card-val">{{ "{:,}".format(total_videos) }}</div>
-                        <div class="s-card-sub">published content</div>
-                    </div>
-                    <div class="s-card yellow">
-                        <div class="s-card-top"><div class="s-card-label">Commands</div><div class="s-card-icon"><i class="fas fa-terminal"></i></div></div>
-                        <div class="s-card-val">{{ custom_cmd_count + builtin_cmd_count }}</div>
-                        <div class="s-card-sub">{{ builtin_cmd_count }} built-in</div>
-                    </div>
-                </div>
-
-                <div class="card-grid two-up">
-                    <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-robot"></i> Bot status</h3></div>
-                        <div class="panel-content">
-                            <div class="inline-status"><span class="status-dot {{ 'online' if user.bot_enabled else 'offline' }}"></span><strong>{{ 'Online' if user.bot_enabled else 'Paused' }}</strong></div>
-                            <p>Instant replies are on by default for live chat commands.</p>
-                            <label class="tgl"><input type="checkbox" id="bot-toggle" {{ 'checked' if user.bot_enabled }}><span class="tgl-track"></span></label>
-                        </div>
-                    </div>
-
-                    <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-link"></i> Connected channels</h3></div>
-                        <div class="panel-content compact-list">
-                            {% for ch in channels %}
-                            <div class="mini-platform-row">
-                                <div class="mini-platform-name">{{ ch.channel_name }}</div>
-                                <span class="mini-platform-state on">Ready</span>
+                <!-- Bot control -->
+                <div class="card">
+                    <div class="card-h"><h3>Bot Control</h3></div>
+                    <div class="card-b">
+                        <div class="bot-row">
+                            <div class="bot-status {{ 'on' if user.bot_enabled else 'off' }}" id="bot-status-ring">
+                                <div class="dot"></div>
                             </div>
-                            {% else %}
-                            <div class="empty-state"><i class="fas fa-video"></i><p>No channels linked yet.</p></div>
-                            {% endfor %}
+                            <div class="bot-meta">
+                                <strong id="bot-status-label">{{ 'Bot Enabled' if user.bot_enabled else 'Bot Disabled' }}</strong>
+                                <span>Controls chat moderation and commands for all channels</span>
+                            </div>
+                            <label class="tgl">
+                                <input type="checkbox" id="bot-toggle" {% if user.bot_enabled %}checked{% endif %}>
+                                <span class="tgl-track"></span>
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="card-panel full" style="margin-top:16px;">
-                    <div class="card-panel-head"><h3><i class="fas fa-signal"></i> Live stream status</h3></div>
-                    <div class="panel-content compact-list" id="channel-live-status-list">
+                <!-- Channels -->
+                <div class="card">
+                    <div class="card-h">
+                        <h3>Your Channels</h3>
+                        <span style="font-size:12px;color:#94a3b8;">{{ channels|length if channels else 0 }}</span>
+                    </div>
+                    <div class="card-b" style="padding-top:8px;padding-bottom:8px;">
                         {% if channels %}
                             {% for ch in channels %}
-                            <div class="settings-stack-item live-channel-row" data-channel-id="{{ ch.id }}">
-                                <div>
-                                    <div class="settings-stack-name">{{ ch.channel_name }}</div>
-                                    <div class="channel-meta">Checking live status...</div>
+                            <div class="ch-item">
+                                {% if ch.channel_thumbnail %}
+                                <img src="{{ ch.channel_thumbnail }}" alt="">
+                                {% else %}
+                                <div class="ch-avatar">{{ (ch.channel_name or '?')[0]|upper }}</div>
+                                {% endif %}
+                                <div class="ch-meta">
+                                    <a href="/channels/{{ ch.id }}/settings">{{ ch.channel_name }}</a>
+                                    <span>{{ '{:,}'.format(ch.subscriber_count or 0) }} subs · {{ '{:,}'.format(ch.view_count or 0) }} views</span>
                                 </div>
-                                <span class="badge badge-off">Offline</span>
+                                <div class="ch-actions">
+                                    <a href="/channels/{{ ch.id }}/settings" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></a>
+                                    <a href="https://youtube.com/channel/{{ ch.youtube_channel_id }}" target="_blank" class="icon-btn" title="Open on YouTube"><i class="fab fa-youtube"></i></a>
+                                </div>
                             </div>
                             {% endfor %}
                         {% else %}
-                            <div class="empty-state"><i class="fas fa-tv"></i><p>No channels connected yet.</p></div>
+                            <div class="empty">
+                                <i class="fas fa-tv"></i>
+                                <p>No channels yet. Connect a YouTube channel to get started.</p>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <div class="workspace-panel" id="panel-youtube">
-                <div class="card-panel full">
-                    <div class="card-panel-head"><h3><i class="fab fa-youtube"></i> YouTube channels</h3></div>
-                    <div class="panel-content">
-                        {% for ch in channels %}
-                        <div class="channel-summary-row">
-                            {% if ch.channel_thumbnail %}<img src="{{ ch.channel_thumbnail }}" alt="{{ ch.channel_name }}">{% else %}<div class="channel-avatar">{{ ch.channel_name[0]|upper }}</div>{% endif %}
-                            <div class="channel-summary-info">
-                                <div class="channel-name">{{ ch.channel_name }}</div>
-                                <div class="channel-meta">{{ "{:,}".format(ch.subscriber_count) }} subs &middot; {{ "{:,}".format(ch.view_count) }} views &middot; {{ ch.video_count }} videos</div>
-                            </div>
-                            <div class="channel-summary-actions">
-                                <a href="/channel/{{ ch.id }}" class="small-btn">Analytics</a>
-                                <a href="/channel/{{ ch.id }}/settings" class="small-btn outline">Bot</a>
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="empty-state"><i class="fab fa-youtube"></i><p>No YouTube channels are connected.</p><a href="/setup" class="small-btn">Connect a channel</a></div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="workspace-panel" id="panel-automation">
-                <div class="card-grid two-up">
-                    <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-sliders-h"></i> Live chat automation</h3></div>
-                        <div class="panel-content compact-list">
-                            {% for ch in channels %}
-                            <div class="settings-stack-item">
-                                <div>
-                                    <div class="settings-stack-name">{{ ch.channel_name }}</div>
-                                    <div class="channel-meta">Instant command replies and chat moderation.</div>
-                                </div>
-                                <label class="qtgl">
-                                    <input type="checkbox" data-channel-id="{{ ch.id }}" class="channel-bot-toggle" {{ 'checked' if ch.bot_settings and ch.bot_settings.bot_enabled else '' }}>
-                                    <span class="qtgl-track"></span>
-                                </label>
-                            </div>
+            <!-- Sidebar -->
+            <div>
+                <div class="card">
+                    <div class="card-h"><h3>Quick Links</h3></div>
+                    <div class="card-b">
+                        <div class="qlinks">
+                            <a href="/studio" class="qlink"><i class="fas fa-video"></i><span>Studio</span></a>
+                            <a href="/status" class="qlink"><i class="fas fa-heartbeat"></i><span>Status</span></a>
+                            {% if channels and channels[0] %}
+                            <a href="/channels/{{ channels[0].id }}/settings" class="qlink"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
                             {% else %}
-                            <div class="empty-state"><i class="fas fa-robot"></i><p>Connect a channel to start automation.</p></div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <div class="card-panel">
-                        <div class="card-panel-head"><h3><i class="fas fa-bolt"></i> Quick actions</h3></div>
-                        <div class="panel-content compact-list">
-                            <div class="settings-stack-item"><div class="settings-stack-name">Open bot settings</div><div class="settings-stack-actions"><a href="/dashboard#settings" class="small-btn outline">Settings</a></div></div>
-                            <div class="settings-stack-item"><div class="settings-stack-name">Go to channel analytics</div><div class="settings-stack-actions"><a href="/dashboard#youtube" class="small-btn outline">Overview</a></div></div>
-                            <div class="settings-stack-item"><div class="settings-stack-name">Manage account</div><div class="settings-stack-actions"><a href="/dashboard#settings" class="small-btn outline">User</a></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="workspace-panel" id="panel-settings">
-                <div class="card-grid two-up">
-                    <div class="card-panel full">
-                        <div class="card-panel-head"><h3><i class="fas fa-user-cog"></i> Account settings</h3></div>
-                        <div class="panel-content compact-list">
-                            <div class="settings-stack-item"><div class="settings-stack-name">Profile</div><div class="settings-stack-actions"><a href="/dashboard#user" class="small-btn outline">Manage</a></div></div>
-                            <div class="settings-stack-item"><div class="settings-stack-name">Platform links</div><div class="settings-stack-actions"><a href="/settings" class="small-btn outline">Connections</a></div></div>
-                            <div class="settings-stack-item"><div class="settings-stack-name">Help and setup guides</div><div class="settings-stack-actions"><a href="/help" class="small-btn outline">Open</a></div></div>
-                        </div>
-                    </div>
-
-                    <div class="card-panel full">
-                        <div class="card-panel-head"><h3><i class="fas fa-video"></i> Nexus Studio</h3></div>
-                        <div class="panel-content compact-list">
-                            {% if channels %}
-                                {% for ch in channels %}
-                                <div class="settings-stack-item" style="display:block; border-bottom:1px solid #f1f5f9; padding:16px 0;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px;">
-                                        <div class="settings-stack-name">{{ ch.channel_name }}</div>
-                                        <label class="qtgl">
-                                            <input type="checkbox" class="channel-stream-toggle" data-channel-id="{{ ch.id }}" {% if ch.bot_settings and ch.bot_settings.bot_enabled %}checked{% endif %}>
-                                            <span class="qtgl-track"></span>
-                                        </label>
-                                    </div>
-
-                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;">
-                                        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;">
-                                            <div style="font-size:12px;font-weight:700;color:#475569; letter-spacing:0.04em; text-transform:uppercase;">Encoder setup</div>
-                                            <button type="button" class="small-btn outline stream-copy-setup" data-channel-id="{{ ch.id }}">Copy setup</button>
-                                        </div>
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                            <div>
-                                                <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">RTMP server</div>
-                                                <input type="text" class="stream-ingest-input" data-field="stream_ingest_url" data-channel-id="{{ ch.id }}" value="{{ ch.stream_ingest_url or 'rtmp://a.rtmp.youtube.com/live2' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                            </div>
-                                            <div>
-                                                <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Stream key</div>
-                                                <input type="password" class="stream-ingest-input" data-field="stream_key" data-channel-id="{{ ch.id }}" value="{{ ch.stream_key or '' }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                            </div>
-                                        </div>
-                                        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                                            <button class="small-btn save-stream-setup" data-channel-id="{{ ch.id }}">Save ingest</button>
-                                        </div>
-                                    </div>
-
-                                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:8px;">
-                                        <div>
-                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Microphone</div>
-                                            <select class="studio-device-select" data-channel-id="{{ ch.id }}" data-kind="microphone" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                                <option value="">System default</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Camera</div>
-                                            <select class="studio-device-select" data-channel-id="{{ ch.id }}" data-kind="camera" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                                <option value="">No camera</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Output mode</div>
-                                            <select class="studio-mode-select" data-channel-id="{{ ch.id }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                                <option value="streamlabs">Streamlabs</option>
-                                                <option value="obs">OBS</option>
-                                                <option value="browser">Browser preview</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;">
-                                        <button class="small-btn outline load-studio-devices" data-channel-id="{{ ch.id }}">Load devices</button>
-                                        <button class="small-btn" data-channel-id="{{ ch.id }}" data-action="start-preview">Start preview</button>
-                                        <button class="small-btn outline" data-channel-id="{{ ch.id }}" data-action="share-screen">Share screen</button>
-                                        <button class="small-btn outline" data-channel-id="{{ ch.id }}" data-action="stop-preview">Stop</button>
-                                    </div>
-
-                                    <div style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; background:#0f172a; height:200px; display:flex; align-items:center; justify-content:center;">
-                                        <video id="studio-preview-{{ ch.id }}" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; background:linear-gradient(135deg,#0f172a,#1e293b);"></video>
-                                    </div>
-
-                                    <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                        <div>
-                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Command prefix</div>
-                                            <input type="text" class="stream-setting-input" data-field="chat_prefix" data-channel-id="{{ ch.id }}" value="{{ (ch.bot_settings.chat_prefix if ch.bot_settings else '!') }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                        </div>
-                                        <div>
-                                            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Reply delay (sec)</div>
-                                            <input type="number" min="0" max="15" class="stream-setting-input" data-field="response_delay" data-channel-id="{{ ch.id }}" value="{{ (ch.bot_settings.response_delay if ch.bot_settings else 0) }}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;">
-                                        </div>
-                                    </div>
-                                    <div style="margin-top:10px;">
-                                        <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Join message</div>
-                                        <textarea class="stream-setting-input" data-field="join_message" data-channel-id="{{ ch.id }}" rows="2" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;resize:vertical;">{{ ch.bot_settings.join_message if ch.bot_settings and ch.bot_settings.join_message else '' }}</textarea>
-                                    </div>
-                                    <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                                        <button class="small-btn save-stream-settings" data-channel-id="{{ ch.id }}">Save bot settings</button>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="empty-state"><i class="fas fa-video"></i><p>No stream settings yet.</p></div>
+                            <a href="/channels" class="qlink"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
                             {% endif %}
+                            <a href="/bot/" class="qlink"><i class="fab fa-discord"></i><span>Discord</span></a>
                         </div>
                     </div>
                 </div>
+
+                {% if not bot_moderator_ok and channels %}
+                <div class="card" style="border-color:#f59e0b;">
+                    <div class="card-b" style="display:flex;gap:12px;align-items:flex-start;">
+                        <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-top:2px;"></i>
+                        <div>
+                            <strong style="font-size:13px;">Make the bot a moderator</strong>
+                            <p style="font-size:12px;color:#64748b;margin:4px 0 0;line-height:1.4;">
+                                For moderation to work, add the Nexus bot as a moderator in your YouTube live chat.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
-
     </div>
 
+    <div class="toast" id="toast-el"></div>
+
     <script>
-        function quickToggle(channelId, setting, value) {
-            fetch('/api/bot/quick-toggle', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'same-origin',
-                body: JSON.stringify({channel_id: channelId, setting: setting, value: value})
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.ok) {
-                    showToast((value ? 'Enabled' : 'Disabled') + ' ' + setting.replace(/_/g,' ').replace('enabled','').replace('mode','').trim(), 'success');
-                } else {
-                    showToast(d.error || 'Failed to save', 'error');
-                }
-            })
-            .catch(function() { showToast('Could not save setting', 'error'); });
+        function showToast(msg, type) {
+            var t = document.getElementById('toast-el');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(function() { t.classList.remove('show'); }, 2800);
         }
 
-        function renderLiveChannelStatus(data) {
-            var list = document.getElementById('channel-live-status-list');
-            if (!list || !data || !data.channels) return;
-
-            var rows = Array.from(list.querySelectorAll('.live-channel-row'));
-            data.channels.forEach(function(ch) {
-                var row = rows.find(function(r) { return Number(r.dataset.channelId) === Number(ch.channel_id); }) || document.createElement('div');
-                if (!row.classList || !row.classList.contains('live-channel-row')) {
-                    row.className = 'settings-stack-item live-channel-row';
-                    row.dataset.channelId = ch.channel_id;
-                }
-
-                var statusText = ch.is_live ? 'Live now' : 'Offline';
-                var badgeClass = ch.is_live ? 'badge-live' : 'badge-off';
-                var message = ch.is_live ? (ch.stream_title || 'Stream is live') : (ch.running ? 'Bot watching for a stream' : 'Bot is paused');
-
-                row.innerHTML = '<div><div class="settings-stack-name">' + (ch.channel_name || 'Channel') + '</div><div class="channel-meta">' + message + '</div></div><span class="badge ' + badgeClass + '">' + statusText + '</span>';
-                if (!row.parentNode) list.appendChild(row);
-            });
-
-            rows.forEach(function(r) {
-                var exists = data.channels.some(function(ch) { return Number(ch.channel_id) === Number(r.dataset.channelId); });
-                if (!exists) r.remove();
+        var botToggle = document.getElementById('bot-toggle');
+        if (botToggle) {
+            botToggle.addEventListener('change', function() {
+                var on = this.checked;
+                fetch('/api/bot/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ enabled: on })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function() {
+                    showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success');
+                    var ring = document.getElementById('bot-status-ring');
+                    var label = document.getElementById('bot-status-label');
+                    if (ring) ring.className = 'bot-status ' + (on ? 'on' : 'off');
+                    if (label) label.textContent = on ? 'Bot Enabled' : 'Bot Disabled';
+                    pollLiveStatus();
+                })
+                .catch(function() { showToast('Failed to update', 'error'); this.checked = !on; }.bind(this));
             });
         }
 
         function pollLiveStatus() {
-            fetch('/api/bot/live-status', {credentials: 'same-origin'})
+            fetch('/api/bot/status', { credentials: 'same-origin' })
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 var liveChannel = null;
@@ -880,361 +404,30 @@
                 var dot = document.getElementById('live-dot');
                 var title = document.getElementById('live-title');
                 var sub = document.getElementById('live-sub');
-                var msgs = document.getElementById('live-msgs-badge');
-                if (dot && title && sub) {
-                    if (liveChannel) {
-                        dot.className = 'live-dot on';
-                        title.textContent = liveChannel.stream_title || 'Live Stream';
-                        sub.textContent = liveChannel.channel_name + ' \u2022 Bot is active';
-                        if (liveChannel.messages_processed > 0) {
-                            msgs.style.display = '';
-                            msgs.textContent = liveChannel.messages_processed + ' msgs processed';
-                        }
-                    } else {
-                        dot.className = 'live-dot';
-                        var anyRunning = d.channels && d.channels.some(function(ch) { return ch.running; });
-                        title.textContent = anyRunning ? 'Watching for your live stream\u2026' : 'Bot not running';
-                        sub.textContent = anyRunning ? 'Will detect within 30 seconds of going live' : 'Enable the bot to start monitoring';
-                        if (msgs) msgs.style.display = 'none';
+                var msgs = document.getElementById('live-msgs');
+                if (!dot || !title || !sub) return;
+                if (liveChannel) {
+                    dot.className = 'live-dot on';
+                    title.textContent = liveChannel.stream_title || 'Live Stream';
+                    sub.textContent = (liveChannel.channel_name || '') + ' · Bot is active';
+                    if (liveChannel.messages_processed > 0 && msgs) {
+                        msgs.style.display = '';
+                        msgs.textContent = liveChannel.messages_processed + ' msgs';
                     }
+                } else {
+                    dot.className = 'live-dot';
+                    var anyRunning = d.channels && d.channels.some(function(ch) { return ch.running; });
+                    title.textContent = anyRunning ? 'Watching for your live stream…' : 'Bot not running';
+                    sub.textContent = anyRunning ? 'Detects within ~30s of going live' : 'Enable the bot to start monitoring';
+                    if (msgs) msgs.style.display = 'none';
                 }
-                renderLiveChannelStatus(d);
             })
             .catch(function() {});
         }
-
         pollLiveStatus();
         setInterval(pollLiveStatus, 15000);
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-            document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-            document.querySelector('[data-tab="'+tab+'"]').classList.add('active');
-            document.getElementById('tab-'+tab).classList.add('active');
-        }
-
-        function showToast(msg, type) {
-            var t = document.getElementById('toast-el');
-            t.textContent = msg; t.className = 'toast ' + type + ' show';
-            setTimeout(function() { t.classList.remove('show'); }, 3000);
-        }
-
-        document.querySelectorAll('.workspace-tab').forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                var panel = this.getAttribute('data-panel');
-                document.querySelectorAll('.workspace-tab').forEach(function(item) { item.classList.remove('active'); });
-                document.querySelectorAll('.workspace-panel').forEach(function(item) { item.classList.remove('active'); });
-                this.classList.add('active');
-                var target = document.getElementById('panel-' + panel);
-                if (target) target.classList.add('active');
-                history.replaceState(null, '', '#' + panel);
-            });
-        });
-
-        var requestedPanel = window.location.hash.replace('#', '');
-        var requestedTab = document.querySelector('.workspace-tab[data-panel="' + requestedPanel + '"]');
-        if (requestedTab) requestedTab.click();
-
-        var botToggle = document.getElementById('bot-toggle');
-        if (botToggle) {
-            botToggle.addEventListener('change', function() {
-                var on = this.checked;
-                fetch('/api/bot/toggle', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ enabled: on })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success'); pollLiveStatus(); })
-                .catch(function() { showToast('Failed to update', 'error'); });
-            });
-        }
-
-        document.querySelectorAll('.channel-stream-toggle').forEach(function(toggle) {
-            toggle.addEventListener('change', function() {
-                var channelId = this.dataset.channelId;
-                fetch('/api/channels/' + channelId + '/bot/toggle', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ enabled: this.checked })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { showToast('Stream automation updated', 'success'); pollLiveStatus(); })
-                .catch(function() { showToast('Failed to update stream settings', 'error'); });
-            });
-        });
-
-        function saveStudioPrefs(channelId) {
-            var prefs = {
-                microphone: document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]').value,
-                camera: document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]').value,
-                mode: document.querySelector('.studio-mode-select[data-channel-id="' + channelId + '"]').value
-            };
-            localStorage.setItem('nexus_studio_' + channelId, JSON.stringify(prefs));
-            showToast('Studio preferences saved', 'success');
-        }
-
-        function loadStudioPrefs(channelId) {
-            var raw = localStorage.getItem('nexus_studio_' + channelId);
-            if (!raw) return;
-            try {
-                var prefs = JSON.parse(raw);
-                var mic = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]');
-                var camera = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]');
-                var mode = document.querySelector('.studio-mode-select[data-channel-id="' + channelId + '"]');
-                if (mic && prefs.microphone) mic.value = prefs.microphone;
-                if (camera && prefs.camera) camera.value = prefs.camera;
-                if (mode && prefs.mode) mode.value = prefs.mode;
-            } catch (e) {}
-        }
-
-        function populateStudioDevices(channelId) {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-                showToast('This browser does not support device selection', 'error');
-                return;
-            }
-            navigator.mediaDevices.enumerateDevices().then(function(devices) {
-                var micSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]');
-                var cameraSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]');
-                if (!micSelect || !cameraSelect) return;
-
-                var micOptions = ['<option value="">System default</option>'];
-                var camOptions = ['<option value="">No camera</option>'];
-                devices.forEach(function(device) {
-                    if (device.kind === 'audioinput') {
-                        micOptions.push('<option value="' + device.deviceId + '">' + (device.label || 'Microphone') + '</option>');
-                    }
-                    if (device.kind === 'videoinput') {
-                        camOptions.push('<option value="' + device.deviceId + '">' + (device.label || 'Camera') + '</option>');
-                    }
-                });
-                micSelect.innerHTML = micOptions.join('');
-                cameraSelect.innerHTML = camOptions.join('');
-                loadStudioPrefs(channelId);
-            });
-        }
-
-        document.querySelectorAll('.load-studio-devices').forEach(function(button) {
-            button.addEventListener('click', function() {
-                populateStudioDevices(this.dataset.channelId);
-            });
-        });
-
-        document.querySelectorAll('[data-action="start-preview"]').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var channelId = this.dataset.channelId;
-                var micSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="microphone"]');
-                var cameraSelect = document.querySelector('.studio-device-select[data-channel-id="' + channelId + '"][data-kind="camera"]');
-                var video = document.getElementById('studio-preview-' + channelId);
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showToast('Browser media capture is not supported here', 'error');
-                    return;
-                }
-                var constraints = {
-                    video: cameraSelect && cameraSelect.value ? { deviceId: { exact: cameraSelect.value } } : { facingMode: 'user' },
-                    audio: micSelect && micSelect.value ? { deviceId: { exact: micSelect.value } } : true
-                };
-                navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
-                    if (video) video.srcObject = stream;
-                    saveStudioPrefs(channelId);
-                }).catch(function() {
-                    showToast('Could not start camera and microphone preview', 'error');
-                });
-            });
-        });
-
-        document.querySelectorAll('[data-action="share-screen"]').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var channelId = this.dataset.channelId;
-                var video = document.getElementById('studio-preview-' + channelId);
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-                    showToast('Screen sharing is not supported in this browser', 'error');
-                    return;
-                }
-                navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then(function(stream) {
-                    if (video) video.srcObject = stream;
-                    showToast('Screen share active', 'success');
-                }).catch(function() {
-                    showToast('Screen share was cancelled', 'error');
-                });
-            });
-        });
-
-        document.querySelectorAll('[data-action="stop-preview"]').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var channelId = this.dataset.channelId;
-                var video = document.getElementById('studio-preview-' + channelId);
-                if (video && video.srcObject) {
-                    video.srcObject.getTracks().forEach(function(track) { track.stop(); });
-                    video.srcObject = null;
-                }
-                showToast('Preview stopped', 'success');
-            });
-        });
-
-        document.querySelectorAll('.save-stream-settings').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var channelId = this.dataset.channelId;
-                var payload = {};
-                document.querySelectorAll('.stream-setting-input[data-channel-id="' + channelId + '"]').forEach(function(input) {
-                    var field = input.dataset.field;
-                    var value = input.value;
-                    if (field === 'response_delay') value = Number(value) || 0;
-                    payload[field] = value;
-                });
-                fetch('/api/channels/' + channelId + '/settings', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify(payload)
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { showToast('Stream settings saved', 'success'); pollLiveStatus(); })
-                .catch(function() { showToast('Could not save stream settings', 'error'); });
-            });
-        });
-
-        document.querySelectorAll('.save-stream-setup').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var channelId = this.dataset.channelId;
-                var payload = {};
-                document.querySelectorAll('.stream-ingest-input[data-channel-id="' + channelId + '"]').forEach(function(input) {
-                    var field = input.dataset.field;
-                    payload[field] = input.value;
-                });
-                fetch('/api/channels/' + channelId + '/stream-config', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify(payload)
-                })
-                .then(function(r) { return r.json(); })
-                .then(function(d) {
-                    if (d.error) throw new Error(d.error);
-                    showToast('OBS/Streamlabs stream key saved', 'success');
-                })
-                .catch(function() { showToast('Could not save stream key', 'error'); });
-            });
-        });
-
-        document.querySelectorAll('.stream-copy-setup').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var channelId = this.dataset.channelId;
-                var urlInput = document.querySelector('.stream-ingest-input[data-channel-id="' + channelId + '"][data-field="stream_ingest_url"]');
-                var keyInput = document.querySelector('.stream-ingest-input[data-channel-id="' + channelId + '"][data-field="stream_key"]');
-                var setup = 'RTMP Server: ' + (urlInput ? urlInput.value : 'rtmp://a.rtmp.youtube.com/live2') + '\n' + 'Stream Key: ' + (keyInput ? keyInput.value : '');
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(setup).then(function() {
-                        showToast('Stream setup copied', 'success');
-                    }).catch(function() {
-                        showToast('Copy failed - copy manually', 'error');
-                    });
-                } else {
-                    showToast('Clipboard unavailable', 'error');
-                }
-            });
-        });
-
-        document.querySelectorAll('.studio-device-select, .studio-mode-select').forEach(function(select) {
-            select.addEventListener('change', function() {
-                saveStudioPrefs(this.dataset.channelId);
-            });
-        });
-
-        document.querySelectorAll('.channel-stream-toggle').forEach(function(toggle) {
-            toggle.addEventListener('change', function() {
-                var channelId = this.dataset.channelId;
-                fetch('/api/channels/' + channelId + '/bot/toggle', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ enabled: this.checked })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { showToast('Stream automation updated', 'success'); pollLiveStatus(); })
-                .catch(function() { showToast('Failed to update stream settings', 'error'); });
-            });
-        });
-
-        document.querySelectorAll('.channel-bot-toggle').forEach(function(toggle) {
-            toggle.addEventListener('change', function() {
-                var channelId = this.dataset.channelId;
-                fetch('/api/channels/' + channelId + '/bot/toggle', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ enabled: this.checked })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { showToast('Bot status updated', 'success'); pollLiveStatus(); })
-                .catch(function() { showToast('Failed to update bot status', 'error'); });
-            });
-        });
-
-        function timeoutViewer(viewerId, channelId) {
-            fetch('/api/channels/' + channelId + '/viewers/' + viewerId + '/timeout', {
-                method: 'POST', credentials: 'same-origin',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({})
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.error) { showToast(d.error, 'error'); }
-                else { showToast('Viewer timed out', 'success'); setTimeout(function() { location.reload(); }, 800); }
-            })
-            .catch(function() { showToast('Failed', 'error'); });
-        }
-
-        function toggleBan(viewerId, channelId, ban) {
-            var reason = ban ? prompt('Ban reason (optional):') : null;
-            fetch('/api/channels/' + channelId + '/viewers/' + viewerId + '/ban', {
-                method: 'POST', credentials: 'same-origin',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ banned: ban, reason: reason || '' })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.error) { showToast(d.error, 'error'); }
-                else { showToast(ban ? 'Viewer banned' : 'Viewer unbanned', 'success'); setTimeout(function() { location.reload(); }, 800); }
-            })
-            .catch(function() { showToast('Failed', 'error'); });
-        }
-
-        var cNames = [{% for ch in channels %}'{{ ch.channel_name|replace("'", "\\'") }}'{% if not loop.last %},{% endif %}{% endfor %}];
-        var cSubs = [{% for ch in channels %}{{ ch.subscriber_count }}{% if not loop.last %},{% endif %}{% endfor %}];
-        var cViews = [{% for ch in channels %}{{ ch.view_count }}{% if not loop.last %},{% endif %}{% endfor %}];
-        var colors = ['#6366f1','#8b5cf6','#3b82f6','#10b981','#f59e0b','#ef4444','#ec4899','#14b8a6'];
-
-        var subEl = document.getElementById('subChart');
-        if (subEl) {
-            var sL = [{% for s in stats_data %}'{{ s.stat_date.strftime("%b %d") }}'{% if not loop.last %},{% endif %}{% endfor %}];
-            var sV = [{% for s in stats_data %}{{ s.subscribers }}{% if not loop.last %},{% endif %}{% endfor %}];
-            if (!sL.length) { sL = ['Today']; sV = [{{ total_subs }}]; }
-            new Chart(subEl, {
-                type:'line', data:{ labels:sL, datasets:[{ data:sV, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.06)', borderWidth:2, fill:true, tension:0.4, pointRadius:2, pointBackgroundColor:'#6366f1' }] },
-                options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#94a3b8'}}, y:{grid:{color: document.body.classList.contains('dark-theme') ? '#334155' : '#f1f5f9'},ticks:{font:{size:10},color:'#94a3b8'},beginAtZero:true} } }
-            });
-        }
-
-        var vEl = document.getElementById('viewsChart');
-        if (vEl) {
-            new Chart(vEl, {
-                type:'bar', data:{ labels:cNames.length?cNames:['No channels'], datasets:[{ data:cViews.length?cViews:[0], backgroundColor:cNames.map(function(_,i){return colors[i%colors.length];}), borderRadius:6, barThickness:cNames.length<=3?36:undefined }] },
-                options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#94a3b8'}}, y:{grid:{color: document.body.classList.contains('dark-theme') ? '#334155' : '#f1f5f9'},ticks:{font:{size:10},color:'#94a3b8'},beginAtZero:true} } }
-            });
-        }
-
-        var dEl = document.getElementById('distChart');
-        if (dEl) {
-            new Chart(dEl, {
-                type:'doughnut', data:{ labels:cNames.length?cNames:['No data'], datasets:[{ data:cSubs.length?cSubs:[1], backgroundColor:(cNames.length?cNames:['x']).map(function(_,i){return colors[i%colors.length];}), borderWidth:0 }] },
-                options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{ legend:{position:'bottom',labels:{padding:12,font:{size:11},color: document.body.classList.contains('dark-theme') ? '#94a3b8' : '#64748b',usePointStyle:true,pointStyle:'circle'}} } }
-            });
-        }
     </script>
 
-    {% include 'partials/footer.html' %}
+    {% include 'partials/footer.html' ignore missing %}
 </body>
 </html>
