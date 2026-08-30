@@ -704,9 +704,9 @@
     {% include 'partials/nav.html' %}
     {% include 'partials/banner.html' %}
 
-    <div class="status-hero">
+    <div class="status-hero" id="statusHero" data-status="{{ 'operational' if overall_ok else 'degraded' }}">
         <div class="status-hero-content">
-            <div class="status-indicator">
+            <div class="status-indicator" id="statusIndicator">
                 {% if overall_ok %}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -720,13 +720,13 @@
                 </svg>
                 {% endif %}
             </div>
-            <h1>{{ overall_status }}</h1>
-            <p>{{ operational_count }} of {{ total_services }} services operational{% if degraded_count > 0 %} &mdash; {{ degraded_count }} degraded{% endif %}</p>
-            <div class="checked-time">
+            <h1 id="overallStatusText">{{ overall_status }}</h1>
+            <p id="healthSummaryText">{{ operational_count }} of {{ total_services }} services operational{% if degraded_count > 0 %} &mdash; {{ degraded_count }} degraded{% endif %}</p>
+            <div class="checked-time" id="checkedAtText">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 Last checked: {{ checked_at }}
             </div>
-            <div class="auto-refresh-badge">
+            <div class="auto-refresh-badge" id="refreshBadge">
                 <span class="refresh-dot"></span>
                 Auto-refreshes every 60s
             </div>
@@ -793,29 +793,32 @@
             </div>
         </div>
 
+        {% if uptime_history %}
         <div class="uptime-history">
             <div class="uptime-history-header">
                 <h2>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                    90-Day Uptime History
+                    Recent Session Coverage
                 </h2>
                 <div class="uptime-history-legend">
-                    <span><span class="legend-dot up"></span> Operational</span>
+                    <span><span class="legend-dot up"></span> Live</span>
                     <span><span class="legend-dot partial"></span> Partial</span>
-                    <span><span class="legend-dot down"></span> Outage</span>
                 </div>
             </div>
-            <div class="uptime-timeline" id="uptimeTimeline"></div>
+            <div class="uptime-timeline" aria-label="Recent session coverage">
+                {% for day in uptime_history %}
+                <div class="uptime-day {{ day.state }}" title="{{ day.days_ago }} sessions back" style="height: {{ day.height }}%;"></div>
+                {% endfor %}
+            </div>
             <div class="uptime-timeline-labels">
-                <span>90 days ago</span>
-                <span>60 days ago</span>
-                <span>30 days ago</span>
-                <span>Today</span>
+                <span>Older</span>
+                <span>Recent</span>
             </div>
             <div class="uptime-overall">
-                Overall uptime: <strong>99.9%</strong>
+                Recent uptime: <strong>{{ uptime_percentage }}%</strong>
             </div>
         </div>
+        {% endif %}
 
         <div class="status-overview">
             <div class="status-overview-header">
@@ -876,48 +879,26 @@
         <div class="rate-limit-card">
             <h2>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                API Rate Limits
+                Availability Snapshot
             </h2>
             <table class="rate-limit-table">
                 <thead>
                     <tr>
-                        <th>Endpoint Category</th>
-                        <th>Rate Limit</th>
+                        <th>Service</th>
+                        <th>Response</th>
                         <th>Window</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for item in service_table %}
                     <tr>
-                        <td>Authentication</td>
-                        <td>10 requests</td>
-                        <td>Per minute</td>
-                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.rate }}</td>
+                        <td>{{ item.window }}</td>
+                        <td><span class="status-pill {{ item.status }}"><span class="status-dot"></span> {{ item.status|capitalize }}</span></td>
                     </tr>
-                    <tr>
-                        <td>Channel Management</td>
-                        <td>60 requests</td>
-                        <td>Per minute</td>
-                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
-                    </tr>
-                    <tr>
-                        <td>Bot Control</td>
-                        <td>30 requests</td>
-                        <td>Per minute</td>
-                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
-                    </tr>
-                    <tr>
-                        <td>Analytics / Stats</td>
-                        <td>120 requests</td>
-                        <td>Per minute</td>
-                        <td><span class="status-pill operational"><span class="status-dot"></span> Normal</span></td>
-                    </tr>
-                    <tr>
-                        <td>YouTube Data API</td>
-                        <td>110,000 units</td>
-                        <td>Per day</td>
-                        <td><span class="status-pill {% if overall_ok %}operational{% else %}beta{% endif %}"><span class="status-dot"></span> {% if overall_ok %}Normal{% else %}Check Usage{% endif %}</span></td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -926,24 +907,33 @@
             <div class="incidents-header">
                 <h2>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    Incident History
+                    Recent Activity
                 </h2>
-                <span class="incidents-count">{{ incidents|length }} past</span>
+                <span class="incidents-count">{{ incidents|length }} updates</span>
             </div>
-            {% for inc in incidents %}
-            <div class="incident-item">
-                <div class="incident-title">
-                    <span class="incident-dot" style="background: #10b981;"></span>
-                    {{ inc.title }}
+            {% if incidents %}
+                {% for inc in incidents %}
+                <div class="incident-item">
+                    <div class="incident-title">
+                        <span class="incident-dot" style="background: {{ '#10b981' if inc.status == 'resolved' else '#f59e0b' }};"></span>
+                        {{ inc.title }}
+                    </div>
+                    <div class="incident-msg">{{ inc.message }}</div>
+                    <div class="incident-time">{{ inc.date }}{% if inc.status == 'resolved' %} -- Resolved{% else %} -- Live{% endif %}</div>
                 </div>
-                <div class="incident-msg">{{ inc.message }}</div>
-                <div class="incident-time">{{ inc.date }} -- Resolved</div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <div class="no-incidents">
+                    <div class="no-incidents-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <p>No recent incident records were found in the platform logs.</p>
+                </div>
+            {% endif %}
         </div>
 
         <div class="status-footer-note">
-            <p>Nexus is in beta, so things break sometimes. This page checks service health on each load. If something looks off and it's not listed here, head to the <a href="/contact" style="color: var(--primary-color); font-weight: 600;">contact page</a> or the <a href="/community" style="color: var(--primary-color); font-weight: 600;">community page</a> to let me know.</p>
+            <p>If anything looks off, send a note from the <a href="/contact" style="color: var(--primary-color); font-weight: 600;">contact page</a> or the <a href="/community" style="color: var(--primary-color); font-weight: 600;">community page</a>. This page refreshes on its own when the app does its next check.</p>
         </div>
     </div>
 
@@ -951,36 +941,65 @@
 
     <script>
         (function() {
-            var timeline = document.getElementById('uptimeTimeline');
-            if (timeline) {
-                var pattern = [
-                    1,1,1,1,1,1,1,1,1,1,1,1,0.5,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,1,1,1,0.5,1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,1,1
-                ];
-                for (var i = 0; i < 90; i++) {
-                    var bar = document.createElement('div');
-                    bar.className = 'uptime-day';
-                    var val = pattern[i];
-                    if (val === 1) {
-                        bar.classList.add('up');
-                        bar.style.height = '100%';
-                    } else if (val === 0.5) {
-                        bar.classList.add('partial');
-                        bar.style.height = '70%';
-                    } else {
-                        bar.classList.add('down');
-                        bar.style.height = '30%';
-                    }
-                    bar.title = (90 - i) + ' days ago';
-                    timeline.appendChild(bar);
+            var hero = document.getElementById('statusHero');
+            var indicator = document.getElementById('statusIndicator');
+            var overallStatusText = document.getElementById('overallStatusText');
+            var healthSummaryText = document.getElementById('healthSummaryText');
+            var checkedAtText = document.getElementById('checkedAtText');
+            var refreshBadge = document.getElementById('refreshBadge');
+            var refreshSeconds = 60;
+
+            function applyStatus(theme) {
+                var isOperational = theme === 'operational';
+                hero.setAttribute('data-status', theme);
+                hero.style.background = isOperational
+                    ? 'linear-gradient(135deg, #059669 0%, #10b981 40%, #34d399 100%)'
+                    : 'linear-gradient(135deg, #d97706 0%, #f59e0b 40%, #fbbf24 100%)';
+                indicator.style.animation = isOperational ? 'pulse-green 2s infinite' : 'pulse-amber 2s infinite';
+                refreshBadge.classList.toggle('is-healthy', isOperational);
+                refreshBadge.classList.toggle('is-warning', !isOperational);
+            }
+
+            function renderStatus(data) {
+                if (!data) return;
+                var ok = !!data.overall_ok;
+                var status = data.status || (ok ? 'operational' : 'degraded');
+                applyStatus(status);
+
+                if (overallStatusText) {
+                    overallStatusText.textContent = data.overall_status || 'All Systems Operational';
+                }
+                if (healthSummaryText) {
+                    var degraded = Number(data.degraded_count || 0);
+                    healthSummaryText.textContent = (data.operational_count || 0) + ' of ' + (data.total_services || 0) + ' services operational' + (degraded ? ' — ' + degraded + ' degraded' : '');
+                }
+                if (checkedAtText) {
+                    var checkedText = data.checked_at || data.updated_at || '{{ checked_at }}';
+                    checkedAtText.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Last checked: ' + checkedText;
+                }
+                if (refreshBadge) {
+                    refreshBadge.innerHTML = '<span class="refresh-dot"></span> Refreshed ' + new Date(data.updated_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+                    refreshBadge.setAttribute('title', 'Next refresh in about ' + refreshSeconds + ' seconds');
                 }
             }
-        })();
 
-        setTimeout(function() { location.reload(); }, 60000);
+            function fetchStatus() {
+                fetch('/api/health?ts=' + Date.now(), { cache: 'no-store' })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Health fetch failed');
+                        return response.json();
+                    })
+                    .then(renderStatus)
+                    .catch(function() {
+                        if (refreshBadge) {
+                            refreshBadge.innerHTML = '<span class="refresh-dot"></span> Refresh queued';
+                        }
+                    });
+            }
+
+            fetchStatus();
+            setInterval(fetchStatus, refreshSeconds * 1000);
+        })();
     </script>
 </body>
 </html>

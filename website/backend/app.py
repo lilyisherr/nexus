@@ -2981,31 +2981,36 @@ def _refresh_user_token(user):
         pass
 
 
-@app.route('/status')
-def status():
+def _build_status_payload():
     import time as _time
 
-    checked_at = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+    now = datetime.utcnow()
+    checked_at = now.strftime('%Y-%m-%d %H:%M:%S UTC')
+
+    def _status_for(value):
+        if value is True:
+            return 'operational'
+        return 'degraded'
 
     db_status = 'operational'
     db_response_ms = 0
-    db_message = ''
+    db_message = 'Database connected and responding normally'
     try:
         t0 = _time.monotonic()
         db.session.execute(db.text('SELECT 1'))
         db_response_ms = round((_time.monotonic() - t0) * 1000, 1)
-        db_message = 'Connected and responding normally'
+        db_message = 'Database connected and responding normally'
     except Exception as e:
         db_status = 'degraded'
         logging.error(f'Database health check failed: {e}')
         db_message = 'Database connection issue detected'
 
     oauth_configured = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
-    auth_status = 'operational' if oauth_configured else 'operational'
-    auth_message = 'OAuth credentials configured and ready' if oauth_configured else 'Google OAuth available - credentials pending setup'
+    auth_status = _status_for(oauth_configured)
+    auth_message = 'Google OAuth credentials configured' if oauth_configured else 'Google OAuth not configured yet'
 
     yt_api_status = 'operational'
-    yt_api_message = ''
+    yt_api_message = 'YouTube Data API is not configured' if not YOUTUBE_API_KEY else 'YouTube Data API is configured'
     yt_response_ms = 0
     if YOUTUBE_API_KEY:
         try:
@@ -3017,255 +3022,153 @@ def status():
             )
             yt_response_ms = round((_time.monotonic() - t0) * 1000, 1)
             if r.status_code == 200:
-                yt_api_message = 'YouTube Data API v3 responding normally'
+                yt_api_status = 'operational'
+                yt_api_message = 'YouTube Data API is responding normally'
             elif r.status_code == 403:
                 yt_api_status = 'degraded'
-                yt_api_message = 'API key quota exceeded or restricted'
+                yt_api_message = 'YouTube Data API key is restricted or quota-limited'
             else:
                 yt_api_status = 'degraded'
-                yt_api_message = f'Unexpected response (HTTP {r.status_code})'
+                yt_api_message = f'YouTube API returned HTTP {r.status_code}'
         except Exception as e:
             yt_api_status = 'degraded'
             logging.error(f'YouTube API health check failed: {e}')
-            yt_api_message = 'Unable to connect to YouTube API'
+            yt_api_message = 'YouTube API is unreachable right now'
     else:
-        yt_api_status = 'operational'
-        yt_api_message = 'YouTube Data API v3 available - key pending configuration'
+        yt_api_status = 'degraded'
+        yt_api_message = 'YouTube API key is not configured'
 
-    user_count = 0
-    channel_count = 0
-    total_viewers = 0
-    total_commands = 0
-    active_bots = 0
-    try:
-        user_count = User.query.count()
-        channel_count = Channel.query.count()
-        total_viewers = db.session.query(db.func.coalesce(db.func.sum(Channel.view_count), 0)).scalar()
-        total_commands = CommandLog.query.count()
-        active_bots = User.query.filter_by(bot_enabled=True).count()
-    except Exception:
-        pass
+    user_count = User.query.count() if User.query else 0
+    channel_count = Channel.query.count() if Channel.query else 0
+    total_viewers = db.session.query(db.func.coalesce(db.func.sum(Channel.view_count), 0)).scalar() or 0
+    total_commands = CommandLog.query.count() if CommandLog.query else 0
+    active_bot_users = User.query.filter_by(bot_enabled=True).count()
+    connected_discord_accounts = User.query.filter(User.discord_user_id.isnot(None)).count()
+    tracked_channels = Channel.query.filter_by(tracking_enabled=True).count()
+    live_channels = StreamSession.query.filter(StreamSession.end_time.is_(None)).count()
 
-    bot_svc_status = 'operational' if active_bots > 0 else 'operational'
-    bot_svc_message = f'{active_bots} active bot instance{"s" if active_bots != 1 else ""}' if active_bots > 0 else 'Bot service ready - standing by for activation'
+    bot_service_status = 'operational' if active_bot_users > 0 else 'degraded'
+    bot_service_message = f'{active_bot_users} bot account(s) enabled' if active_bot_users > 0 else 'No bot accounts are currently enabled'
 
-    api_response_ms = 0
-    api_status = 'operational'
-    api_message = 'All endpoints responding normally'
-    try:
-        t0 = _time.monotonic()
-        db.session.execute(db.text('SELECT 1'))
-        api_response_ms = round((_time.monotonic() - t0) * 1000, 1)
-    except Exception:
-        api_status = 'degraded'
-        api_message = 'Backend connectivity issues detected'
+    uptime_history = []
+    recent_sessions = StreamSession.query.order_by(StreamSession.start_time.desc()).limit(30).all()
+    for idx, session in enumerate(reversed(recent_sessions)):
+        if not session.start_time:
+            continue
+        if session.end_time:
+            state = 'up'
+        else:
+            state = 'partial'
+        uptime_history.append({
+            'state': state,
+            'height': 86 if state == 'up' else 52,
+            'days_ago': 30 - idx,
+        })
 
-    realtime_status = 'operational'
-    realtime_message = 'Real-time data streaming operational'
+    if not uptime_history:
+        uptime_percentage = 100.0
+    else:
+        uptime_total = len(uptime_history)
+        uptime_score = sum(1 if item['state'] == 'up' else 0.5 for item in uptime_history)
+        uptime_percentage = round((uptime_score / uptime_total) * 100, 2)
 
     services = [
         {
-            'name': 'Web Dashboard',
-            'desc': 'Main website and user dashboard',
-            'detail': 'Serving pages normally',
-            'status': 'operational',
-            'response_ms': None,
-            'uptime': '99.9',
-            'icon_class': 'purple',
-            'icon_svg': '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
-        },
-        {
             'name': 'Database',
-            'desc': 'Data storage and analytics engine',
+            'desc': 'Primary app data store',
             'detail': db_message,
             'status': db_status,
-            'response_ms': db_response_ms,
-            'uptime': '99.8' if db_status == 'operational' else '95.0',
+            'response_ms': round(db_response_ms, 1),
+            'uptime': f'{uptime_percentage:.2f}',
             'icon_class': 'green' if db_status == 'operational' else 'red',
             'icon_svg': '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
         },
         {
             'name': 'Authentication',
-            'desc': 'Google OAuth login and sessions',
+            'desc': 'Google sign-in and user sessions',
             'detail': auth_message,
             'status': auth_status,
-            'response_ms': None,
-            'uptime': '99.9',
-            'icon_class': 'blue',
+            'response_ms': 0 if oauth_configured else 0,
+            'uptime': '100.00' if oauth_configured else '0.00',
+            'icon_class': 'blue' if oauth_configured else 'red',
             'icon_svg': '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
         },
         {
             'name': 'YouTube API',
-            'desc': 'YouTube Data API v3 connectivity',
+            'desc': 'YouTube Data API connectivity',
             'detail': yt_api_message,
             'status': yt_api_status,
-            'response_ms': yt_response_ms if yt_response_ms > 0 else None,
-            'uptime': '99.5',
-            'icon_class': 'green',
+            'response_ms': yt_response_ms,
+            'uptime': '99.90' if yt_api_status == 'operational' else '0.00',
+            'icon_class': 'green' if yt_api_status == 'operational' else 'red',
             'icon_svg': '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
         },
         {
             'name': 'Bot Service',
-            'desc': 'Chat moderation and commands',
-            'detail': bot_svc_message,
-            'status': bot_svc_status,
-            'response_ms': None,
-            'uptime': '99.7' if bot_svc_status == 'operational' else '99.0',
-            'icon_class': 'amber',
+            'desc': 'Enabled bot accounts and channel automation',
+            'detail': bot_service_message,
+            'status': bot_service_status,
+            'response_ms': 0,
+            'uptime': '100.00' if active_bot_users > 0 else '0.00',
+            'icon_class': 'amber' if active_bot_users > 0 else 'red',
             'icon_svg': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
         },
         {
-            'name': 'REST API',
-            'desc': 'Data endpoints and integrations',
-            'detail': api_message,
-            'status': api_status,
-            'response_ms': api_response_ms,
-            'uptime': '99.9' if api_status == 'operational' else '95.0',
-            'icon_class': 'purple',
-            'icon_svg': '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+            'name': 'Channel Sync',
+            'desc': 'Channels currently tracked and connected',
+            'detail': f'{tracked_channels} tracked channels, {live_channels} live streams currently active',
+            'status': 'operational' if tracked_channels > 0 else 'degraded',
+            'response_ms': 0,
+            'uptime': '100.00' if tracked_channels > 0 else '0.00',
+            'icon_class': 'purple' if tracked_channels > 0 else 'red',
+            'icon_svg': '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
         },
         {
-            'name': 'Real-Time Service',
-            'desc': 'WebSocket connections for live data',
-            'detail': realtime_message,
-            'status': realtime_status,
-            'response_ms': None,
-            'uptime': '99.0',
-            'icon_class': 'blue',
-            'icon_svg': '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-        },
-        {
-            'name': 'Contact Form',
-            'desc': 'User feedback and support submissions',
-            'detail': 'Contact form and Discord support available',
-            'status': 'operational',
-            'response_ms': None,
-            'uptime': '99.8',
-            'icon_class': 'green',
-            'icon_svg': '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+            'name': 'Connected Accounts',
+            'desc': 'Discord-linked and OAuth-enabled accounts',
+            'detail': f'{connected_discord_accounts} Discord account(s) connected',
+            'status': 'operational' if connected_discord_accounts > 0 or oauth_configured else 'degraded',
+            'response_ms': 0,
+            'uptime': '100.00' if connected_discord_accounts > 0 or oauth_configured else '0.00',
+            'icon_class': 'green' if connected_discord_accounts > 0 or oauth_configured else 'red',
+            'icon_svg': '<path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="7"/>',
         },
     ]
 
-    incidents = [
-        {
-            'title': 'Auto channel and role sync for dashboard',
-            'message': 'Deployed automatic detection of Nexus-created channels and roles on the bot dashboard. Channels like announcements, mod-logs, and welcome are now auto-detected and pre-filled in server settings without manual selection.',
-            'date': 'Mar 9, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Bot connection status indicator added',
-            'message': 'The Discord bot dashboard now shows whether the bot is connected to each server. Servers without the bot display an invite link. Previously there was no way to tell from the dashboard if the bot was actually in a server.',
-            'date': 'Mar 9, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Discord bot reaction role fix',
-            'message': 'Fixed a bug where removing and re-adding a reaction would not re-grant the associated role. The bot now uses a fetch_member API fallback when the Discord member cache misses.',
-            'date': 'Mar 9, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Dashboard widget layout broken on mobile',
-            'message': 'Server cards on the bot dashboard were overflowing on screens smaller than 400px. Fixed the CSS grid to properly collapse to single column and adjusted padding for mobile viewports.',
-            'date': 'Mar 8, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Webhook notification delivery delays',
-            'message': 'YouTube live stream notifications to Discord channels were delayed by up to 15 minutes due to a polling interval misconfiguration. Reduced the check interval from 5 minutes to 60 seconds and added retry logic for failed webhook deliveries.',
-            'date': 'Mar 7, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Channel sync failing for new accounts',
-            'message': 'Users who signed up and immediately tried to sync their YouTube channel were getting a 500 error. The sync endpoint was not handling the case where the user had no OAuth refresh token yet. Added proper error handling and a user-friendly message.',
-            'date': 'Mar 6, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Role hierarchy permissions bug',
-            'message': 'The bot was attempting to assign roles that were positioned above its own role in the Discord hierarchy, resulting in 403 errors. Added a pre-check that filters out unassignable roles and warns admins in the dashboard.',
-            'date': 'Mar 5, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Auto-channel creation producing duplicate channels',
-            'message': 'Running the server setup wizard multiple times would create duplicate channels instead of reusing existing ones. The bot now checks for channels with matching names before creating new ones.',
-            'date': 'Mar 3, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Bot command response delays during peak hours',
-            'message': 'Slash commands were taking 3-5 seconds to respond during peak usage (6-10pm UTC). Root cause was synchronous database queries blocking the event loop. Migrated to async database calls and added connection pooling.',
-            'date': 'Mar 1, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'SEO and meta tag overhaul',
-            'message': 'Deployed updated Open Graph tags, JSON-LD structured data, sitemap.xml, and robots.txt. Brief period where some pages returned stale meta tags from cache. Cleared after deployment.',
-            'date': 'Mar 7, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Video sync timeout on large channels',
-            'message': 'Channels with 1000+ videos were timing out during manual sync. Increased the sync timeout and added progressive loading so the first batch of recent videos appears immediately.',
-            'date': 'Mar 4, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Bot identity fix deployed',
-            'message': 'Fixed a bug where the bot was posting messages as the user\'s account instead of as nexusbetabot. Root cause was the bot reusing the user\'s OAuth tokens instead of its own.',
-            'date': 'Feb 28, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Dashboard loading slowly for large channels',
-            'message': 'Channels with 500+ videos were causing the dashboard to take 5-8 seconds to load. Switched to paginated queries and added caching for video stats.',
-            'date': 'Feb 10, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'YouTube API quota exceeded',
-            'message': 'Hit the daily API quota limit around 2pm UTC. Bot polling paused for all users until quota reset at midnight Pacific. Applied for and received a quota increase.',
-            'date': 'Jan 18, 2026',
-            'status': 'resolved',
-        },
-        {
-            'title': 'OAuth flow rework',
-            'message': 'Rewrote the Google OAuth flow for the third time to handle edge cases: token expiry mid-stream, revoked access, and multiple concurrent sessions. Caused ~2 hours of login downtime during deployment.',
-            'date': 'Dec 12, 2025',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Database migration to Postgres',
-            'message': 'Migrated from SQLite to PostgreSQL. The site was down for about 45 minutes during the migration. Some analytics data from the first two months was lost in the process.',
-            'date': 'Oct 3, 2025',
-            'status': 'resolved',
-        },
-        {
-            'title': 'Spam filter false positives',
-            'message': 'The spam filter was catching legitimate messages that contained repeated punctuation (like "!!!" or "???"). Adjusted the regex thresholds.',
-            'date': 'Aug 22, 2025',
-            'status': 'resolved',
-        },
+    recent_streams = StreamSession.query.order_by(StreamSession.start_time.desc()).limit(3).all()
+    recent_activity = []
+    for session in recent_streams:
+        title = session.title or 'Live stream session'
+        recent_activity.append({
+            'title': title[:80] + ('...' if len(title) > 80 else ''),
+            'message': f"Peak viewers: {session.peak_viewers} • Duration: {max(1, int((session.duration_seconds or 0) / 60))} min",
+            'date': session.start_time.strftime('%b %d, %Y') if session.start_time else 'Recent',
+            'status': 'live' if session.end_time is None else 'resolved',
+        })
+
+    service_table = [
+        {'name': 'Database', 'rate': f'{db_response_ms}ms', 'window': 'last check', 'status': db_status},
+        {'name': 'OAuth', 'rate': 'configured' if oauth_configured else 'pending', 'window': 'setup', 'status': auth_status},
+        {'name': 'YouTube API', 'rate': f'{yt_response_ms}ms' if yt_response_ms else 'not configured', 'window': 'last check', 'status': yt_api_status},
+        {'name': 'Bot Service', 'rate': f'{active_bot_users} enabled', 'window': 'live state', 'status': bot_service_status},
+        {'name': 'Channels', 'rate': f'{tracked_channels}', 'window': 'tracked', 'status': 'operational' if tracked_channels > 0 else 'degraded'},
     ]
 
     warnings = []
     if auth_status == 'degraded':
         warnings.append({
-            'title': 'Authentication Not Configured',
-            'message': auth_message + '. Users will not be able to sign in until OAuth credentials are provided.',
+            'title': 'Google OAuth not configured',
+            'message': 'Sign-in and user account flows are not fully available until the Google OAuth keys are set.',
         })
     if yt_api_status == 'degraded':
         warnings.append({
-            'title': 'YouTube API Issue',
-            'message': yt_api_message + '. Channel data synchronization and bot features may be affected.',
+            'title': 'YouTube API not ready',
+            'message': yt_api_message + ' Some channel sync tasks may not update until the API key is valid.',
         })
     if db_status == 'degraded':
         warnings.append({
-            'title': 'Database Connectivity Issue',
-            'message': db_message + '. Some features may be unavailable.',
+            'title': 'Database connectivity issue',
+            'message': 'The app database is not responding. Some features may be unavailable.',
         })
 
     degraded_count = sum(1 for s in services if s['status'] == 'degraded')
@@ -3281,22 +3184,48 @@ def status():
         overall_status = 'Major System Degradation'
         overall_ok = False
 
-    return render_template('status.html',
-        services=services,
-        overall_status=overall_status,
-        overall_ok=overall_ok,
-        user_count=user_count,
-        channel_count=channel_count,
-        total_viewers=total_viewers,
-        total_commands=total_commands,
-        active_bots=active_bots,
-        checked_at=checked_at,
-        warnings=warnings,
-        incidents=incidents,
-        degraded_count=degraded_count,
-        operational_count=operational_count,
-        total_services=len(services),
-    )
+    status_level = 'operational' if degraded_count == 0 else 'degraded' if degraded_count <= 2 else 'critical'
+    payload = {
+        'services': services,
+        'overall_status': overall_status,
+        'overall_ok': overall_ok,
+        'status': status_level,
+        'summary': f'{operational_count} of {len(services)} checks online',
+        'user_count': user_count,
+        'channel_count': channel_count,
+        'total_viewers': total_viewers,
+        'total_commands': total_commands,
+        'active_bots': active_bot_users,
+        'checked_at': checked_at,
+        'updated_at': now.isoformat() + 'Z',
+        'warnings': warnings,
+        'incidents': recent_activity,
+        'degraded_count': degraded_count,
+        'operational_count': operational_count,
+        'total_services': len(services),
+        'uptime_percentage': uptime_percentage,
+        'uptime_history': uptime_history,
+        'service_table': service_table,
+        'refresh_seconds': 60,
+        'connected_discord_accounts': connected_discord_accounts,
+        'live_channels': live_channels,
+        'tracked_channels': tracked_channels,
+        'oauth_configured': oauth_configured,
+        'youtube_api_configured': bool(YOUTUBE_API_KEY),
+    }
+    return payload
+
+
+@app.route('/api/health')
+def api_health():
+    payload = _build_status_payload()
+    return jsonify(payload)
+
+
+@app.route('/status')
+def status():
+    payload = _build_status_payload()
+    return render_template('status.html', **payload)
 
 
 @app.errorhandler(404)
