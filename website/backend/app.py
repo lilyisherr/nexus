@@ -2632,16 +2632,24 @@ def dashboard():
     channel_ids = [ch.id for ch in channels]
 
     thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).date()
-    stats_data = ChannelStats.query.filter(
-        ChannelStats.user_id == user.id,
-        ChannelStats.stat_date >= thirty_days_ago
-    ).order_by(ChannelStats.stat_date.asc()).all()
+    try:
+        stats_data = ChannelStats.query.filter(
+            ChannelStats.user_id == user.id,
+            ChannelStats.stat_date >= thirty_days_ago
+        ).order_by(ChannelStats.stat_date.asc()).all()
+    except Exception:
+        db.session.rollback()
+        stats_data = []
 
     video_stats = []
     if channel_ids:
-        video_stats = VideoStats.query.filter(
-            VideoStats.channel_id.in_(channel_ids)
-        ).order_by(VideoStats.published_at.desc()).limit(50).all()
+        try:
+            video_stats = VideoStats.query.filter(
+                VideoStats.channel_id.in_(channel_ids)
+            ).order_by(VideoStats.published_at.desc()).limit(50).all()
+        except Exception:
+            db.session.rollback()
+            video_stats = []
 
     bot_settings = []
     for ch in channels:
@@ -2676,13 +2684,20 @@ def dashboard():
     viewers = []
     command_logs = []
     if channel_ids:
-        viewers = ChatUser.query.filter(
-            ChatUser.channel_id.in_(channel_ids)
-        ).order_by(ChatUser.last_seen.desc()).limit(50).all()
-
-        command_logs = CommandLog.query.filter(
-            CommandLog.channel_id.in_(channel_ids)
-        ).order_by(CommandLog.timestamp.desc()).limit(50).all()
+        try:
+            viewers = ChatUser.query.filter(
+                ChatUser.channel_id.in_(channel_ids)
+            ).order_by(ChatUser.last_seen.desc()).limit(50).all()
+        except Exception:
+            db.session.rollback()
+            viewers = []
+        try:
+            command_logs = CommandLog.query.filter(
+                CommandLog.channel_id.in_(channel_ids)
+            ).order_by(CommandLog.timestamp.desc()).limit(50).all()
+        except Exception:
+            db.session.rollback()
+            command_logs = []
 
     bot_moderator_ok = any(
         bs['settings'].bot_moderator_ok for bs in bot_settings
@@ -3647,6 +3662,14 @@ def status():
     return render_template('status.html', **payload)
 
 
+
+@app.route('/studio')
+@login_required
+def studio():
+    """Placeholder for the upcoming Nexus Studio (OBS / Streamlabs-style streaming)."""
+    return render_template('studio.html')
+
+
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
@@ -3943,4 +3966,3 @@ if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')
     print(f"⚙️  Nexus backend starting on http://{host}:{port}/ (debug={app.debug})")
     app.run(debug=True, host=host, port=port)
-
