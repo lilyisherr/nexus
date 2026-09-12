@@ -35,6 +35,14 @@
         .editor-row input, .editor-row select { width:100%; box-sizing:border-box; padding:8px; border:1px solid #dbe2ec; border-radius:6px; background:#fff; }
         .editor-row .remove { border:0; background:transparent; color:#dc2626; cursor:pointer; padding:7px; }
         .editor-label { color:#64748b; font-size:11px; }
+        .settings-disclosure { padding:0; overflow:hidden; }
+        .settings-disclosure summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:20px; }
+        .settings-disclosure summary::-webkit-details-marker { display:none; }
+        .settings-disclosure summary strong { display:block; font-size:16px; }
+        .settings-disclosure summary small { display:block; color:#64748b; font-size:13px; font-weight:400; margin-top:5px; }
+        .settings-disclosure summary i { color:#64748b; transition:transform .15s; }
+        .settings-disclosure[open] summary i { transform:rotate(180deg); }
+        .disclosure-body { padding:0 20px 20px; }
         @media (max-width:700px) { .editor-row { grid-template-columns:1fr 1fr; } .editor-row .editor-label { grid-column:1 / -1; } }
         .status-line { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; color:#64748b; }
         .dot { width:9px; height:9px; border-radius:50%; background:#94a3b8; }
@@ -90,21 +98,25 @@
                 <div class="console" id="bot-console">Waiting for status...</div>
             </section>
 
-            <section class="card wide">
-                <h2>Commands</h2><p>Enable built-in commands and adjust their individual cooldowns. Use the custom command editor for Streamlabs-style responses.</p>
+            <details class="card wide settings-disclosure">
+                <summary><span><strong>Commands</strong><small>Enable commands, set cooldowns, and add custom replies.</small></span><i class="fas fa-chevron-down"></i></summary>
+                <div class="disclosure-body">
                 <div id="builtin-commands" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
                     {% for command in settings.builtin_commands or [] %}<div class="toggle-row" data-command-name="{{ command.name }}" style="border:1px solid #eef2f7;border-radius:7px;padding:10px;"><div><strong>!{{ command.name }}</strong><span>{{ command.description }}</span></div><input class="builtin-enabled" type="checkbox" {% if command.enabled %}checked{% endif %}><input class="builtin-cooldown" type="number" min="0" max="3600" value="{{ command.cooldown or 10 }}" style="width:62px;padding:6px;border:1px solid #dbe2ec;border-radius:5px;" title="Cooldown seconds"></div>{% endfor %}
                 </div>
                 <div id="custom-command-list"></div>
                 <button class="button" type="button" id="add-custom-command"><i class="fas fa-plus"></i> Add custom command</button>
-            </section>
+                </div>
+            </details>
 
-            <section class="card wide">
-                <h2>Timers</h2><p>Timed messages use a message and interval in seconds. Disabled timers are ignored.</p>
+            <details class="card wide settings-disclosure">
+                <summary><span><strong>Timers</strong><small>Send recurring messages without editing configuration files.</small></span><i class="fas fa-chevron-down"></i></summary>
+                <div class="disclosure-body">
                 <div class="toggle-row"><div><strong>Timers enabled</strong><span>Send enabled timer messages while the stream is live.</span></div><input id="timers-enabled" type="checkbox" {% if settings.timed_messages_enabled %}checked{% endif %}></div>
                 <div id="timer-list"></div>
                 <button class="button" type="button" id="add-timer"><i class="fas fa-plus"></i> Add timer</button>
-            </section>
+                </div>
+            </details>
 
             <section class="card wide">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><div><h2>Save channel bot settings</h2><p>Changes are saved for {{ channel.channel_name }} only.</p></div><button class="button primary" id="save-settings"><i class="fas fa-save"></i> Save settings</button></div>
@@ -116,6 +128,7 @@
     (function() {
         var channelId = {{ channel.id }};
         var consoleEl = document.getElementById('bot-console');
+        var starting = false;
         var customCommands = {{ settings.custom_commands | tojson }} || {};
         var timers = {{ settings.timed_messages | tojson }} || [];
         function value(id) { return document.getElementById(id).value; }
@@ -143,6 +156,8 @@
         function renderStatus(data) {
             var status = (data.channels || []).find(function(item) { return Number(item.channel_id) === channelId; });
             if (!status) return;
+            if (starting && !status.running) return;
+            if (status.running) starting = false;
             document.getElementById('status-dot').className = 'dot ' + (status.running ? 'on' : '');
             document.getElementById('status-label').textContent = status.is_live ? 'Live and connected' : (status.running ? 'Searching for a live stream' : 'Bot stopped');
             var details = document.getElementById('live-details');
@@ -166,7 +181,7 @@
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
         function poll() { request('/api/bot/live-status').then(renderStatus).catch(function(error) { consoleEl.textContent = error.message; }); }
-        document.getElementById('run-bot').addEventListener('click', function() { var button = this; button.disabled = true; consoleEl.innerHTML = '<div>Starting bot...</div><div>Loading channel settings...</div><div>Starting YouTube monitor...</div>'; request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:true})}).then(function() { setTimeout(poll, 250); }).catch(function(error) { consoleEl.textContent = error.message; }).finally(function() { button.disabled = false; }); });
+        document.getElementById('run-bot').addEventListener('click', function() { var button = this; starting = true; button.disabled = true; consoleEl.innerHTML = '<div>Starting bot...</div><div>Loading saved settings...</div><div>Connecting to YouTube...</div><div>Starting live-stream search...</div>'; setTimeout(function() { if (starting) consoleEl.innerHTML += '<div>Waiting for the bot thread to report back...</div>'; }, 700); request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:true})}).then(function() { setTimeout(poll, 500); }).catch(function(error) { starting = false; consoleEl.textContent = error.message; }).finally(function() { button.disabled = false; }); });
         document.getElementById('stop-bot').addEventListener('click', function() { request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:false})}).then(function() { poll(); }).catch(function(error) { consoleEl.textContent = error.message; }); });
         document.getElementById('save-settings').addEventListener('click', function() {
             var status = document.getElementById('save-status');
