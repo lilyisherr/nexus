@@ -187,6 +187,15 @@ class Channel(db.Model):
     stream_ingest_url = db.Column(db.String(500), nullable=True)
     stream_key = db.Column(db.Text, nullable=True)
     stream_key_last_updated = db.Column(db.DateTime, nullable=True)
+    broadcast_id = db.Column(db.String(255), nullable=True)
+    live_stream_id = db.Column(db.String(255), nullable=True)
+    broadcast_video_id = db.Column(db.String(255), nullable=True)
+    broadcast_title = db.Column(db.String(500), nullable=True)
+    broadcast_privacy_status = db.Column(db.String(20), default='private')
+    broadcast_status = db.Column(db.String(20), default='created')
+    stream_bitrate = db.Column(db.Integer, default=6000)
+    stream_resolution = db.Column(db.String(20), default='1080p')
+    stream_frame_rate = db.Column(db.String(20), default='30fps')
     last_synced = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -206,6 +215,15 @@ class Channel(db.Model):
             'stream_ingest_url': self.stream_ingest_url,
             'stream_key': self.stream_key,
             'stream_key_last_updated': self.stream_key_last_updated.isoformat() if self.stream_key_last_updated else None,
+            'broadcast_id': self.broadcast_id,
+            'live_stream_id': self.live_stream_id,
+            'broadcast_video_id': self.broadcast_video_id,
+            'broadcast_title': self.broadcast_title,
+            'broadcast_privacy_status': self.broadcast_privacy_status,
+            'broadcast_status': self.broadcast_status,
+            'stream_bitrate': self.stream_bitrate,
+            'stream_resolution': self.stream_resolution,
+            'stream_frame_rate': self.stream_frame_rate,
             'last_synced': self.last_synced.isoformat() if self.last_synced else None,
         }
 
@@ -1943,6 +1961,162 @@ def get_channel_stream_config(channel_id):
     })
 
 
+def _youtube_api_error(response):
+    try:
+        return response.json().get('error', {}).get('message') or 'YouTube API request failed'
+    except Exception:
+        return 'YouTube API request failed'
+
+
+@app.route('/api/channels/<int:channel_id>/broadcast', methods=['POST', 'PUT'])
+@login_required
+def manage_channel_broadcast(channel_id):
+    user = User.query.get(session['user_id'])
+    channel = Channel.query.filter_by(id=channel_id, user_id=user.id).first()
+    if not channel:
+        return jsonify({'error': 'Channel not found'}), 404
+
+    if not user.access_token:
+        return jsonify({'error': 'Reconnect Google so Nexus can manage YouTube live broadcasts.'}), 401
+
+    _refresh_user_token(user)
+    token = user.access_token
+    data = request.form.to_dict() if request.form else (request.json or {})
+    title = (data.get('title') or channel.broadcast_title or 'Nexus Live Stream').strip()[:100]
+    description = (data.get('description') or '').strip()[:5000]
+    privacy = data.get('privacy_status') or 'private'
+    if privacy not in {'private', 'unlisted', 'public'}:
+        return jsonify({'error': 'Invalid privacy setting'}), 400
+
+    try:
+        bitrate = max(300, min(51000, int(data.get('stream_bitrate') or channel.stream_bitrate or 6000)))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Bitrate must be a number in kbps.'}), 400
+    resolution = data.get('stream_resolution') or channel.stream_resolution or '1080p'
+    frame_rate = data.get('stream_frame_rate') or channel.stream_frame_rate or '30fps'
+
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    try:
+        if request.method == 'PUT' and channel.broadcast_id:
+            response = requests.put(
+                'https://www.googleapis.com/youtube/v3/liveBroadcasts',
+                params={'part': 'snippet,status'},
+                headers=headers,
+                json={'id': channel.broadcast_id, 'snippet': {'title': title, 'description': description}, 'status': {'privacyStatus': privacy}},
+                timeout=20,
+            )
+            if response.status_code != 200:
+                return jsonify({'error': _youtube_api_error(response)}), response.status_code
+            broadcast = response.json()
+        else:
+            stream_response = requests.post(
+                'https://www.googleapis.com/youtube/v3/liveStreams',
+                params={'part': 'snippet,cdn,contentDetails'},
+                headers=headers,
+                json={
+                    'snippet': {'title': title},
+                    'cdn': {'frameRate': frame_rate, 'ingestionType': 'rtmp', 'resolution': resolution},
+                    'contentDetails': {'isReusable': False},
+                },
+                timeout=20,
+            )
+            if stream_response.status_code not in (200, 201):
+                return jsonify({'error': _youtube_api_error(stream_response)}), stream_response.status_code
+            stream = stream_response.json()
+            stream_id = stream.get('id')
+            ingestion = stream.get('cdn', {}).get('ingestionInfo', {})
+
+            broadcast_response = requests.post(
+                'https://www.googleapis.com/youtube/v3/liveBroadcasts',
+                params={'part': 'snippet,status,contentDetails'},
+                headers=headers,
+                json={
+                    'snippet': {'title': title, 'description': description},
+                    'status': {'privacyStatus': privacy, 'selfDeclaredMadeForKids': False},
+                    'contentDetails': {'enableAutoStart': True, 'enableAutoStop': True, 'recordFromStart': True},
+                },
+                timeout=20,
+            )
+            if broadcast_response.status_code not in (200, 201):
+                return jsonify({'error': _youtube_api_error(broadcast_response)}), broadcast_response.status_code
+            broadcast = broadcast_response.json()
+            broadcast_id = broadcast.get('id')
+
+            bind_response = requests.post(
+                'https://www.googleapis.com/youtube/v3/liveBroadcasts/bind',
+                params={'part': 'id,contentDetails', 'id': broadcast_id, 'streamId': stream_id},
+                headers=headers,
+                timeout=20,
+            )
+            if bind_response.status_code != 200:
+                return jsonify({'error': _youtube_api_error(bind_response)}), bind_response.status_code
+
+            channel.live_stream_id = stream_id
+            channel.stream_ingest_url = ingestion.get('ingestionAddress') or channel.stream_ingest_url
+            channel.stream_key = ingestion.get('streamName') or channel.stream_key
+            channel.stream_key_last_updated = datetime.utcnow()
+
+        channel.broadcast_id = broadcast.get('id') or channel.broadcast_id
+        channel.broadcast_video_id = broadcast.get('id') or channel.broadcast_video_id
+        channel.broadcast_title = title
+        channel.broadcast_privacy_status = privacy
+        channel.broadcast_status = broadcast.get('status', {}).get('lifeCycleStatus', 'created')
+        channel.stream_bitrate = bitrate
+        channel.stream_resolution = resolution
+        channel.stream_frame_rate = frame_rate
+        db.session.commit()
+        return jsonify({'ok': True, 'channel': channel.to_dict()})
+    except requests.RequestException:
+        return jsonify({'error': 'Could not reach YouTube. Try again in a moment.'}), 502
+
+
+@app.route('/api/channels/<int:channel_id>/broadcast/transition', methods=['POST'])
+@login_required
+def transition_channel_broadcast(channel_id):
+    user = User.query.get(session['user_id'])
+    channel = Channel.query.filter_by(id=channel_id, user_id=user.id).first()
+    if not channel or not channel.broadcast_id:
+        return jsonify({'error': 'Create a broadcast first.'}), 400
+    _refresh_user_token(user)
+    target = (request.json or {}).get('status', 'live')
+    if target not in {'testing', 'live', 'complete'}:
+        return jsonify({'error': 'Invalid broadcast status.'}), 400
+    response = requests.post(
+        'https://www.googleapis.com/youtube/v3/liveBroadcasts/transition',
+        params={'broadcastStatus': target, 'id': channel.broadcast_id, 'part': 'id,status'},
+        headers={'Authorization': f'Bearer {user.access_token}'},
+        timeout=20,
+    )
+    if response.status_code != 200:
+        return jsonify({'error': _youtube_api_error(response)}), response.status_code
+    channel.broadcast_status = target
+    db.session.commit()
+    return jsonify({'ok': True, 'status': target, 'channel': channel.to_dict()})
+
+
+@app.route('/api/channels/<int:channel_id>/broadcast/thumbnail', methods=['POST'])
+@login_required
+def upload_channel_broadcast_thumbnail(channel_id):
+    user = User.query.get(session['user_id'])
+    channel = Channel.query.filter_by(id=channel_id, user_id=user.id).first()
+    upload = request.files.get('thumbnail')
+    if not channel or not channel.broadcast_video_id:
+        return jsonify({'error': 'Create a broadcast before uploading a thumbnail.'}), 400
+    if not upload or upload.mimetype not in {'image/jpeg', 'image/png'}:
+        return jsonify({'error': 'Choose a JPG or PNG thumbnail.'}), 400
+    _refresh_user_token(user)
+    response = requests.post(
+        'https://www.googleapis.com/upload/youtube/v3/thumbnails/set',
+        params={'videoId': channel.broadcast_video_id, 'uploadType': 'media'},
+        headers={'Authorization': f'Bearer {user.access_token}', 'Content-Type': upload.mimetype},
+        data=upload.read(),
+        timeout=30,
+    )
+    if response.status_code != 200:
+        return jsonify({'error': _youtube_api_error(response)}), response.status_code
+    return jsonify({'ok': True})
+
+
 @app.route('/api/channels/<int:channel_id>/stream-config', methods=['POST', 'PUT'])
 @login_required
 def update_channel_stream_config(channel_id):
@@ -1994,7 +2168,7 @@ def update_channel_settings(channel_id):
     if not channel or channel.user_id != session['user_id']:
         return jsonify({'error': 'Channel not found'}), 404
     
-    data = request.json
+    data = request.get_json(silent=True) or {}
     
     settings = ChannelBotSettings.query.filter_by(channel_id=channel_id).first()
     if not settings:
@@ -3186,36 +3360,10 @@ def api_setup_complete():
 @app.route('/channel/<int:channel_id>/settings')
 @login_required
 def channel_settings(channel_id):
-    channel = Channel.query.get(channel_id)
-    
-    if not channel or channel.user_id != session['user_id']:
+    channel = Channel.query.filter_by(id=channel_id, user_id=session['user_id']).first()
+    if not channel:
         return redirect('/dashboard')
-    
-    settings = ChannelBotSettings.query.filter_by(channel_id=channel_id).first()
-    if not settings:
-        settings = ChannelBotSettings(channel_id=channel_id)
-        db.session.add(settings)
-        db.session.commit()
-    
-    user = User.query.get(session['user_id'])
-    discord_info = None
-    bot_servers = []
-    bot_user = BotUser.query.filter_by(nexus_user_id=user.id).first() if user else None
-    if bot_user:
-        discord_info = {
-            'user_id': bot_user.discord_id,
-            'username': bot_user.display_name,
-        }
-        configs = ServerConfig.query.filter_by(bot_user_id=bot_user.id).all()
-        bot_servers = [{'name': c.server_name, 'id': c.server_id} for c in configs]
-    elif user and user.discord_user_id:
-        discord_info = {
-            'user_id': user.discord_user_id,
-            'username': user.discord_username,
-        }
-
-    return render_template('channel-settings.html', channel=channel, settings=settings.to_dict(),
-                           discord_info=discord_info, bot_servers=bot_servers)
+    return redirect('/dashboard#broadcast-console')
 
 
 @app.route('/robots.txt')
@@ -3909,6 +4057,15 @@ def migrate_db():
         'stream_ingest_url': 'VARCHAR(500)',
         'stream_key': 'TEXT',
         'stream_key_last_updated': 'TIMESTAMP',
+        'broadcast_id': 'VARCHAR(255)',
+        'live_stream_id': 'VARCHAR(255)',
+        'broadcast_video_id': 'VARCHAR(255)',
+        'broadcast_title': 'VARCHAR(500)',
+        'broadcast_privacy_status': "VARCHAR(20) DEFAULT 'private'",
+        'broadcast_status': "VARCHAR(20) DEFAULT 'created'",
+        'stream_bitrate': 'INTEGER DEFAULT 6000',
+        'stream_resolution': "VARCHAR(20) DEFAULT '1080p'",
+        'stream_frame_rate': "VARCHAR(20) DEFAULT '30fps'",
     })
 
     add_columns('server_config', {

@@ -205,12 +205,6 @@
         .toast.success { background: #00c853; }
         .toast.error { background: #ff5252; }
 
-        /* Studio coming soon badge */
-        .soon {
-            font-size: 10px; font-weight: 700; text-transform: uppercase;
-            background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;
-            margin-left: 4px;
-        }
     </style>
 </head>
 <body>
@@ -223,10 +217,9 @@
                 <p>Welcome back{% if user.username %}, {{ user.username }}{% endif %}</p>
             </div>
             <div class="dash-actions">
-                <a href="/studio" class="btn-studio" title="Open Nexus Studio (coming soon)">
+                <a href="#broadcast-console" class="btn-studio" title="Open Nexus broadcast controls">
                     <i class="fas fa-broadcast-tower"></i>
-                    Go Live / Studio
-                    <span class="soon">Soon</span>
+                    Go Live
                 </a>
                 <a href="/channels" class="btn-ghost"><i class="fas fa-plus"></i> Add Channel</a>
             </div>
@@ -240,6 +233,48 @@
                 <span id="live-sub">Bot will detect when you go live</span>
             </div>
             <span class="live-badge" id="live-msgs" style="display:none;">0 msgs</span>
+        </div>
+
+        <div class="card" id="broadcast-console" style="margin-bottom:18px;">
+            <div class="card-h"><h3><i class="fas fa-video"></i> Nexus broadcast control</h3><span id="broadcast-status" style="font-size:12px;color:#64748b;">Ready</span></div>
+            <div class="card-b">
+                {% if channels %}
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+                    <label style="font-size:12px;color:#64748b;">Channel
+                        <select id="broadcast-channel" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
+                            {% for ch in channels %}<option value="{{ ch.id }}">{{ ch.channel_name }}</option>{% endfor %}
+                        </select>
+                    </label>
+                    <label style="font-size:12px;color:#64748b;">Title
+                        <input id="broadcast-title" type="text" maxlength="100" placeholder="My Nexus live stream" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    </label>
+                    <label style="font-size:12px;color:#64748b;">Privacy
+                        <select id="broadcast-privacy" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"><option value="private">Private test</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select>
+                    </label>
+                    <label style="font-size:12px;color:#64748b;">Bitrate (kbps)
+                        <input id="broadcast-bitrate" type="number" min="300" max="51000" value="6000" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    </label>
+                    <label style="font-size:12px;color:#64748b;">Resolution
+                        <select id="broadcast-resolution" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"><option>1080p</option><option>1440p</option><option>2160p</option><option>720p</option></select>
+                    </label>
+                    <label style="font-size:12px;color:#64748b;">Frame rate
+                        <select id="broadcast-frame-rate" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"><option>30fps</option><option>60fps</option></select>
+                    </label>
+                </div>
+                <label style="display:block;margin-top:12px;font-size:12px;color:#64748b;">Description
+                    <textarea id="broadcast-description" rows="2" placeholder="Tell viewers what is happening..." style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
+                </label>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                    <input id="broadcast-thumbnail" type="file" accept="image/jpeg,image/png" style="max-width:230px;">
+                    <button type="button" class="btn-ghost" id="create-broadcast"><i class="fas fa-plus"></i> Create broadcast</button>
+                    <button type="button" class="btn-studio" id="start-broadcast"><i class="fas fa-play"></i> Go live</button>
+                    <button type="button" class="btn-ghost" id="end-broadcast"><i class="fas fa-stop"></i> End</button>
+                </div>
+                <div id="broadcast-ingest" style="display:none;margin-top:12px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;"></div>
+                {% else %}
+                <p class="empty">Connect a YouTube channel before creating a broadcast.</p>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Stats -->
@@ -273,17 +308,20 @@
                     <div class="card-h"><h3>Bot Control</h3></div>
                     <div class="card-b">
                         <div class="bot-row">
-                            <div class="bot-status {{ 'on' if user.bot_enabled else 'off' }}" id="bot-status-ring">
+                            <div class="bot-status off" id="bot-status-ring">
                                 <div class="dot"></div>
                             </div>
                             <div class="bot-meta">
-                                <strong id="bot-status-label">{{ 'Bot Enabled' if user.bot_enabled else 'Bot Disabled' }}</strong>
-                                <span>Controls chat moderation and commands for all channels</span>
+                                <strong id="bot-status-label">YouTube bot</strong>
+                                <span id="bot-status-help">Choose a channel and run one bot instance from here.</span>
                             </div>
-                            <label class="tgl">
-                                <input type="checkbox" id="bot-toggle" {% if user.bot_enabled %}checked{% endif %}>
-                                <span class="tgl-track"></span>
-                            </label>
+                            {% if channels %}
+                            <select id="bot-channel-select" style="max-width:180px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
+                                {% for ch in channels %}<option value="{{ ch.id }}">{{ ch.channel_name }}</option>{% endfor %}
+                            </select>
+                            <button type="button" class="btn-studio" id="run-selected-bot"><i class="fas fa-play"></i> Run</button>
+                            <button type="button" class="btn-ghost" id="stop-selected-bot"><i class="fas fa-stop"></i> Stop</button>
+                            {% endif %}
                         </div>
                         <div id="bot-console" style="margin-top:16px;background:#0f172a;border-radius:10px;padding:12px;color:#cbd5e1;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;min-height:88px;max-height:180px;overflow:auto;">
                             <div style="color:#94a3b8;">Waiting for a channel. Click Run to start the YouTube bot.</div>
@@ -307,12 +345,10 @@
                                 <div class="ch-avatar">{{ (ch.channel_name or '?')[0]|upper }}</div>
                                 {% endif %}
                                 <div class="ch-meta">
-                                    <a href="/channels/{{ ch.id }}/settings">{{ ch.channel_name }}</a>
+                                    <span>{{ ch.channel_name }}</span>
                                     <span>{{ '{:,}'.format(ch.subscriber_count or 0) }} subs · {{ '{:,}'.format(ch.view_count or 0) }} views</span>
                                 </div>
                                 <div class="ch-actions">
-                                    <button type="button" class="icon-btn run-channel-bot" data-channel-id="{{ ch.id }}" title="Run YouTube bot" aria-label="Run YouTube bot"><i class="fas fa-play"></i></button>
-                                    <a href="/channels/{{ ch.id }}/settings" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></a>
                                     <a href="https://youtube.com/channel/{{ ch.youtube_channel_id }}" target="_blank" class="icon-btn" title="Open on YouTube"><i class="fab fa-youtube"></i></a>
                                 </div>
                             </div>
@@ -333,13 +369,7 @@
                     <div class="card-h"><h3>Quick Links</h3></div>
                     <div class="card-b">
                         <div class="qlinks">
-                            <a href="/studio" class="qlink"><i class="fas fa-video"></i><span>Studio</span></a>
                             <a href="/status" class="qlink"><i class="fas fa-heartbeat"></i><span>Status</span></a>
-                            {% if channels and channels[0] %}
-                            <a href="/channels/{{ channels[0].id }}/settings" class="qlink"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
-                            {% else %}
-                            <a href="/channels" class="qlink"><i class="fas fa-sliders-h"></i><span>Settings</span></a>
-                            {% endif %}
                             <a href="/bot/" class="qlink"><i class="fab fa-discord"></i><span>Discord</span></a>
                         </div>
                     </div>
@@ -372,6 +402,91 @@
             setTimeout(function() { t.classList.remove('show'); }, 2800);
         }
 
+        function broadcastValue(id) {
+            var element = document.getElementById(id);
+            return element ? element.value : '';
+        }
+
+        function setBroadcastStatus(text, color) {
+            var status = document.getElementById('broadcast-status');
+            if (status) {
+                status.textContent = text;
+                status.style.color = color || '#64748b';
+            }
+        }
+
+        function broadcastRequest(path, options) {
+            return fetch(path, Object.assign({credentials: 'same-origin'}, options || {})).then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok || data.error) throw new Error(data.error || 'YouTube request failed');
+                    return data;
+                });
+            });
+        }
+
+        function showIngestDetails(channel) {
+            var output = document.getElementById('broadcast-ingest');
+            if (!output || !channel) return;
+            output.style.display = 'block';
+            output.innerHTML = 'RTMP server: ' + (channel.stream_ingest_url || 'Not available').replace(/</g, '&lt;') + '<br>Stream key: ' + (channel.stream_key || 'Not available').replace(/</g, '&lt;') + '<br><span style="font-family:inherit;color:#64748b;">Paste these into OBS or Streamlabs. Nexus creates and controls the YouTube broadcast; the encoder sends the actual audio/video.</span>';
+        }
+
+        var createBroadcastButton = document.getElementById('create-broadcast');
+        if (createBroadcastButton) {
+            createBroadcastButton.addEventListener('click', function() {
+                var channelId = broadcastValue('broadcast-channel');
+                setBroadcastStatus('Creating...', '#d97706');
+                broadcastRequest('/api/channels/' + channelId + '/broadcast', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        title: broadcastValue('broadcast-title'),
+                        description: broadcastValue('broadcast-description'),
+                        privacy_status: broadcastValue('broadcast-privacy'),
+                        stream_bitrate: broadcastValue('broadcast-bitrate'),
+                        stream_resolution: broadcastValue('broadcast-resolution'),
+                        stream_frame_rate: broadcastValue('broadcast-frame-rate')
+                    })
+                }).then(function(data) {
+                    setBroadcastStatus('Broadcast created', '#059669');
+                    showIngestDetails(data.channel);
+                    var thumbnail = document.getElementById('broadcast-thumbnail');
+                    if (thumbnail && thumbnail.files && thumbnail.files[0]) {
+                        var form = new FormData();
+                        form.append('thumbnail', thumbnail.files[0]);
+                        return broadcastRequest('/api/channels/' + channelId + '/broadcast/thumbnail', {method: 'POST', body: form});
+                    }
+                }).then(function() {
+                    showToast('YouTube broadcast created', 'success');
+                }).catch(function(error) {
+                    setBroadcastStatus('Create failed', '#dc2626');
+                    showToast(error.message, 'error');
+                });
+            });
+        }
+
+        function transitionBroadcast(status) {
+            var channelId = broadcastValue('broadcast-channel');
+            setBroadcastStatus(status === 'live' ? 'Starting...' : 'Ending...', '#d97706');
+            broadcastRequest('/api/channels/' + channelId + '/broadcast/transition', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status: status})
+            }).then(function() {
+                setBroadcastStatus(status === 'live' ? 'Live' : 'Ended', status === 'live' ? '#059669' : '#64748b');
+                showToast(status === 'live' ? 'YouTube broadcast started' : 'YouTube broadcast ended', 'success');
+                pollLiveStatus();
+            }).catch(function(error) {
+                setBroadcastStatus('Action failed', '#dc2626');
+                showToast(error.message + (status === 'live' ? ' Make sure OBS or Streamlabs is sending video first.' : ''), 'error');
+            });
+        }
+
+        var startBroadcastButton = document.getElementById('start-broadcast');
+        if (startBroadcastButton) startBroadcastButton.addEventListener('click', function() { transitionBroadcast('live'); });
+        var endBroadcastButton = document.getElementById('end-broadcast');
+        if (endBroadcastButton) endBroadcastButton.addEventListener('click', function() { transitionBroadcast('complete'); });
+
         function renderBotConsole(statuses) {
             var consoleEl = document.getElementById('bot-console');
             if (!consoleEl) return;
@@ -389,7 +504,7 @@
         }
 
         function startChannelBot(channelId) {
-            var button = document.querySelector('.run-channel-bot[data-channel-id="' + channelId + '"]');
+            var button = document.getElementById('run-selected-bot');
             if (button) button.disabled = true;
             fetch('/api/channels/' + channelId + '/bot/toggle', {
                 method: 'POST',
@@ -445,30 +560,32 @@
                     if (!r.ok || data.error) throw new Error(data.error || 'Status unavailable');
                     return data;
                 });
-            })
-            .then(function(d) {
-                renderBotConsole(d.channels);
-                var liveChannel = null;
-                if (d.channels) {
-                    d.channels.forEach(function(ch) {
-                        if (ch.is_live) liveChannel = ch;
-                    });
-                }
+        function stopChannelBot(channelId) {
+            fetch('/api/channels/' + channelId + '/bot/toggle', {
                 var dot = document.getElementById('live-dot');
                 var title = document.getElementById('live-title');
                 var sub = document.getElementById('live-sub');
-                var msgs = document.getElementById('live-msgs');
+                    body: JSON.stringify({ enabled: false })
                 if (!dot || !title || !sub) return;
-                if (liveChannel) {
-                    dot.className = 'live-dot on';
-                    title.textContent = liveChannel.stream_title || 'Live Stream';
-                    sub.textContent = (liveChannel.channel_name || '') + ' · Bot is active';
-                    if (liveChannel.messages_processed > 0 && msgs) {
-                        msgs.style.display = '';
+                .then(function(r) { return r.json().then(function(data) {
+                    if (!r.ok || data.error) throw new Error(data.error || 'Bot could not stop');
+                    return data;
+                }); })
+                .then(function() {
+                    showToast('YouTube bot stopped', 'success');
                         msgs.textContent = liveChannel.messages_processed + ' msgs';
                     }
-                } else {
-                    dot.className = 'live-dot';
+                .catch(function(error) { showToast(error.message, 'error'); });
+        }
+
+        var selectedBotChannel = document.getElementById('bot-channel-select');
+        var runSelectedBot = document.getElementById('run-selected-bot');
+        var stopSelectedBot = document.getElementById('stop-selected-bot');
+        if (runSelectedBot && selectedBotChannel) {
+            runSelectedBot.addEventListener('click', function() { startChannelBot(selectedBotChannel.value); });
+        }
+        if (stopSelectedBot && selectedBotChannel) {
+            stopSelectedBot.addEventListener('click', function() { stopChannelBot(selectedBotChannel.value); });
                     var anyRunning = d.channels && d.channels.some(function(ch) { return ch.running; });
                     title.textContent = anyRunning ? 'Watching for your live stream…' : 'Bot not running';
                     sub.textContent = anyRunning ? 'Detects within ~30s of going live' : 'Enable the bot to start monitoring';
