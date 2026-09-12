@@ -91,8 +91,7 @@ class BotInstance:
         return {'Authorization': f'Bearer {self.access_token}'}
 
     def _bot_api_headers(self):
-        token = self.bot_access_token if self.bot_access_token else self.access_token
-        return {'Authorization': f'Bearer {token}'}
+        return {'Authorization': f'Bearer {self.bot_access_token}'} if self.bot_access_token else None
 
     def _find_live_stream(self):
         self._log('Searching YouTube for a live stream...')
@@ -219,11 +218,15 @@ class BotInstance:
             pass
 
     def _send_message(self, text):
+        if not self.bot_access_token:
+            self._log('Reply skipped: dedicated bot account is not authenticated.')
+            return False
         try:
+            headers = self._bot_api_headers()
             resp = requests.post(
                 'https://www.googleapis.com/youtube/v3/liveChat/messages',
                 params={'part': 'snippet'},
-                headers={**self._bot_api_headers(), 'Content-Type': 'application/json'},
+                headers={**headers, 'Content-Type': 'application/json'},
                 json={
                     'snippet': {
                         'liveChatId': self.chat_id,
@@ -664,6 +667,8 @@ class BotInstance:
             'is_live': self.is_live,
             'stream_title': self.stream_title,
             'stream_start_time': self.stream_start_time.isoformat() if self.stream_start_time else None,
+            'video_id': self.video_id,
+            'watch_url': f'https://www.youtube.com/watch?v={self.video_id}' if self.video_id else None,
             'live_thumbnail': self.live_thumbnail,
             'live_viewers': self.live_viewers,
             'live_likes': self.live_likes,

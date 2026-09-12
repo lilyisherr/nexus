@@ -884,7 +884,7 @@ def bot_setup(token):
         scheme = 'https' if '.replit.app' in request.host or '.repl.co' in request.host else request.headers.get('X-Forwarded-Proto', 'http')
         redirect_uri = f"{scheme}://{request.host}/auth/bot-callback"
 
-    bot_scopes = ['https://www.googleapis.com/auth/youtube.force-ssl']
+    bot_scopes = ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/youtube.force-ssl']
 
     google_auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth?"
@@ -1944,6 +1944,40 @@ def bot_live_status():
     statuses = []
     for channel in channels:
         s = bot_manager.get_status(channel.id)
+        if not s.get('is_live') and (user.access_token or session.get('access_token')):
+            try:
+                if user.refresh_token:
+                    _refresh_user_token(user)
+                token = user.access_token or session.get('access_token')
+                search_response = requests.get(
+                    'https://www.googleapis.com/youtube/v3/search',
+                    params={'part': 'snippet', 'channelId': channel.youtube_channel_id, 'eventType': 'live', 'type': 'video', 'maxResults': 1},
+                    headers={'Authorization': f'Bearer {token}'}, timeout=8,
+                )
+                if search_response.status_code == 200 and search_response.json().get('items'):
+                    video_id = search_response.json()['items'][0]['id']['videoId']
+                    video_response = requests.get(
+                        'https://www.googleapis.com/youtube/v3/videos',
+                        params={'part': 'liveStreamingDetails,snippet,statistics', 'id': video_id},
+                        headers={'Authorization': f'Bearer {token}'}, timeout=8,
+                    )
+                    item = (video_response.json().get('items') or [None])[0]
+                    if item:
+                        details = item.get('liveStreamingDetails', {})
+                        start_time = details.get('actualStartTime')
+                        s.update({
+                            'is_live': bool(details.get('activeLiveChatId') or details.get('actualStartTime')),
+                            'stream_title': item.get('snippet', {}).get('title'),
+                            'stream_start_time': start_time,
+                            'live_thumbnail': item.get('snippet', {}).get('thumbnails', {}).get('high', {}).get('url'),
+                            'live_viewers': int(details.get('concurrentViewers') or 0),
+                            'live_likes': int(item.get('statistics', {}).get('likeCount') or 0),
+                            'live_description': item.get('snippet', {}).get('description') or '',
+                            'video_id': video_id,
+                            'watch_url': f'https://www.youtube.com/watch?v={video_id}',
+                        })
+            except requests.RequestException:
+                pass
         statuses.append({
             'channel_id': channel.id,
             'channel_name': channel.channel_name,
@@ -1954,6 +1988,8 @@ def bot_live_status():
             'live_likes': s.get('live_likes', 0),
             'live_description': s.get('live_description', ''),
             'stream_start_time': s.get('stream_start_time'),
+            'video_id': s.get('video_id'),
+            'watch_url': s.get('watch_url'),
             'running': s.get('running', False),
             'messages_processed': s.get('messages_processed', 0),
             'last_error': s.get('last_error'),
