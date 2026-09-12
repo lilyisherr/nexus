@@ -287,6 +287,7 @@ class ChannelBotSettings(db.Model):
     bot_enabled = db.Column(db.Boolean, default=True)
     chat_prefix = db.Column(db.String(5), default='!')
     response_delay = db.Column(db.Integer, default=0)
+    live_search_interval = db.Column(db.Integer, default=10)
     join_message = db.Column(db.Text, nullable=True)
     
     spam_filter_enabled = db.Column(db.Boolean, default=True)
@@ -338,6 +339,8 @@ class ChannelBotSettings(db.Model):
     auto_greet_new_viewers = db.Column(db.Boolean, default=False)
     auto_greet_message = db.Column(db.Text, default='Welcome to the stream, {user}! Enjoy your stay.')
     viewer_loyalty_tracking = db.Column(db.Boolean, default=False)
+    loyalty_points_per_minute = db.Column(db.Integer, default=10)
+    gambling_enabled = db.Column(db.Boolean, default=False)
 
     auto_ban_patterns = db.Column(db.Text, default='[]')
     first_time_chatter_restrict = db.Column(db.Boolean, default=False)
@@ -415,6 +418,7 @@ class ChannelBotSettings(db.Model):
             'bot_enabled': self.bot_enabled,
             'chat_prefix': self.chat_prefix,
             'response_delay': self.response_delay,
+            'live_search_interval': self.live_search_interval or 10,
             'join_message': self.join_message,
             'spam_filter_enabled': self.spam_filter_enabled,
             'max_repeat_chars': self.max_repeat_chars,
@@ -470,6 +474,8 @@ class ChannelBotSettings(db.Model):
             'auto_greet_new_viewers': self.auto_greet_new_viewers or False,
             'auto_greet_message': self.auto_greet_message or 'Welcome to the stream, {user}! Enjoy your stay.',
             'viewer_loyalty_tracking': self.viewer_loyalty_tracking or False,
+            'loyalty_points_per_minute': self.loyalty_points_per_minute or 10,
+            'gambling_enabled': self.gambling_enabled or False,
             'auto_ban_patterns': self._parse_auto_ban_patterns(),
             'first_time_chatter_restrict': self.first_time_chatter_restrict or False,
             'first_time_chatter_mode': self.first_time_chatter_mode or 'none',
@@ -526,6 +532,9 @@ class ChatUser(db.Model):
     username = db.Column(db.String(255), nullable=False)
     display_name = db.Column(db.String(255), nullable=True)
     watchtime_minutes = db.Column(db.Integer, default=0)
+    loyalty_points = db.Column(db.Integer, default=0)
+    gambling_wins = db.Column(db.Integer, default=0)
+    gambling_losses = db.Column(db.Integer, default=0)
     messages_sent = db.Column(db.Integer, default=0)
     commands_used = db.Column(db.Integer, default=0)
     timeout_count = db.Column(db.Integer, default=0)
@@ -545,6 +554,9 @@ class ChatUser(db.Model):
             'username': self.username,
             'display_name': self.display_name,
             'watchtime_minutes': self.watchtime_minutes,
+            'loyalty_points': self.loyalty_points,
+            'gambling_wins': self.gambling_wins,
+            'gambling_losses': self.gambling_losses,
             'messages_sent': self.messages_sent,
             'commands_used': self.commands_used,
             'timeout_count': self.timeout_count,
@@ -1937,6 +1949,11 @@ def bot_live_status():
             'channel_name': channel.channel_name,
             'is_live': s.get('is_live', False),
             'stream_title': s.get('stream_title'),
+            'live_thumbnail': s.get('live_thumbnail'),
+            'live_viewers': s.get('live_viewers', 0),
+            'live_likes': s.get('live_likes', 0),
+            'live_description': s.get('live_description', ''),
+            'stream_start_time': s.get('stream_start_time'),
             'running': s.get('running', False),
             'messages_processed': s.get('messages_processed', 0),
             'last_error': s.get('last_error'),
@@ -2275,6 +2292,8 @@ def update_channel_settings(channel_id):
         settings.chat_prefix = data['chat_prefix']
     if 'response_delay' in data:
         settings.response_delay = int(data['response_delay'])
+    if 'live_search_interval' in data:
+        settings.live_search_interval = max(5, min(300, int(data['live_search_interval'])))
     if 'join_message' in data:
         settings.join_message = data['join_message']
     
@@ -2406,6 +2425,10 @@ def update_channel_settings(channel_id):
         settings.auto_greet_message = data['auto_greet_message']
     if 'viewer_loyalty_tracking' in data:
         settings.viewer_loyalty_tracking = data['viewer_loyalty_tracking']
+    if 'loyalty_points_per_minute' in data:
+        settings.loyalty_points_per_minute = max(0, min(1000, int(data['loyalty_points_per_minute'])))
+    if 'gambling_enabled' in data:
+        settings.gambling_enabled = data['gambling_enabled']
     if 'auto_ban_patterns' in data:
         if isinstance(data['auto_ban_patterns'], list):
             settings.auto_ban_patterns = json.dumps(data['auto_ban_patterns'])
@@ -2444,6 +2467,8 @@ def update_channel_settings(channel_id):
     
     settings.updated_at = datetime.utcnow()
     db.session.commit()
+    if bot_manager.is_running(channel_id):
+        bot_manager.update_settings(channel_id, settings.to_dict())
     
     return jsonify({
         'message': 'Settings updated successfully',
@@ -4080,6 +4105,9 @@ def migrate_db():
     })
 
     add_columns('channel_bot_settings', {
+        'live_search_interval': 'INTEGER DEFAULT 10',
+        'loyalty_points_per_minute': 'INTEGER DEFAULT 10',
+        'gambling_enabled': f'BOOLEAN DEFAULT {b(False)}',
         'welcome_message_enabled': f'BOOLEAN DEFAULT {b(False)}',
         'welcome_message': 'TEXT',
         'slow_mode_enabled': f'BOOLEAN DEFAULT {b(False)}',
@@ -4138,6 +4166,12 @@ def migrate_db():
         'discord_notify_live': f'BOOLEAN DEFAULT {b(False)}',
         'discord_notify_milestones': f'BOOLEAN DEFAULT {b(False)}',
         'bot_moderator_ok': f'BOOLEAN DEFAULT {b(False)}',
+    })
+
+    add_columns('chat_user', {
+        'loyalty_points': 'INTEGER DEFAULT 0',
+        'gambling_wins': 'INTEGER DEFAULT 0',
+        'gambling_losses': 'INTEGER DEFAULT 0',
     })
 
 

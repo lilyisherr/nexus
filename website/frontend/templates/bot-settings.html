@@ -54,6 +54,7 @@
                     <label class="field">Command prefix<input id="chat-prefix" maxlength="3" value="{{ settings.chat_prefix or '!' }}"></label>
                     <label class="field">Reply delay (seconds)<input id="response-delay" type="number" min="0" max="15" value="{{ settings.response_delay or 0 }}"></label>
                 </div>
+                <label class="field">Search for live streams every (seconds)<input id="live-search-interval" type="number" min="5" max="300" value="{{ settings.live_search_interval or 10 }}"></label>
                 <label class="field">Stream start message<textarea id="join-message" rows="3" placeholder="Welcome to the stream!">{{ settings.join_message or '' }}</textarea></label>
             </section>
 
@@ -65,6 +66,9 @@
                 </div>
                 <label class="field">Default permission<select id="command-permission"><option value="everyone" {% if settings.command_permission_default == 'everyone' %}selected{% endif %}>Everyone</option><option value="subscriber" {% if settings.command_permission_default == 'subscriber' %}selected{% endif %}>Subscribers</option><option value="moderator" {% if settings.command_permission_default == 'moderator' %}selected{% endif %}>Moderators</option></select></label>
                 <div class="toggle-row"><div><strong>Auto-greet viewers</strong><span>Welcome new chatters once per stream.</span></div><label class="toggle"><input id="auto-greet" type="checkbox" {% if settings.auto_greet_new_viewers %}checked{% endif %}></label></div>
+                <div class="toggle-row"><div><strong>Loyalty points</strong><span>Award points for every minute watched.</span></div><input id="loyalty-enabled" type="checkbox" {% if settings.viewer_loyalty_tracking %}checked{% endif %}></div>
+                <div class="toggle-row"><div><strong>Gambling command</strong><span>Allow users to wager loyalty points with the gamble command.</span></div><input id="gambling-enabled" type="checkbox" {% if settings.gambling_enabled %}checked{% endif %}></div>
+                <label class="field">Points per minute<input id="points-per-minute" type="number" min="0" max="1000" value="{{ settings.loyalty_points_per_minute or 10 }}"></label>
             </section>
 
             <section class="card">
@@ -77,7 +81,22 @@
             <section class="card">
                 <h2>Live stream search</h2><p>The bot checks YouTube automatically and connects to live chat when a stream is found.</p>
                 <div class="status-line"><span class="dot" id="status-dot"></span><strong id="status-label">Checking status...</strong></div>
+                <div id="live-details" style="display:none;margin-bottom:12px;"><img id="live-thumbnail" style="width:100%;border-radius:7px;display:block;margin-bottom:10px;" alt="Live stream thumbnail"><strong id="live-stream-title" style="display:block;font-size:14px;"></strong><div id="live-stats" style="margin-top:5px;color:#64748b;font-size:12px;"></div><p id="live-description" style="margin-top:8px;"></p></div>
                 <div class="console" id="bot-console">Waiting for status...</div>
+            </section>
+
+            <section class="card wide">
+                <h2>Commands</h2><p>Enable built-in commands and adjust their individual cooldowns. Use the custom command editor for Streamlabs-style responses.</p>
+                <div id="builtin-commands" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
+                    {% for command in settings.builtin_commands or [] %}<div class="toggle-row" data-command-name="{{ command.name }}" style="border:1px solid #eef2f7;border-radius:7px;padding:10px;"><div><strong>!{{ command.name }}</strong><span>{{ command.description }}</span></div><input class="builtin-enabled" type="checkbox" {% if command.enabled %}checked{% endif %}><input class="builtin-cooldown" type="number" min="0" max="3600" value="{{ command.cooldown or 10 }}" style="width:62px;padding:6px;border:1px solid #dbe2ec;border-radius:5px;" title="Cooldown seconds"></div>{% endfor %}
+                </div>
+                <label class="field">Custom commands JSON<textarea id="custom-commands" rows="5">{{ settings.custom_commands | tojson }}</textarea></label>
+            </section>
+
+            <section class="card wide">
+                <h2>Timers</h2><p>Timed messages use a message and interval in seconds. Disabled timers are ignored.</p>
+                <div class="toggle-row"><div><strong>Timers enabled</strong><span>Send enabled timer messages while the stream is live.</span></div><input id="timers-enabled" type="checkbox" {% if settings.timed_messages_enabled %}checked{% endif %}></div>
+                <label class="field">Timer list JSON<textarea id="timed-messages" rows="5">{{ settings.timed_messages | tojson }}</textarea></label>
             </section>
 
             <section class="card wide">
@@ -98,6 +117,21 @@
             if (!status) return;
             document.getElementById('status-dot').className = 'dot ' + (status.running ? 'on' : '');
             document.getElementById('status-label').textContent = status.is_live ? 'Live and connected' : (status.running ? 'Searching for a live stream' : 'Bot stopped');
+            var details = document.getElementById('live-details');
+            if (status.is_live) {
+                details.style.display = 'block';
+                document.getElementById('live-thumbnail').src = status.live_thumbnail || '';
+                document.getElementById('live-stream-title').textContent = status.stream_title || 'Live stream';
+                var duration = '';
+                if (status.stream_start_time) {
+                    var seconds = Math.max(0, Math.floor((Date.now() - new Date(status.stream_start_time).getTime()) / 1000));
+                    duration = Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm ' + (seconds % 60) + 's';
+                }
+                document.getElementById('live-stats').textContent = (status.live_viewers || 0).toLocaleString() + ' watching  |  ' + (status.live_likes || 0).toLocaleString() + ' likes  |  live for ' + duration;
+                document.getElementById('live-description').textContent = status.live_description || 'No stream description.';
+            } else {
+                details.style.display = 'none';
+            }
             var lines = (status.logs || []).map(function(line) { return '<div>' + line.replace(/</g, '&lt;') + '</div>'; });
             if (status.last_error) lines.push('<div style="color:#fca5a5;">Error: ' + status.last_error.replace(/</g, '&lt;') + '</div>');
             consoleEl.innerHTML = lines.length ? lines.slice(-50).join('') : 'No bot activity yet. Click Run bot.';
@@ -108,8 +142,13 @@
         document.getElementById('stop-bot').addEventListener('click', function() { request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:false})}).then(function() { poll(); }).catch(function(error) { consoleEl.textContent = error.message; }); });
         document.getElementById('save-settings').addEventListener('click', function() {
             var status = document.getElementById('save-status');
-            var payload = {bot_enabled:checked('bot-enabled'), chat_prefix:value('chat-prefix') || '!', response_delay:Number(value('response-delay')) || 0, join_message:value('join-message'), command_cooldown:Number(value('command-cooldown')) || 0, command_user_cooldown:Number(value('command-user-cooldown')) || 0, command_permission_default:value('command-permission'), auto_greet_new_viewers:checked('auto-greet'), spam_filter_enabled:checked('spam-filter'), link_filter_enabled:checked('link-filter'), caps_filter_enabled:checked('caps-filter')};
-            request('/api/channels/' + channelId + '/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}).then(function() { status.textContent = 'Saved'; setTimeout(function() { status.textContent = ''; }, 2500); }).catch(function(error) { status.textContent = error.message; status.style.color = '#dc2626'; });
+            var payload;
+            try {
+                payload = {bot_enabled:checked('bot-enabled'), chat_prefix:value('chat-prefix') || '!', response_delay:Number(value('response-delay')) || 0, live_search_interval:Number(value('live-search-interval')) || 10, join_message:value('join-message'), command_cooldown:Number(value('command-cooldown')) || 0, command_user_cooldown:Number(value('command-user-cooldown')) || 0, command_permission_default:value('command-permission'), auto_greet_new_viewers:checked('auto-greet'), spam_filter_enabled:checked('spam-filter'), link_filter_enabled:checked('link-filter'), caps_filter_enabled:checked('caps-filter'), viewer_loyalty_tracking:checked('loyalty-enabled'), loyalty_points_per_minute:Number(value('points-per-minute')) || 0, gambling_enabled:checked('gambling-enabled'), timed_messages_enabled:checked('timers-enabled'), custom_commands:JSON.parse(value('custom-commands')), timed_messages:JSON.parse(value('timed-messages'))};
+            } catch (error) { status.textContent = 'Commands and timers must contain valid JSON.'; status.style.color = '#dc2626'; return; }
+            var updates = [];
+            document.querySelectorAll('[data-command-name]').forEach(function(row) { updates.push({name:row.dataset.commandName, enabled:row.querySelector('.builtin-enabled').checked, cooldown:Number(row.querySelector('.builtin-cooldown').value) || 0}); });
+            request('/api/channels/' + channelId + '/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}).then(function() { return request('/api/channels/' + channelId + '/builtin-commands', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({commands:updates})}); }).then(function() { status.textContent = 'Saved'; status.style.color = '#059669'; setTimeout(function() { status.textContent = ''; }, 2500); }).catch(function(error) { status.textContent = error.message; status.style.color = '#dc2626'; });
         });
         poll();
         setInterval(poll, 2500);

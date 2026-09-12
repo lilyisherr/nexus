@@ -2,6 +2,7 @@ import threading
 import time
 import json
 import logging
+import random
 import requests
 from datetime import datetime, timedelta
 
@@ -30,10 +31,18 @@ class BotInstance:
         self.chat_id = None
         self.stream_title = None
         self.stream_start_time = None
+        self.video_id = None
+        self.live_thumbnail = None
+        self.live_viewers = 0
+        self.live_likes = 0
+        self.live_description = ''
         self.messages_processed = 0
         self.last_error = None
         self.started_at = None
         self.command_cooldowns = {}
+        self.active_viewers = set()
+        self.last_watch_award = time.time()
+        self.last_timer_run = time.time()
         self.logs = []
 
     def _log(self, message):
@@ -101,30 +110,30 @@ class BotInstance:
             if resp.status_code == 401:
                 if self._refresh_access_token():
                     return self._find_live_stream()
-                return None, None, None, None
+                return None, None, None, None, None
 
             if resp.status_code != 200:
-                return None, None, None, None
+                return None, None, None, None, None
 
             data = resp.json()
             if not data.get('items'):
                 self._log('No live stream found; will check again soon.')
-                return None, None, None, None
+                return None, None, None, None, None
 
             video_id = data['items'][0]['id']['videoId']
             title = data['items'][0]['snippet']['title']
 
             vid_resp = requests.get(
                 'https://www.googleapis.com/youtube/v3/videos',
-                params={'part': 'liveStreamingDetails,snippet', 'id': video_id},
+                params={'part': 'liveStreamingDetails,snippet,statistics', 'id': video_id},
                 headers=self._api_headers()
             )
             if vid_resp.status_code != 200:
-                return None, None, None, None
+                return None, None, None, None, None
 
             vid_data = vid_resp.json()
             if not vid_data.get('items'):
-                return None, None, None, None
+                return None, None, None, None, None
 
             item = vid_data['items'][0]
             chat_id = item.get('liveStreamingDetails', {}).get('activeLiveChatId')
@@ -134,12 +143,18 @@ class BotInstance:
                 start_time = datetime.strptime(start_str, "%Y-%m-%dT%H:%M:%SZ")
 
             self._log(f"Live stream found: {title}")
-            return chat_id, title, start_time, video_id
+            metadata = {
+                'thumbnail': item.get('snippet', {}).get('thumbnails', {}).get('high', {}).get('url') or item.get('snippet', {}).get('thumbnails', {}).get('default', {}).get('url'),
+                'viewers': int(item.get('liveStreamingDetails', {}).get('concurrentViewers') or 0),
+                'likes': int(item.get('statistics', {}).get('likeCount') or 0),
+                'description': item.get('snippet', {}).get('description') or '',
+            }
+            return chat_id, title, start_time, video_id, metadata
         except Exception as e:
             self.last_error = str(e)
             self._log(f"Live search failed: {e}")
             logger.error(f"Error finding live stream for channel {self.channel_id}: {e}")
-            return None, None, None, None
+            return None, None, None, None, None
 
     def _send_live_notification(self, stream_title, video_id):
         try:
@@ -399,6 +414,10 @@ class BotInstance:
             return
         cmd = parts[0].lower()
 
+        if cmd == 'gamble' and self.bot_settings.get('gambling_enabled'):
+            self._process_gamble(author_id, author, parts)
+            return
+
         builtin_cmds = self._get_builtin_commands()
         builtin_map = {bc['name']: bc for bc in builtin_cmds}
 
@@ -431,6 +450,116 @@ class BotInstance:
             if response:
                 self._respond_with_delay(response)
 
+    def _process_gamble(self, author_id, author, parts):
+        try:
+            wager = max(1, int(parts[1])) if len(parts) > 1 else 10
+        except (TypeError, ValueError):
+            self._respond_with_delay(f'{author}, enter a whole-number wager.')
+            return
+        try:
+            from app import app, db, ChatUser
+            with app.app_context():
+                viewer = ChatUser.query.filter_by(channel_id=self.channel_id, youtube_user_id=author_id).first()
+                if not viewer or viewer.loyalty_points < wager:
+                    self._respond_with_delay(f'{author}, you do not have enough loyalty points.')
+                    return
+                if random.random() < 0.5:
+                    viewer.loyalty_points += wager
+                    viewer.gambling_wins += 1
+                    result = f'{author} won {wager} points.'
+                else:
+                    viewer.loyalty_points -= wager
+                    viewer.gambling_losses += 1
+                    result = f'{author} lost {wager} points.'
+                db.session.commit()
+                self._respond_with_delay(result)
+        except Exception as exc:
+            self._log(f'Gamble update failed: {exc}')
+
+    def _record_viewer(self, author_id, author):
+        self.active_viewers.add(author_id)
+        try:
+            from app import app, db, ChatUser
+            with app.app_context():
+                viewer = ChatUser.query.filter_by(channel_id=self.channel_id, youtube_user_id=author_id).first()
+                if not viewer:
+                    viewer = ChatUser(channel_id=self.channel_id, youtube_user_id=author_id, username=author, display_name=author)
+                    db.session.add(viewer)
+                viewer.username = author
+                viewer.display_name = author
+                viewer.messages_sent = (viewer.messages_sent or 0) + 1
+                viewer.last_seen = datetime.utcnow()
+                db.session.commit()
+        except Exception as exc:
+            self._log(f'Viewer tracking failed: {exc}')
+
+    def _award_watchtime(self):
+        now = time.time()
+        if now - self.last_watch_award < 60 or not self.active_viewers:
+            return
+        self.last_watch_award = now
+        try:
+            from app import app, db, ChatUser
+            with app.app_context():
+                from app import ChannelBotSettings
+                settings = ChannelBotSettings.query.filter_by(channel_id=self.channel_id).first()
+                points = settings.loyalty_points_per_minute if settings and settings.viewer_loyalty_tracking else 0
+                viewers = ChatUser.query.filter(
+                    ChatUser.channel_id == self.channel_id,
+                    ChatUser.youtube_user_id.in_(list(self.active_viewers)),
+                ).all()
+                for viewer in viewers:
+                    viewer.watchtime_minutes = (viewer.watchtime_minutes or 0) + 1
+                    if points:
+                        viewer.loyalty_points = (viewer.loyalty_points or 0) + points
+                db.session.commit()
+        except Exception as exc:
+            self._log(f'Watchtime update failed: {exc}')
+
+    def _process_timers(self):
+        if not self.is_live or time.time() - self.last_timer_run < 5:
+            return
+        self.last_timer_run = time.time()
+        if not self.bot_settings.get('timed_messages_enabled'):
+            return
+        raw_timers = self.bot_settings.get('timed_messages', [])
+        if isinstance(raw_timers, str):
+            try:
+                raw_timers = json.loads(raw_timers)
+            except Exception:
+                raw_timers = []
+        for timer in raw_timers if isinstance(raw_timers, list) else []:
+            if not isinstance(timer, dict) or timer.get('enabled', True) is False:
+                continue
+            interval = max(30, int(timer.get('interval', 300) or 300))
+            key = str(timer.get('id') or timer.get('message') or '')
+            last_sent = getattr(self, '_timer_times', {}).get(key, 0)
+            if key and time.time() - last_sent >= interval and timer.get('message'):
+                self._respond_with_delay(str(timer['message']))
+                if not hasattr(self, '_timer_times'):
+                    self._timer_times = {}
+                self._timer_times[key] = time.time()
+
+    def _refresh_live_metadata(self):
+        if not self.video_id:
+            return
+        try:
+            response = requests.get(
+                'https://www.googleapis.com/youtube/v3/videos',
+                params={'part': 'liveStreamingDetails,snippet,statistics', 'id': self.video_id},
+                headers=self._api_headers(),
+                timeout=10,
+            )
+            if response.status_code != 200 or not response.json().get('items'):
+                return
+            item = response.json()['items'][0]
+            self.live_viewers = int(item.get('liveStreamingDetails', {}).get('concurrentViewers') or 0)
+            self.live_likes = int(item.get('statistics', {}).get('likeCount') or 0)
+            self.live_description = item.get('snippet', {}).get('description') or ''
+            self.live_thumbnail = item.get('snippet', {}).get('thumbnails', {}).get('high', {}).get('url') or self.live_thumbnail
+        except Exception as exc:
+            self._log(f'Live metadata refresh failed: {exc}')
+
     def _run(self):
         self.started_at = datetime.utcnow()
         self._log('Bot started and is watching for a live stream.')
@@ -440,12 +569,17 @@ class BotInstance:
         while self.running:
             try:
                 if not self.is_live:
-                    chat_id, title, start_time, video_id = self._find_live_stream()
+                    chat_id, title, start_time, video_id, metadata = self._find_live_stream()
                     if chat_id:
                         self.is_live = True
                         self.chat_id = chat_id
                         self.stream_title = title
                         self.stream_start_time = start_time
+                        self.video_id = video_id
+                        self.live_thumbnail = (metadata or {}).get('thumbnail')
+                        self.live_viewers = (metadata or {}).get('viewers', 0)
+                        self.live_likes = (metadata or {}).get('likes', 0)
+                        self.live_description = (metadata or {}).get('description', '')
                         page_token = None
                         logger.info(f"Live stream detected: {title}")
                         self._log('Connected to live chat and ready for commands.')
@@ -461,7 +595,8 @@ class BotInstance:
                         if join_msg:
                             self._respond_with_delay(join_msg)
                     else:
-                        time.sleep(OFFLINE_CHECK_INTERVAL)
+                        interval = max(5, int(self.bot_settings.get('live_search_interval', OFFLINE_CHECK_INTERVAL) or OFFLINE_CHECK_INTERVAL))
+                        time.sleep(interval)
                         continue
 
                 items, page_token, interval = self._poll_messages(page_token)
@@ -472,6 +607,11 @@ class BotInstance:
                     self.chat_id = None
                     self.stream_title = None
                     self.stream_start_time = None
+                    self.video_id = None
+                    self.live_thumbnail = None
+                    self.live_viewers = 0
+                    self.live_likes = 0
+                    self.live_description = ''
                     continue
 
                 if items:
@@ -480,6 +620,7 @@ class BotInstance:
                         msg = item['snippet']['displayMessage']
                         author = item['authorDetails']['displayName']
                         author_id = item['authorDetails']['channelId']
+                        self._record_viewer(author_id, author)
 
                         violation = self._apply_moderation(msg, author)
                         if violation:
@@ -489,6 +630,11 @@ class BotInstance:
                             continue
 
                         self._process_command(msg, author, author_id)
+
+                self._award_watchtime()
+                self._process_timers()
+                if self.is_live and int(time.time()) % 30 < 3:
+                    self._refresh_live_metadata()
 
                 time.sleep(interval)
 
@@ -517,6 +663,11 @@ class BotInstance:
             'running': self.running,
             'is_live': self.is_live,
             'stream_title': self.stream_title,
+            'stream_start_time': self.stream_start_time.isoformat() if self.stream_start_time else None,
+            'live_thumbnail': self.live_thumbnail,
+            'live_viewers': self.live_viewers,
+            'live_likes': self.live_likes,
+            'live_description': self.live_description,
             'messages_processed': self.messages_processed,
             'last_error': self.last_error,
             'started_at': self.started_at.isoformat() if self.started_at else None,
