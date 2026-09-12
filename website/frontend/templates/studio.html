@@ -143,6 +143,10 @@
     var logBox = document.getElementById('studio-log');
     var stream = null;
     var channelSelect = document.getElementById('studio-channel');
+    var broadcastReady = false;
+
+    var requestedChannel = new URLSearchParams(window.location.search).get('channel');
+    if (requestedChannel && channelSelect) channelSelect.value = requestedChannel;
 
     function log(message) {
         if (!logBox) return;
@@ -207,17 +211,18 @@
     }
     function createBroadcast() {
         var id = channelSelect.value;
-        api('/api/channels/' + id + '/broadcast', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+        return api('/api/channels/' + id + '/broadcast', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
             title:value('stream-title'), description:value('stream-description'), privacy_status:value('stream-privacy'),
             stream_bitrate:value('stream-bitrate'), stream_resolution:value('stream-resolution'), stream_frame_rate:value('stream-frame-rate')
         })}).then(function(data) {
+            broadcastReady = true;
             var details = document.getElementById('ingest-details');
             details.style.display = 'block';
             details.textContent = 'RTMP server: ' + data.channel.stream_ingest_url + '\nStream key: ' + data.channel.stream_key;
             log('YouTube broadcast created. RTMP ingest is ready.');
             var file = document.getElementById('stream-thumbnail').files[0];
             if (file) { var form = new FormData(); form.append('thumbnail', file); return api('/api/channels/' + id + '/broadcast/thumbnail', {method:'POST', body:form}); }
-        }).then(function() { log('Broadcast settings saved.'); }).catch(function(error) { log('Create failed: ' + error.message); });
+        }).then(function() { log('Broadcast settings saved.'); });
     }
     function transition(target) {
         api('/api/channels/' + channelSelect.value + '/broadcast/transition', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:target})}).then(function() {
@@ -232,8 +237,13 @@
     document.getElementById('preview-window').addEventListener('click', function() { startDisplay('Window', {video:true, audio:true, selfBrowserSurface:'exclude'}); });
     document.getElementById('preview-stop').addEventListener('click', stopPreview);
     document.getElementById('load-devices').addEventListener('click', loadDevices);
-    document.getElementById('studio-create').addEventListener('click', createBroadcast);
-    document.getElementById('studio-live').addEventListener('click', function() { transition('live'); });
+    document.getElementById('studio-create').addEventListener('click', function() {
+        createBroadcast().catch(function(error) { log('Create failed: ' + error.message); });
+    });
+    document.getElementById('studio-live').addEventListener('click', function() {
+        var action = broadcastReady ? Promise.resolve() : createBroadcast();
+        action.then(function() { transition('live'); }).catch(function(error) { log('Go Live setup failed: ' + error.message); });
+    });
     document.getElementById('studio-end').addEventListener('click', function() { transition('complete'); });
     document.getElementById('overlay-file').addEventListener('change', function() {
         var file = this.files[0], image = document.getElementById('overlay-image');

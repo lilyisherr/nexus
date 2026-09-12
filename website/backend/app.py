@@ -2031,7 +2031,11 @@ def manage_channel_broadcast(channel_id):
                 params={'part': 'snippet,status,contentDetails'},
                 headers=headers,
                 json={
-                    'snippet': {'title': title, 'description': description},
+                    'snippet': {
+                        'title': title,
+                        'description': description,
+                        'scheduledStartTime': (datetime.utcnow() + timedelta(minutes=1)).isoformat() + 'Z',
+                    },
                     'status': {'privacyStatus': privacy, 'selfDeclaredMadeForKids': False},
                     'contentDetails': {'enableAutoStart': True, 'enableAutoStop': True, 'recordFromStart': True},
                 },
@@ -3363,7 +3367,7 @@ def channel_settings(channel_id):
     channel = Channel.query.filter_by(id=channel_id, user_id=session['user_id']).first()
     if not channel:
         return redirect('/dashboard')
-    return redirect('/dashboard#broadcast-console')
+    return redirect('/dashboard#bot-console')
 
 
 @app.route('/robots.txt')
