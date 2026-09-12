@@ -97,6 +97,8 @@
                 <button class="studio-button" type="button" id="preview-screen"><i class="fas fa-desktop"></i> Share screen</button>
                 <button class="studio-button" type="button" id="preview-window"><i class="fas fa-window-maximize"></i> Share window</button>
                 <button class="studio-button" type="button" id="preview-stop"><i class="fas fa-stop"></i> Stop preview</button>
+                <button class="studio-button live" type="button" id="encoder-start"><i class="fas fa-satellite-dish"></i> Start Nexus encoder</button>
+                <button class="studio-button end" type="button" id="encoder-stop"><i class="fas fa-stop-circle"></i> Stop encoder</button>
                 <span class="transport-status" id="studio-status">Preview offline</span>
             </div>
         </section>
@@ -144,6 +146,8 @@
     var stream = null;
     var channelSelect = document.getElementById('studio-channel');
     var broadcastReady = false;
+    var mediaRecorder = null;
+    var encoderRunning = false;
 
     var requestedChannel = new URLSearchParams(window.location.search).get('channel');
     if (requestedChannel && channelSelect) channelSelect.value = requestedChannel;
@@ -171,6 +175,50 @@
         if (status) status.textContent = 'Preview offline';
         if (empty) empty.style.display = '';
         log('Preview stopped.');
+    }
+
+    function encoderRequest(path, options) {
+        return fetch(path, Object.assign({credentials:'same-origin'}, options || {})).then(function(response) {
+            return response.json().then(function(data) {
+                if (!response.ok || data.error) throw new Error(data.error || 'Encoder request failed');
+                return data;
+            });
+        });
+    }
+
+    function startEncoder() {
+        if (!stream) {
+            log('Start a camera, screen, or window preview before starting the encoder.');
+            return Promise.reject(new Error('No capture source selected.'));
+        }
+        var mime = ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9,opus', 'video/webm'].find(function(type) { return MediaRecorder.isTypeSupported(type); });
+        if (!mime) return Promise.reject(new Error('This browser cannot create a WebM media stream.'));
+        return encoderRequest('/api/channels/' + channelSelect.value + '/encoder/start', {
+            method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bitrate:value('stream-bitrate')})
+        }).then(function() {
+            mediaRecorder = new MediaRecorder(stream, {mimeType:mime, videoBitsPerSecond:Number(value('stream-bitrate') || 6000) * 1000});
+            mediaRecorder.ondataavailable = function(event) {
+                if (!event.data || !event.data.size || !encoderRunning) return;
+                event.data.arrayBuffer().then(function(buffer) {
+                    return encoderRequest('/api/channels/' + channelSelect.value + '/encoder/chunk', {method:'POST', headers:{'Content-Type':'application/octet-stream'}, body:buffer});
+                }).catch(function(error) { log('Encoder chunk failed: ' + error.message); });
+            };
+            mediaRecorder.onerror = function() { log('Browser media recorder failed.'); };
+            encoderRunning = true;
+            mediaRecorder.start(1000);
+            status.textContent = 'Nexus FFmpeg encoder active';
+            log('Nexus FFmpeg encoder started. Sending H.264/AAC to YouTube RTMP.');
+        });
+    }
+
+    function stopEncoder() {
+        encoderRunning = false;
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+        mediaRecorder = null;
+        return encoderRequest('/api/channels/' + channelSelect.value + '/encoder/stop', {method:'POST'}).then(function() {
+            status.textContent = 'Preview active';
+            log('Nexus FFmpeg encoder stopped.');
+        }).catch(function(error) { log('Encoder stop failed: ' + error.message); });
     }
     function startPreview(constraints, label) {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { log('Browser media capture is unavailable.'); return; }
@@ -225,7 +273,11 @@
         }).then(function() { log('Broadcast settings saved.'); });
     }
     function transition(target) {
-        api('/api/channels/' + channelSelect.value + '/broadcast/transition', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:target})}).then(function() {
+        api('/api/channels/' + channelSelect.value + '/broadcast/transition', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:target})}).then(function(data) {
+            if (data.waiting_for_encoder) {
+                log('Broadcast armed. Waiting for OBS, Streamlabs, or another RTMP encoder. YouTube will auto-start when media arrives.');
+                return;
+            }
             log(target === 'live' ? 'YouTube broadcast started.' : 'YouTube broadcast ended.');
         }).catch(function(error) { log('Broadcast action failed: ' + error.message); });
     }
@@ -236,6 +288,8 @@
     document.getElementById('preview-screen').addEventListener('click', function() { startDisplay('Screen', {video:true, audio:true}); });
     document.getElementById('preview-window').addEventListener('click', function() { startDisplay('Window', {video:true, audio:true, selfBrowserSurface:'exclude'}); });
     document.getElementById('preview-stop').addEventListener('click', stopPreview);
+    document.getElementById('encoder-start').addEventListener('click', function() { startEncoder().catch(function(error) { log('Encoder start failed: ' + error.message); }); });
+    document.getElementById('encoder-stop').addEventListener('click', stopEncoder);
     document.getElementById('load-devices').addEventListener('click', loadDevices);
     document.getElementById('studio-create').addEventListener('click', function() {
         createBroadcast().catch(function(error) { log('Create failed: ' + error.message); });

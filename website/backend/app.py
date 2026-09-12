@@ -17,6 +17,7 @@ from functools import wraps
 import requests
 from dotenv import load_dotenv
 from bot_manager import bot_manager
+from media_encoder import encoder_manager
 from bot_dashboard import bot_bp
 from admin_dashboard import admin_bp
 from changelog_data import changelog_data
@@ -2092,7 +2093,21 @@ def transition_channel_broadcast(channel_id):
         timeout=20,
     )
     if response.status_code != 200:
-        return jsonify({'error': _youtube_api_error(response)}), response.status_code
+        error_text = _youtube_api_error(response)
+        normalized_error = error_text.lower()
+        if target == 'live' and response.status_code in (400, 403) and any(
+            phrase in normalized_error for phrase in ('not active', 'no stream', 'stream is not', 'live stream is not active')
+        ):
+            channel.broadcast_status = 'waiting_for_encoder'
+            db.session.commit()
+            return jsonify({
+                'ok': True,
+                'status': 'waiting_for_encoder',
+                'waiting_for_encoder': True,
+                'message': 'Broadcast armed. Start your encoder with the RTMP settings and YouTube will go live automatically.',
+                'channel': channel.to_dict(),
+            }), 202
+        return jsonify({'error': error_text}), response.status_code
     channel.broadcast_status = target
     db.session.commit()
     return jsonify({'ok': True, 'status': target, 'channel': channel.to_dict()})
@@ -2119,6 +2134,60 @@ def upload_channel_broadcast_thumbnail(channel_id):
     if response.status_code != 200:
         return jsonify({'error': _youtube_api_error(response)}), response.status_code
     return jsonify({'ok': True})
+
+
+@app.route('/api/channels/<int:channel_id>/encoder/start', methods=['POST'])
+@login_required
+def start_channel_encoder(channel_id):
+    user = User.query.get(session['user_id'])
+    channel = Channel.query.filter_by(id=channel_id, user_id=user.id).first()
+    if not channel:
+        return jsonify({'error': 'Channel not found'}), 404
+    if not channel.stream_ingest_url or not channel.stream_key:
+        return jsonify({'error': 'Create a YouTube broadcast first so Nexus has an RTMP destination.'}), 400
+    data = request.get_json(silent=True) or {}
+    try:
+        bitrate = int(data.get('bitrate') or channel.stream_bitrate or 6000)
+        rtmp_url = channel.stream_ingest_url.rstrip('/') + '/' + channel.stream_key.strip()
+        status = encoder_manager.start(channel.id, rtmp_url, bitrate)
+        return jsonify({'ok': True, 'encoder': status})
+    except (RuntimeError, ValueError) as exc:
+        return jsonify({'error': str(exc)}), 503
+
+
+@app.route('/api/channels/<int:channel_id>/encoder/chunk', methods=['POST'])
+@login_required
+def write_channel_encoder_chunk(channel_id):
+    user = User.query.get(session['user_id'])
+    if not Channel.query.filter_by(id=channel_id, user_id=user.id).first():
+        return jsonify({'error': 'Channel not found'}), 404
+    chunk = request.get_data(cache=False)
+    if not chunk:
+        return jsonify({'error': 'Empty media chunk'}), 400
+    try:
+        encoder_manager.write(channel_id, chunk)
+        return jsonify({'ok': True})
+    except RuntimeError as exc:
+        return jsonify({'error': str(exc)}), 503
+
+
+@app.route('/api/channels/<int:channel_id>/encoder/stop', methods=['POST'])
+@login_required
+def stop_channel_encoder(channel_id):
+    user = User.query.get(session['user_id'])
+    if not Channel.query.filter_by(id=channel_id, user_id=user.id).first():
+        return jsonify({'error': 'Channel not found'}), 404
+    encoder_manager.stop(channel_id)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/channels/<int:channel_id>/encoder/status', methods=['GET'])
+@login_required
+def channel_encoder_status(channel_id):
+    user = User.query.get(session['user_id'])
+    if not Channel.query.filter_by(id=channel_id, user_id=user.id).first():
+        return jsonify({'error': 'Channel not found'}), 404
+    return jsonify(encoder_manager.status(channel_id))
 
 
 @app.route('/api/channels/<int:channel_id>/stream-config', methods=['POST', 'PUT'])
