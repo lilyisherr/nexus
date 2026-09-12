@@ -115,7 +115,6 @@
         .card-h h3 { font-size: 14px; font-weight: 700; margin: 0; }
         .card-b { padding: 16px 18px; }
 
-        /* Bot control */
         .bot-row {
             display: flex; align-items: center; gap: 14px;
         }
@@ -261,32 +260,6 @@
 
         <div class="main-grid">
             <div>
-                <!-- Bot control -->
-                <div class="card">
-                    <div class="card-h"><h3>Bot Control</h3></div>
-                    <div class="card-b">
-                        <div class="bot-row">
-                            <div class="bot-status off" id="bot-status-ring">
-                                <div class="dot"></div>
-                            </div>
-                            <div class="bot-meta">
-                                <strong id="bot-status-label">YouTube bot</strong>
-                                <span id="bot-status-help">Choose a channel and run one bot instance from here.</span>
-                            </div>
-                            {% if channels %}
-                            <select id="bot-channel-select" style="max-width:180px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
-                                {% for ch in channels %}<option value="{{ ch.id }}">{{ ch.channel_name }}</option>{% endfor %}
-                            </select>
-                            <button type="button" class="btn-studio" id="run-selected-bot"><i class="fas fa-play"></i> Run</button>
-                            <button type="button" class="btn-ghost" id="stop-selected-bot"><i class="fas fa-stop"></i> Stop</button>
-                            {% endif %}
-                        </div>
-                        <div id="bot-console" style="margin-top:16px;background:#0f172a;border-radius:10px;padding:12px;color:#cbd5e1;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;min-height:88px;max-height:180px;overflow:auto;">
-                            <div style="color:#94a3b8;">Waiting for a channel. Click Run to start the YouTube bot.</div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Channels -->
                 <div class="card">
                     <div class="card-h">
@@ -354,94 +327,30 @@
     <div class="toast" id="toast-el"></div>
 
     <script>
-        function showToast(msg, type) {
-            var t = document.getElementById('toast-el');
-            t.textContent = msg;
-            t.className = 'toast ' + type + ' show';
-            setTimeout(function() { t.classList.remove('show'); }, 2800);
-        }
-
-        function renderBotConsole(statuses) {
-            var consoleEl = document.getElementById('bot-console');
-            if (!consoleEl) return;
-            var lines = [];
-            (statuses || []).forEach(function(status) {
-                lines = lines.concat((status.logs || []).map(function(line) {
-                    return '<div><span style="color:#64748b;">[' + (status.channel_name || 'Channel') + ']</span> ' + line.replace(/</g, '&lt;') + '</div>';
-                }));
-                if (status.last_error) {
-                    lines.push('<div style="color:#fca5a5;">[' + (status.channel_name || 'Channel') + '] Error: ' + status.last_error.replace(/</g, '&lt;') + '</div>');
-                }
-            });
-            consoleEl.innerHTML = lines.length ? lines.slice(-40).join('') : '<div style="color:#94a3b8;">Bot is stopped. Click Run to search for a live stream.</div>';
-            consoleEl.scrollTop = consoleEl.scrollHeight;
-        }
-
-        function startChannelBot(channelId) {
-            var button = document.getElementById('run-selected-bot');
-            if (button) button.disabled = true;
-            fetch('/api/channels/' + channelId + '/bot/toggle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify({ enabled: true })
-            }).then(function(response) {
-                return response.json().then(function(data) {
-                    if (!response.ok || data.error) throw new Error(data.error || 'Bot could not start');
-                    return data;
-                });
-            }).then(function() {
-                showToast('YouTube bot started', 'success');
-                pollLiveStatus();
-            }).catch(function(error) {
-                showToast(error.message, 'error');
-            }).finally(function() {
-                if (button) button.disabled = false;
-            });
-        }
-
         function pollLiveStatus() {
             fetch('/api/bot/status', { credentials: 'same-origin' })
-            .then(function(r) {
-                return r.json().then(function(data) {
-                    if (!r.ok || data.error) throw new Error(data.error || 'Status unavailable');
-                    return data;
-                });
-        function stopChannelBot(channelId) {
-            fetch('/api/channels/' + channelId + '/bot/toggle', {
-                var dot = document.getElementById('live-dot');
-                var title = document.getElementById('live-title');
-                var sub = document.getElementById('live-sub');
-                    body: JSON.stringify({ enabled: false })
-                if (!dot || !title || !sub) return;
-                .then(function(r) { return r.json().then(function(data) {
-                    if (!r.ok || data.error) throw new Error(data.error || 'Bot could not stop');
-                    return data;
-                }); })
-                .then(function() {
-                    showToast('YouTube bot stopped', 'success');
-                        msgs.textContent = liveChannel.messages_processed + ' msgs';
+                .then(function(response) { return response.ok ? response.json() : null; })
+                .then(function(data) {
+                    if (!data || !data.channels) return;
+                    var liveChannel = data.channels.find(function(channel) { return channel.is_live; });
+                    var dot = document.getElementById('live-dot');
+                    var title = document.getElementById('live-title');
+                    var sub = document.getElementById('live-sub');
+                    var msgs = document.getElementById('live-msgs');
+                    if (!dot || !title || !sub) return;
+                    if (liveChannel) {
+                        dot.className = 'live-dot on';
+                        title.textContent = liveChannel.stream_title || 'Live stream';
+                        sub.textContent = (liveChannel.channel_name || '') + ' is live';
+                        if (msgs) { msgs.style.display = ''; msgs.textContent = (liveChannel.messages_processed || 0) + ' messages'; }
+                    } else {
+                        dot.className = 'live-dot';
+                        var running = data.channels.some(function(channel) { return channel.running; });
+                        title.textContent = running ? 'Bot monitoring channels' : 'No channel is live';
+                        sub.textContent = running ? 'Open channel bot settings for search logs' : 'Use a channel bot settings page to run the bot';
+                        if (msgs) msgs.style.display = 'none';
                     }
-                .catch(function(error) { showToast(error.message, 'error'); });
-        }
-
-        var selectedBotChannel = document.getElementById('bot-channel-select');
-        var runSelectedBot = document.getElementById('run-selected-bot');
-        var stopSelectedBot = document.getElementById('stop-selected-bot');
-        var requestedBotChannel = new URLSearchParams(window.location.search).get('channel');
-        if (requestedBotChannel && selectedBotChannel) selectedBotChannel.value = requestedBotChannel;
-        if (runSelectedBot && selectedBotChannel) {
-            runSelectedBot.addEventListener('click', function() { startChannelBot(selectedBotChannel.value); });
-        }
-        if (stopSelectedBot && selectedBotChannel) {
-            stopSelectedBot.addEventListener('click', function() { stopChannelBot(selectedBotChannel.value); });
-                    var anyRunning = d.channels && d.channels.some(function(ch) { return ch.running; });
-                    title.textContent = anyRunning ? 'Watching for your live stream…' : 'Bot not running';
-                    sub.textContent = anyRunning ? 'Detects within ~30s of going live' : 'Enable the bot to start monitoring';
-                    if (msgs) msgs.style.display = 'none';
-                }
-            })
-            .catch(function() {});
+                }).catch(function() {});
         }
         pollLiveStatus();
         setInterval(pollLiveStatus, 15000);

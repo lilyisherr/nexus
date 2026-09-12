@@ -83,37 +83,52 @@ def assign_admin():
 @admin_bp.route('/')
 @admin_required
 def dashboard():
-    return redirect('/dashboard#overview', code=302)
+    from app import User, Channel, ChannelBotSettings, StreamSession, BlogPost, BotContactMessage
+    now = datetime.utcnow()
+    week_ago = now - timedelta(days=7)
+    recent_streams = StreamSession.query.order_by(StreamSession.start_time.desc()).limit(8).all()
+    return render_template(
+        'admin/dashboard.html',
+        user_count=User.query.count(),
+        channel_count=Channel.query.count(),
+        currently_live_count=StreamSession.query.filter(StreamSession.end_time.is_(None)).count(),
+        new_users_week=User.query.filter(User.created_at >= week_ago).count(),
+        active_bots=ChannelBotSettings.query.filter_by(bot_enabled=True).count(),
+        admin_count=User.query.filter_by(is_admin=True).count(),
+        blog_count=BlogPost.query.count(),
+        unread_messages=BotContactMessage.query.filter_by(read=False).count(),
+        recent_streams=recent_streams,
+    )
 
 
 @admin_bp.route('/overview')
 @admin_required
 def admin_overview():
-    return redirect('/dashboard#overview', code=302)
+    return dashboard()
 
 
 @admin_bp.route('/legacy')
 @admin_required
 def legacy_dashboard():
-    return redirect('/dashboard#overview', code=302)
+    return dashboard()
 
 
 @admin_bp.route('/panel')
 @admin_required
 def admin_panel():
-    return redirect('/dashboard#overview', code=302)
+    return dashboard()
 
 
 @admin_bp.route('/workspace')
 @admin_required
 def admin_workspace():
-    return redirect('/dashboard#overview', code=302)
+    return dashboard()
 
 
 @admin_bp.route('/dashboard')
 @admin_required
 def legacy_dashboard_alias():
-    return redirect('/dashboard#overview', code=302)
+    return dashboard()
 @admin_bp.route('/users')
 @admin_required
 def users():
