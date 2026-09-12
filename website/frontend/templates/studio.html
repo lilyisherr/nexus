@@ -1,95 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Studio – Coming Soon</title>
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#9146ff">
+    <title>Nexus Studio</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { background: #0e0e10; color: #efeff1; margin: 0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
-        .studio-hero {
-            max-width: 720px; margin: 0 auto; padding: 80px 24px;
-            text-align: center;
-        }
-        .studio-icon {
-            width: 88px; height: 88px; border-radius: 20px;
-            background: linear-gradient(135deg, #9146ff, #772ce8);
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 28px; font-size: 36px; color: #fff;
-            box-shadow: 0 12px 40px rgba(145, 70, 255, 0.4);
-        }
-        h1 { font-size: 32px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.5px; }
-        .subtitle { font-size: 16px; color: #adadb8; line-height: 1.5; margin-bottom: 32px; }
-        .badge {
-            display: inline-block; font-size: 12px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            background: rgba(145,70,255,0.2); color: #bf94ff;
-            padding: 6px 14px; border-radius: 20px; margin-bottom: 20px;
-        }
-        .features {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-            text-align: left; margin: 40px 0;
-        }
-        @media (max-width: 640px) { .features { grid-template-columns: 1fr; } }
-        .feat {
-            background: #18181b; border: 1px solid #2a2a2e; border-radius: 12px;
-            padding: 18px;
-        }
-        .feat i { color: #9146ff; font-size: 20px; margin-bottom: 10px; display: block; }
-        .feat strong { font-size: 14px; display: block; margin-bottom: 4px; }
-        .feat p { font-size: 12px; color: #adadb8; margin: 0; line-height: 1.4; }
-        .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 12px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
-            text-decoration: none; border: none; cursor: pointer;
-        }
-        .btn-primary { background: #9146ff; color: #fff; }
-        .btn-primary:hover { background: #772ce8; color: #fff; }
-        .btn-ghost { background: transparent; border: 1px solid #3f3f46; color: #adadb8; }
-        .btn-ghost:hover { border-color: #9146ff; color: #bf94ff; }
+        :root { --studio-bg:#0b0d12; --studio-panel:#141820; --studio-panel-2:#1b202b; --studio-border:#2b3340; --studio-text:#eef2f7; --studio-muted:#8e99a8; --studio-accent:#f04f78; --studio-green:#22c55e; }
+        * { box-sizing:border-box; }
+        body { margin:0; background:var(--studio-bg); color:var(--studio-text); font-family:Inter,system-ui,sans-serif; }
+        .studio-shell { min-height:100vh; display:flex; flex-direction:column; }
+        .studio-topbar { height:64px; padding:0 18px; display:flex; align-items:center; gap:18px; border-bottom:1px solid var(--studio-border); background:#10131a; }
+        .studio-brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.04em; }
+        .studio-brand i { color:var(--studio-accent); }
+        .studio-channel { margin-left:auto; display:flex; align-items:center; gap:8px; color:var(--studio-muted); font-size:12px; }
+        .studio-select { min-width:170px; background:var(--studio-panel-2); color:var(--studio-text); border:1px solid var(--studio-border); border-radius:6px; padding:8px 10px; }
+        .studio-button { border:1px solid var(--studio-border); background:var(--studio-panel-2); color:var(--studio-text); border-radius:6px; padding:9px 13px; cursor:pointer; font-weight:700; font-size:12px; }
+        .studio-button:hover { border-color:#6f7b8c; }
+        .studio-button.live { border-color:#ef476f; background:#ef476f; color:#fff; }
+        .studio-button.end { color:#ff9aa9; }
+        .studio-layout { flex:1; display:grid; grid-template-columns:230px minmax(420px,1fr) 310px; min-height:calc(100vh - 64px); }
+        .studio-sidebar, .studio-inspector { padding:18px; background:var(--studio-panel); }
+        .studio-sidebar { border-right:1px solid var(--studio-border); }
+        .studio-inspector { border-left:1px solid var(--studio-border); overflow:auto; }
+        .studio-title { margin:0 0 12px; font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--studio-muted); }
+        .scene { width:100%; padding:12px; text-align:left; border:1px solid var(--studio-border); background:var(--studio-panel-2); color:var(--studio-text); border-radius:7px; margin-bottom:8px; cursor:pointer; }
+        .scene.active { border-color:var(--studio-accent); box-shadow:inset 3px 0 var(--studio-accent); }
+        .source-list { margin-top:28px; }
+        .source { display:flex; align-items:center; gap:10px; padding:10px 4px; color:var(--studio-muted); font-size:13px; }
+        .source i { width:18px; text-align:center; color:#aeb8c7; }
+        .source input { margin-left:auto; accent-color:var(--studio-accent); }
+        .studio-center { padding:18px; display:flex; flex-direction:column; gap:14px; min-width:0; }
+        .preview { position:relative; flex:1; min-height:360px; background:#050608; border:1px solid var(--studio-border); border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+        .preview video { width:100%; height:100%; object-fit:contain; background:#050608; }
+        .preview-empty { position:absolute; text-align:center; color:var(--studio-muted); pointer-events:none; }
+        .preview-empty i { display:block; font-size:38px; margin-bottom:12px; color:#465264; }
+        #overlay-image { position:absolute; max-width:45%; max-height:35%; right:18px; top:18px; display:none; pointer-events:none; }
+        .transport { display:flex; align-items:center; gap:8px; padding:10px; border:1px solid var(--studio-border); border-radius:8px; background:var(--studio-panel); }
+        .transport-status { margin-left:auto; color:var(--studio-muted); font-size:12px; }
+        .inspector-section { border-bottom:1px solid var(--studio-border); padding-bottom:18px; margin-bottom:18px; }
+        .inspector-section:last-child { border-bottom:0; }
+        .inspector-section h2 { font-size:13px; margin:0 0 12px; }
+        .field { display:block; color:var(--studio-muted); font-size:11px; margin:10px 0; }
+        .field input, .field textarea, .field select { display:block; width:100%; margin-top:6px; border:1px solid var(--studio-border); border-radius:6px; background:#0e1218; color:var(--studio-text); padding:9px; }
+        .field textarea { resize:vertical; }
+        .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .hint { color:var(--studio-muted); font-size:11px; line-height:1.5; margin:8px 0 0; }
+        .studio-log { max-height:130px; overflow:auto; padding:10px; background:#090b0f; border:1px solid var(--studio-border); border-radius:6px; color:#a9b4c2; font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace; }
+        @media (max-width:1050px) { .studio-layout { grid-template-columns:190px minmax(360px,1fr); } .studio-inspector { grid-column:1 / -1; border-left:0; border-top:1px solid var(--studio-border); display:grid; grid-template-columns:repeat(3,1fr); gap:18px; } }
+        @media (max-width:700px) { .studio-topbar { flex-wrap:wrap; height:auto; padding:12px; } .studio-channel { margin-left:0; width:100%; } .studio-layout { display:block; } .studio-sidebar, .studio-inspector { border:0; border-bottom:1px solid var(--studio-border); } .studio-center { min-height:520px; } .studio-inspector { display:block; } }
     </style>
 </head>
 <body>
-    {% include 'partials/navbar.html' ignore missing %}
-
-    <div class="studio-hero">
-        <div class="studio-icon"><i class="fas fa-broadcast-tower"></i></div>
-        <div class="badge">Coming Soon</div>
-        <h1>Nexus Studio</h1>
-        <p class="subtitle">
-            Stream directly from Nexus — camera, mic, screen share, scenes, and chat in one place.
-            Built for YouTube creators who want a simple OBS / Streamlabs-style experience without leaving the dashboard.
-        </p>
-
-        <div class="features">
-            <div class="feat">
-                <i class="fas fa-video"></i>
-                <strong>Camera & Mic</strong>
-                <p>Select devices and preview before you go live.</p>
-            </div>
-            <div class="feat">
-                <i class="fas fa-desktop"></i>
-                <strong>Screen Share</strong>
-                <p>Share your game or desktop with one click.</p>
-            </div>
-            <div class="feat">
-                <i class="fas fa-comments"></i>
-                <strong>Live Chat</strong>
-                <p>Moderate and reply without switching tabs.</p>
-            </div>
+<div class="studio-shell">
+    <header class="studio-topbar">
+        <div class="studio-brand"><i class="fas fa-broadcast-tower"></i> NEXUS STUDIO</div>
+        <div class="studio-channel">
+            <span>Channel</span>
+            <select id="studio-channel" class="studio-select">
+                {% for channel in channels %}<option value="{{ channel.id }}">{{ channel.channel_name }}</option>{% endfor %}
+            </select>
         </div>
+        <button class="studio-button" type="button" id="studio-create"><i class="fas fa-plus"></i> Create broadcast</button>
+        <button class="studio-button live" type="button" id="studio-live"><i class="fas fa-play"></i> Go live</button>
+        <button class="studio-button end" type="button" id="studio-end"><i class="fas fa-stop"></i> End</button>
+        <a class="studio-button" href="/dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+    </header>
 
-        <div class="actions">
-            <a href="/dashboard" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-            <a href="/status" class="btn btn-ghost">System Status</a>
-        </div>
-    </div>
+    {% if channels %}
+    <main class="studio-layout">
+        <aside class="studio-sidebar">
+            <h2 class="studio-title">Scenes</h2>
+            <button class="scene active" data-scene="live"><i class="fas fa-video"></i> Live scene</button>
+            <button class="scene" data-scene="starting"><i class="fas fa-hourglass-start"></i> Starting soon</button>
+            <button class="scene" data-scene="brb"><i class="fas fa-coffee"></i> Be right back</button>
+            <div class="source-list">
+                <h2 class="studio-title">Sources</h2>
+                <label class="source"><i class="fas fa-camera"></i> Webcam <input type="checkbox" data-source="camera" checked></label>
+                <label class="source"><i class="fas fa-microphone"></i> Microphone <input type="checkbox" data-source="microphone" checked></label>
+                <label class="source"><i class="fas fa-desktop"></i> Screen capture <input type="checkbox" data-source="screen"></label>
+                <label class="source"><i class="fas fa-window-maximize"></i> Window capture <input type="checkbox" data-source="window"></label>
+                <label class="source"><i class="fas fa-image"></i> Image overlay <input type="checkbox" data-source="overlay"></label>
+                <label class="source"><i class="fas fa-comments"></i> Chat overlay <input type="checkbox" data-source="chat"></label>
+            </div>
+        </aside>
 
-    {% include 'partials/footer.html' ignore missing %}
+        <section class="studio-center">
+            <div class="preview" id="studio-preview">
+                <video id="studio-video" autoplay playsinline muted></video>
+                <img id="overlay-image" alt="Stream overlay">
+                <div class="preview-empty" id="preview-empty"><i class="fas fa-layer-group"></i><div>Select a source and start a preview</div></div>
+            </div>
+            <div class="transport">
+                <button class="studio-button" type="button" id="preview-camera"><i class="fas fa-camera"></i> Camera + mic</button>
+                <button class="studio-button" type="button" id="preview-screen"><i class="fas fa-desktop"></i> Share screen</button>
+                <button class="studio-button" type="button" id="preview-window"><i class="fas fa-window-maximize"></i> Share window</button>
+                <button class="studio-button" type="button" id="preview-stop"><i class="fas fa-stop"></i> Stop preview</button>
+                <span class="transport-status" id="studio-status">Preview offline</span>
+            </div>
+        </section>
+
+        <aside class="studio-inspector">
+            <section class="inspector-section">
+                <h2>Stream settings</h2>
+                <label class="field">Title<input id="stream-title" maxlength="100" placeholder="My live stream"></label>
+                <label class="field">Description<textarea id="stream-description" rows="3" placeholder="Tell viewers what is happening..."></textarea></label>
+                <div class="field-grid">
+                    <label class="field">Privacy<select id="stream-privacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select></label>
+                    <label class="field">Bitrate<input id="stream-bitrate" type="number" min="300" max="51000" value="6000"></label>
+                </div>
+                <div class="field-grid">
+                    <label class="field">Resolution<select id="stream-resolution"><option>1080p</option><option>1440p</option><option>2160p</option><option>720p</option></select></label>
+                    <label class="field">Frame rate<select id="stream-frame-rate"><option>30fps</option><option>60fps</option></select></label>
+                </div>
+                <input id="stream-thumbnail" type="file" accept="image/jpeg,image/png" class="field">
+                <p class="hint">Nexus controls the YouTube broadcast. OBS or Streamlabs sends the actual encoded audio and video through the RTMP details below.</p>
+                <div id="ingest-details" class="studio-log" style="margin-top:10px;display:none;"></div>
+            </section>
+            <section class="inspector-section">
+                <h2>Device controls</h2>
+                <label class="field">Microphone<select id="studio-microphone" class="studio-select"><option value="">System default</option></select></label>
+                <label class="field">Camera<select id="studio-camera" class="studio-select"><option value="">Default camera</option></select></label>
+                <button class="studio-button" type="button" id="load-devices"><i class="fas fa-sync"></i> Load devices</button>
+                <label class="field">Overlay image<input id="overlay-file" type="file" accept="image/png,image/jpeg"></label>
+            </section>
+            <section class="inspector-section">
+                <h2>Studio console</h2>
+                <div id="studio-log" class="studio-log">Studio ready. Select a source to preview.</div>
+            </section>
+        </aside>
+    </main>
+    {% else %}
+    <div style="padding:80px 24px;text-align:center;color:#8e99a8;"><h1>No YouTube channel connected</h1><p>Connect a channel before opening Studio.</p><a class="studio-button" href="/dashboard">Return to dashboard</a></div>
+    {% endif %}
+</div>
+<script>
+(function() {
+    var video = document.getElementById('studio-video');
+    var status = document.getElementById('studio-status');
+    var empty = document.getElementById('preview-empty');
+    var logBox = document.getElementById('studio-log');
+    var stream = null;
+    var channelSelect = document.getElementById('studio-channel');
+
+    function log(message) {
+        if (!logBox) return;
+        var line = document.createElement('div');
+        line.textContent = new Date().toLocaleTimeString() + '  ' + message;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+    function value(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+    function api(path, options) {
+        return fetch(path, Object.assign({credentials:'same-origin'}, options || {})).then(function(response) {
+            return response.json().then(function(data) {
+                if (!response.ok || data.error) throw new Error(data.error || 'Request failed');
+                return data;
+            });
+        });
+    }
+    function stopPreview() {
+        if (stream) stream.getTracks().forEach(function(track) { track.stop(); });
+        stream = null;
+        if (video) video.srcObject = null;
+        if (status) status.textContent = 'Preview offline';
+        if (empty) empty.style.display = '';
+        log('Preview stopped.');
+    }
+    function startPreview(constraints, label) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { log('Browser media capture is unavailable.'); return; }
+        stopPreview();
+        navigator.mediaDevices.getUserMedia(constraints).then(function(nextStream) {
+            stream = nextStream;
+            video.srcObject = stream;
+            if (empty) empty.style.display = 'none';
+            if (status) status.textContent = label + ' preview active';
+            log(label + ' capture started.');
+        }).catch(function(error) { log(label + ' failed: ' + error.message); });
+    }
+    function startDisplay(label, options) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { log('Screen/window capture is unavailable.'); return; }
+        stopPreview();
+        navigator.mediaDevices.getDisplayMedia(options).then(function(nextStream) {
+            stream = nextStream;
+            video.srcObject = stream;
+            if (empty) empty.style.display = 'none';
+            if (status) status.textContent = label + ' preview active';
+            log(label + ' capture started.');
+            nextStream.getVideoTracks()[0].addEventListener('ended', stopPreview);
+        }).catch(function(error) { log(label + ' cancelled: ' + error.message); });
+    }
+    function loadDevices() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+        navigator.mediaDevices.enumerateDevices().then(function(devices) {
+            var mic = document.getElementById('studio-microphone');
+            var camera = document.getElementById('studio-camera');
+            mic.innerHTML = '<option value="">System default</option>';
+            camera.innerHTML = '<option value="">Default camera</option>';
+            devices.forEach(function(device) {
+                if (device.kind === 'audioinput') mic.appendChild(new Option(device.label || 'Microphone', device.deviceId));
+                if (device.kind === 'videoinput') camera.appendChild(new Option(device.label || 'Camera', device.deviceId));
+            });
+            log('Media devices loaded.');
+        });
+    }
+    function createBroadcast() {
+        var id = channelSelect.value;
+        api('/api/channels/' + id + '/broadcast', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+            title:value('stream-title'), description:value('stream-description'), privacy_status:value('stream-privacy'),
+            stream_bitrate:value('stream-bitrate'), stream_resolution:value('stream-resolution'), stream_frame_rate:value('stream-frame-rate')
+        })}).then(function(data) {
+            var details = document.getElementById('ingest-details');
+            details.style.display = 'block';
+            details.textContent = 'RTMP server: ' + data.channel.stream_ingest_url + '\nStream key: ' + data.channel.stream_key;
+            log('YouTube broadcast created. RTMP ingest is ready.');
+            var file = document.getElementById('stream-thumbnail').files[0];
+            if (file) { var form = new FormData(); form.append('thumbnail', file); return api('/api/channels/' + id + '/broadcast/thumbnail', {method:'POST', body:form}); }
+        }).then(function() { log('Broadcast settings saved.'); }).catch(function(error) { log('Create failed: ' + error.message); });
+    }
+    function transition(target) {
+        api('/api/channels/' + channelSelect.value + '/broadcast/transition', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:target})}).then(function() {
+            log(target === 'live' ? 'YouTube broadcast started.' : 'YouTube broadcast ended.');
+        }).catch(function(error) { log('Broadcast action failed: ' + error.message); });
+    }
+    document.getElementById('preview-camera').addEventListener('click', function() {
+        var mic = value('studio-microphone'), camera = value('studio-camera');
+        startPreview({audio:mic ? {deviceId:{exact:mic}}:true, video:camera ? {deviceId:{exact:camera}}:true}, 'Camera and microphone');
+    });
+    document.getElementById('preview-screen').addEventListener('click', function() { startDisplay('Screen', {video:true, audio:true}); });
+    document.getElementById('preview-window').addEventListener('click', function() { startDisplay('Window', {video:true, audio:true, selfBrowserSurface:'exclude'}); });
+    document.getElementById('preview-stop').addEventListener('click', stopPreview);
+    document.getElementById('load-devices').addEventListener('click', loadDevices);
+    document.getElementById('studio-create').addEventListener('click', createBroadcast);
+    document.getElementById('studio-live').addEventListener('click', function() { transition('live'); });
+    document.getElementById('studio-end').addEventListener('click', function() { transition('complete'); });
+    document.getElementById('overlay-file').addEventListener('change', function() {
+        var file = this.files[0], image = document.getElementById('overlay-image');
+        if (file) { image.src = URL.createObjectURL(file); image.style.display = 'block'; log('Image overlay loaded.'); }
+    });
+    document.querySelectorAll('[data-source]').forEach(function(input) { input.addEventListener('change', function() { log(this.checked ? this.dataset.source + ' source enabled.' : this.dataset.source + ' source hidden.'); }); });
+    document.querySelectorAll('.scene').forEach(function(scene) { scene.addEventListener('click', function() { document.querySelectorAll('.scene').forEach(function(item) { item.classList.remove('active'); }); scene.classList.add('active'); log('Scene switched to ' + scene.textContent.trim() + '.'); }); });
+    loadDevices();
+})();
+</script>
 </body>
 </html>

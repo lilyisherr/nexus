@@ -3822,8 +3822,9 @@ def status():
 @app.route('/studio')
 @login_required
 def studio():
-    """Placeholder for the upcoming Nexus Studio (OBS / Streamlabs-style streaming)."""
-    return render_template('studio.html')
+    user = User.query.get(session['user_id'])
+    channels = Channel.query.filter_by(user_id=user.id, tracking_enabled=True).all()
+    return render_template('studio.html', user=user, channels=channels)
 
 
 @app.errorhandler(404)

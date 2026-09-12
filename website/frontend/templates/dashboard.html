@@ -217,7 +217,7 @@
                 <p>Welcome back{% if user.username %}, {{ user.username }}{% endif %}</p>
             </div>
             <div class="dash-actions">
-                <a href="#broadcast-console" class="btn-studio" title="Open Nexus broadcast controls">
+                <a href="/studio" class="btn-studio" title="Open Nexus Studio">
                     <i class="fas fa-broadcast-tower"></i>
                     Go Live
                 </a>
@@ -233,48 +233,6 @@
                 <span id="live-sub">Bot will detect when you go live</span>
             </div>
             <span class="live-badge" id="live-msgs" style="display:none;">0 msgs</span>
-        </div>
-
-        <div class="card" id="broadcast-console" style="margin-bottom:18px;">
-            <div class="card-h"><h3><i class="fas fa-video"></i> Nexus broadcast control</h3><span id="broadcast-status" style="font-size:12px;color:#64748b;">Ready</span></div>
-            <div class="card-b">
-                {% if channels %}
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-                    <label style="font-size:12px;color:#64748b;">Channel
-                        <select id="broadcast-channel" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
-                            {% for ch in channels %}<option value="{{ ch.id }}">{{ ch.channel_name }}</option>{% endfor %}
-                        </select>
-                    </label>
-                    <label style="font-size:12px;color:#64748b;">Title
-                        <input id="broadcast-title" type="text" maxlength="100" placeholder="My Nexus live stream" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                    </label>
-                    <label style="font-size:12px;color:#64748b;">Privacy
-                        <select id="broadcast-privacy" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"><option value="private">Private test</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select>
-                    </label>
-                    <label style="font-size:12px;color:#64748b;">Bitrate (kbps)
-                        <input id="broadcast-bitrate" type="number" min="300" max="51000" value="6000" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                    </label>
-                    <label style="font-size:12px;color:#64748b;">Resolution
-                        <select id="broadcast-resolution" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"><option>1080p</option><option>1440p</option><option>2160p</option><option>720p</option></select>
-                    </label>
-                    <label style="font-size:12px;color:#64748b;">Frame rate
-                        <select id="broadcast-frame-rate" style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"><option>30fps</option><option>60fps</option></select>
-                    </label>
-                </div>
-                <label style="display:block;margin-top:12px;font-size:12px;color:#64748b;">Description
-                    <textarea id="broadcast-description" rows="2" placeholder="Tell viewers what is happening..." style="display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"></textarea>
-                </label>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
-                    <input id="broadcast-thumbnail" type="file" accept="image/jpeg,image/png" style="max-width:230px;">
-                    <button type="button" class="btn-ghost" id="create-broadcast"><i class="fas fa-plus"></i> Create broadcast</button>
-                    <button type="button" class="btn-studio" id="start-broadcast"><i class="fas fa-play"></i> Go live</button>
-                    <button type="button" class="btn-ghost" id="end-broadcast"><i class="fas fa-stop"></i> End</button>
-                </div>
-                <div id="broadcast-ingest" style="display:none;margin-top:12px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;"></div>
-                {% else %}
-                <p class="empty">Connect a YouTube channel before creating a broadcast.</p>
-                {% endif %}
-            </div>
         </div>
 
         <!-- Stats -->
@@ -401,91 +359,6 @@
             t.className = 'toast ' + type + ' show';
             setTimeout(function() { t.classList.remove('show'); }, 2800);
         }
-
-        function broadcastValue(id) {
-            var element = document.getElementById(id);
-            return element ? element.value : '';
-        }
-
-        function setBroadcastStatus(text, color) {
-            var status = document.getElementById('broadcast-status');
-            if (status) {
-                status.textContent = text;
-                status.style.color = color || '#64748b';
-            }
-        }
-
-        function broadcastRequest(path, options) {
-            return fetch(path, Object.assign({credentials: 'same-origin'}, options || {})).then(function(response) {
-                return response.json().then(function(data) {
-                    if (!response.ok || data.error) throw new Error(data.error || 'YouTube request failed');
-                    return data;
-                });
-            });
-        }
-
-        function showIngestDetails(channel) {
-            var output = document.getElementById('broadcast-ingest');
-            if (!output || !channel) return;
-            output.style.display = 'block';
-            output.innerHTML = 'RTMP server: ' + (channel.stream_ingest_url || 'Not available').replace(/</g, '&lt;') + '<br>Stream key: ' + (channel.stream_key || 'Not available').replace(/</g, '&lt;') + '<br><span style="font-family:inherit;color:#64748b;">Paste these into OBS or Streamlabs. Nexus creates and controls the YouTube broadcast; the encoder sends the actual audio/video.</span>';
-        }
-
-        var createBroadcastButton = document.getElementById('create-broadcast');
-        if (createBroadcastButton) {
-            createBroadcastButton.addEventListener('click', function() {
-                var channelId = broadcastValue('broadcast-channel');
-                setBroadcastStatus('Creating...', '#d97706');
-                broadcastRequest('/api/channels/' + channelId + '/broadcast', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        title: broadcastValue('broadcast-title'),
-                        description: broadcastValue('broadcast-description'),
-                        privacy_status: broadcastValue('broadcast-privacy'),
-                        stream_bitrate: broadcastValue('broadcast-bitrate'),
-                        stream_resolution: broadcastValue('broadcast-resolution'),
-                        stream_frame_rate: broadcastValue('broadcast-frame-rate')
-                    })
-                }).then(function(data) {
-                    setBroadcastStatus('Broadcast created', '#059669');
-                    showIngestDetails(data.channel);
-                    var thumbnail = document.getElementById('broadcast-thumbnail');
-                    if (thumbnail && thumbnail.files && thumbnail.files[0]) {
-                        var form = new FormData();
-                        form.append('thumbnail', thumbnail.files[0]);
-                        return broadcastRequest('/api/channels/' + channelId + '/broadcast/thumbnail', {method: 'POST', body: form});
-                    }
-                }).then(function() {
-                    showToast('YouTube broadcast created', 'success');
-                }).catch(function(error) {
-                    setBroadcastStatus('Create failed', '#dc2626');
-                    showToast(error.message, 'error');
-                });
-            });
-        }
-
-        function transitionBroadcast(status) {
-            var channelId = broadcastValue('broadcast-channel');
-            setBroadcastStatus(status === 'live' ? 'Starting...' : 'Ending...', '#d97706');
-            broadcastRequest('/api/channels/' + channelId + '/broadcast/transition', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({status: status})
-            }).then(function() {
-                setBroadcastStatus(status === 'live' ? 'Live' : 'Ended', status === 'live' ? '#059669' : '#64748b');
-                showToast(status === 'live' ? 'YouTube broadcast started' : 'YouTube broadcast ended', 'success');
-                pollLiveStatus();
-            }).catch(function(error) {
-                setBroadcastStatus('Action failed', '#dc2626');
-                showToast(error.message + (status === 'live' ? ' Make sure OBS or Streamlabs is sending video first.' : ''), 'error');
-            });
-        }
-
-        var startBroadcastButton = document.getElementById('start-broadcast');
-        if (startBroadcastButton) startBroadcastButton.addEventListener('click', function() { transitionBroadcast('live'); });
-        var endBroadcastButton = document.getElementById('end-broadcast');
-        if (endBroadcastButton) endBroadcastButton.addEventListener('click', function() { transitionBroadcast('complete'); });
 
         function renderBotConsole(statuses) {
             var consoleEl = document.getElementById('bot-console');
