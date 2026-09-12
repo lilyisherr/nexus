@@ -59,6 +59,14 @@
             text-decoration: none; transition: border-color 0.15s, color 0.15s;
         }
         .btn-ghost:hover { border-color: #9146ff; color: #9146ff; }
+        .live-preview { display:none; margin-bottom:20px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; }
+        .live-preview.show { display:grid; grid-template-columns:260px 1fr; }
+        .live-preview img { width:100%; height:146px; object-fit:cover; background:#e2e8f0; }
+        .live-preview-body { padding:16px 18px; }
+        .live-preview-body h2 { margin:0 0 6px; font-size:16px; color:#172033; }
+        .live-preview-meta { color:#64748b; font-size:12px; }
+        .live-preview-description { color:#64748b; font-size:12px; line-height:1.5; margin:10px 0 0; max-height:38px; overflow:hidden; }
+        @media(max-width:650px){.live-preview.show{grid-template-columns:1fr}.live-preview img{height:190px}}
         body.dark-theme .btn-ghost { background: var(--sl-surface); border-color: var(--sl-border); color: var(--sl-muted); }
         body.dark-theme .btn-ghost:hover { border-color: var(--sl-accent); color: var(--sl-accent); }
 
@@ -233,6 +241,14 @@
             </div>
             <span class="live-badge" id="live-msgs" style="display:none;">0 msgs</span>
         </div>
+        <div class="live-preview" id="live-preview">
+            <img id="live-preview-thumbnail" alt="Live stream thumbnail">
+            <div class="live-preview-body">
+                <h2 id="live-preview-title">Live stream</h2>
+                <div class="live-preview-meta" id="live-preview-meta"></div>
+                <p class="live-preview-description" id="live-preview-description"></p>
+            </div>
+        </div>
 
         <!-- Stats -->
         <div class="stats-row">
@@ -337,18 +353,31 @@
                     var title = document.getElementById('live-title');
                     var sub = document.getElementById('live-sub');
                     var msgs = document.getElementById('live-msgs');
+                    var preview = document.getElementById('live-preview');
                     if (!dot || !title || !sub) return;
                     if (liveChannel) {
                         dot.className = 'live-dot on';
                         title.textContent = liveChannel.stream_title || 'Live stream';
-                        sub.textContent = (liveChannel.channel_name || '') + ' is live';
+                        sub.textContent = (liveChannel.channel_name || '') + ' is live and connected';
                         if (msgs) { msgs.style.display = ''; msgs.textContent = (liveChannel.messages_processed || 0) + ' messages'; }
+                        if (preview) {
+                            preview.className = 'live-preview show';
+                            document.getElementById('live-preview-thumbnail').src = liveChannel.live_thumbnail || '';
+                            document.getElementById('live-preview-title').textContent = liveChannel.stream_title || 'Live stream';
+                            var duration = '';
+                            if (liveChannel.stream_start_time) {
+                                var seconds = Math.max(0, Math.floor((Date.now() - new Date(liveChannel.stream_start_time).getTime()) / 1000));
+                                duration = Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm ' + (seconds % 60) + 's';
+                            }
+                            document.getElementById('live-preview-meta').textContent = (liveChannel.live_viewers || 0).toLocaleString() + ' watching  |  ' + (liveChannel.live_likes || 0).toLocaleString() + ' likes  |  live for ' + duration;
+                            document.getElementById('live-preview-description').textContent = liveChannel.live_description || 'No stream description.';
+                        }
                     } else {
                         dot.className = 'live-dot';
-                        var running = data.channels.some(function(channel) { return channel.running; });
-                        title.textContent = running ? 'Bot monitoring channels' : 'No channel is live';
-                        sub.textContent = running ? 'Open channel bot settings for search logs' : 'Use a channel bot settings page to run the bot';
+                        title.textContent = 'Searching for a live stream...';
+                        sub.textContent = 'Nexus checks your connected channels for live broadcasts';
                         if (msgs) msgs.style.display = 'none';
+                        if (preview) preview.className = 'live-preview';
                     }
                 }).catch(function() {});
         }
