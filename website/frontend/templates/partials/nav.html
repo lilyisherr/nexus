@@ -5,7 +5,6 @@
             <div class="nav-brand">NEXUS <span class="beta-badge">BETA</span></div>
         </a>
 
-        <button type="button" class="nav-back-button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '/'; }" aria-label="Go back" title="Go back"><i class="fas fa-arrow-left"></i></button>
         <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -103,25 +102,6 @@
     .nav-logo-img {
         height: 50px;
         width: 50px;
-    }
-
-    .nav-back-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        margin-left: 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        background: var(--white);
-        color: var(--text-secondary);
-        cursor: pointer;
-    }
-
-    .nav-back-button:hover {
-        color: var(--primary-color);
-        border-color: var(--primary-color);
     }
 
     .beta-badge {

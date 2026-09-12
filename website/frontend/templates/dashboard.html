@@ -285,6 +285,9 @@
                                 <span class="tgl-track"></span>
                             </label>
                         </div>
+                        <div id="bot-console" style="margin-top:16px;background:#0f172a;border-radius:10px;padding:12px;color:#cbd5e1;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;min-height:88px;max-height:180px;overflow:auto;">
+                            <div style="color:#94a3b8;">Waiting for a channel. Click Run to start the YouTube bot.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -308,6 +311,7 @@
                                     <span>{{ '{:,}'.format(ch.subscriber_count or 0) }} subs · {{ '{:,}'.format(ch.view_count or 0) }} views</span>
                                 </div>
                                 <div class="ch-actions">
+                                    <button type="button" class="icon-btn run-channel-bot" data-channel-id="{{ ch.id }}" title="Run YouTube bot" aria-label="Run YouTube bot"><i class="fas fa-play"></i></button>
                                     <a href="/channels/{{ ch.id }}/settings" class="icon-btn" title="Settings"><i class="fas fa-cog"></i></a>
                                     <a href="https://youtube.com/channel/{{ ch.youtube_channel_id }}" target="_blank" class="icon-btn" title="Open on YouTube"><i class="fab fa-youtube"></i></a>
                                 </div>
@@ -368,6 +372,49 @@
             setTimeout(function() { t.classList.remove('show'); }, 2800);
         }
 
+        function renderBotConsole(statuses) {
+            var consoleEl = document.getElementById('bot-console');
+            if (!consoleEl) return;
+            var lines = [];
+            (statuses || []).forEach(function(status) {
+                lines = lines.concat((status.logs || []).map(function(line) {
+                    return '<div><span style="color:#64748b;">[' + (status.channel_name || 'Channel') + ']</span> ' + line.replace(/</g, '&lt;') + '</div>';
+                }));
+                if (status.last_error) {
+                    lines.push('<div style="color:#fca5a5;">[' + (status.channel_name || 'Channel') + '] Error: ' + status.last_error.replace(/</g, '&lt;') + '</div>');
+                }
+            });
+            consoleEl.innerHTML = lines.length ? lines.slice(-40).join('') : '<div style="color:#94a3b8;">Bot is stopped. Click Run to search for a live stream.</div>';
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function startChannelBot(channelId) {
+            var button = document.querySelector('.run-channel-bot[data-channel-id="' + channelId + '"]');
+            if (button) button.disabled = true;
+            fetch('/api/channels/' + channelId + '/bot/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ enabled: true })
+            }).then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok || data.error) throw new Error(data.error || 'Bot could not start');
+                    return data;
+                });
+            }).then(function() {
+                showToast('YouTube bot started', 'success');
+                pollLiveStatus();
+            }).catch(function(error) {
+                showToast(error.message, 'error');
+            }).finally(function() {
+                if (button) button.disabled = false;
+            });
+        }
+
+        document.querySelectorAll('.run-channel-bot').forEach(function(button) {
+            button.addEventListener('click', function() { startChannelBot(this.dataset.channelId); });
+        });
+
         var botToggle = document.getElementById('bot-toggle');
         if (botToggle) {
             botToggle.addEventListener('change', function() {
@@ -393,8 +440,14 @@
 
         function pollLiveStatus() {
             fetch('/api/bot/status', { credentials: 'same-origin' })
-            .then(function(r) { return r.json(); })
+            .then(function(r) {
+                return r.json().then(function(data) {
+                    if (!r.ok || data.error) throw new Error(data.error || 'Status unavailable');
+                    return data;
+                });
+            })
             .then(function(d) {
+                renderBotConsole(d.channels);
                 var liveChannel = null;
                 if (d.channels) {
                     d.channels.forEach(function(ch) {

@@ -1853,9 +1853,14 @@ def channel_bot_toggle(channel_id):
 def bot_status():
     user = User.query.get(session['user_id'])
     channels = Channel.query.filter_by(user_id=user.id).all()
-    statuses = {}
+    statuses = []
     for channel in channels:
-        statuses[channel.id] = bot_manager.get_status(channel.id)
+        status = bot_manager.get_status(channel.id)
+        statuses.append({
+            'channel_id': channel.id,
+            'channel_name': channel.channel_name,
+            **status,
+        })
     return jsonify({
         'bot_enabled': user.bot_enabled,
         'channels': statuses
@@ -1915,6 +1920,9 @@ def bot_live_status():
             'stream_title': s.get('stream_title'),
             'running': s.get('running', False),
             'messages_processed': s.get('messages_processed', 0),
+            'last_error': s.get('last_error'),
+            'started_at': s.get('started_at'),
+            'logs': s.get('logs', []),
         })
     return jsonify({'channels': statuses})
 
@@ -3896,6 +3904,12 @@ def migrate_db():
         'bot_moderator_ok': f'BOOLEAN DEFAULT {b(False)}',
     })
 
+
+    add_columns('channel', {
+        'stream_ingest_url': 'VARCHAR(500)',
+        'stream_key': 'TEXT',
+        'stream_key_last_updated': 'TIMESTAMP',
+    })
 
     add_columns('server_config', {
         'bot_nickname': 'VARCHAR(255)',

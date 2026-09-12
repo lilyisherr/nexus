@@ -34,6 +34,13 @@ class BotInstance:
         self.last_error = None
         self.started_at = None
         self.command_cooldowns = {}
+        self.logs = []
+
+    def _log(self, message):
+        entry = f"{datetime.utcnow().strftime('%H:%M:%S')}  {message}"
+        self.logs.append(entry)
+        self.logs = self.logs[-80:]
+        logger.info(f"Channel {self.channel_id}: {message}")
 
     def _refresh_access_token(self):
         if not self.refresh_token:
@@ -79,6 +86,7 @@ class BotInstance:
         return {'Authorization': f'Bearer {token}'}
 
     def _find_live_stream(self):
+        self._log('Searching YouTube for a live stream...')
         try:
             resp = requests.get(
                 'https://www.googleapis.com/youtube/v3/search',
@@ -100,6 +108,7 @@ class BotInstance:
 
             data = resp.json()
             if not data.get('items'):
+                self._log('No live stream found; will check again soon.')
                 return None, None, None, None
 
             video_id = data['items'][0]['id']['videoId']
@@ -124,8 +133,11 @@ class BotInstance:
             if start_str:
                 start_time = datetime.strptime(start_str, "%Y-%m-%dT%H:%M:%SZ")
 
+            self._log(f"Live stream found: {title}")
             return chat_id, title, start_time, video_id
         except Exception as e:
+            self.last_error = str(e)
+            self._log(f"Live search failed: {e}")
             logger.error(f"Error finding live stream for channel {self.channel_id}: {e}")
             return None, None, None, None
 
@@ -421,6 +433,7 @@ class BotInstance:
 
     def _run(self):
         self.started_at = datetime.utcnow()
+        self._log('Bot started and is watching for a live stream.')
         logger.info(f"Bot starting for channel {self.channel_id} ({self.youtube_channel_id})")
         page_token = None
 
@@ -435,6 +448,7 @@ class BotInstance:
                         self.stream_start_time = start_time
                         page_token = None
                         logger.info(f"Live stream detected: {title}")
+                        self._log('Connected to live chat and ready for commands.')
 
                         if video_id:
                             threading.Thread(
@@ -480,10 +494,11 @@ class BotInstance:
 
             except Exception as e:
                 self.last_error = str(e)
+                self._log(f"Bot loop error: {e}")
                 logger.error(f"Bot error for channel {self.channel_id}: {e}")
                 time.sleep(POLL_INTERVAL)
 
-        logger.info(f"Bot stopped for channel {self.channel_id}")
+        self._log('Bot stopped.')
 
     def start(self):
         if self.running:
@@ -505,6 +520,7 @@ class BotInstance:
             'messages_processed': self.messages_processed,
             'last_error': self.last_error,
             'started_at': self.started_at.isoformat() if self.started_at else None,
+            'logs': list(self.logs),
             'channel_id': self.channel_id
         }
 
