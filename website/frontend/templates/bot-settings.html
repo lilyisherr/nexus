@@ -31,6 +31,11 @@
         .toggle-row span { color:#64748b; font-size:12px; }
         .toggle input { accent-color:#635bff; width:18px; height:18px; }
         .console { background:#0d1420; color:#b9c5d6; border-radius:9px; min-height:170px; max-height:270px; overflow:auto; padding:14px; font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; }
+        .editor-row { display:grid; grid-template-columns:125px 1fr 110px 90px auto; gap:8px; align-items:center; padding:10px 0; border-top:1px solid #eef2f7; }
+        .editor-row input, .editor-row select { width:100%; box-sizing:border-box; padding:8px; border:1px solid #dbe2ec; border-radius:6px; background:#fff; }
+        .editor-row .remove { border:0; background:transparent; color:#dc2626; cursor:pointer; padding:7px; }
+        .editor-label { color:#64748b; font-size:11px; }
+        @media (max-width:700px) { .editor-row { grid-template-columns:1fr 1fr; } .editor-row .editor-label { grid-column:1 / -1; } }
         .status-line { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; color:#64748b; }
         .dot { width:9px; height:9px; border-radius:50%; background:#94a3b8; }
         .dot.on { background:#10b981; box-shadow:0 0 0 4px rgba(16,185,129,.15); }
@@ -90,13 +95,15 @@
                 <div id="builtin-commands" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
                     {% for command in settings.builtin_commands or [] %}<div class="toggle-row" data-command-name="{{ command.name }}" style="border:1px solid #eef2f7;border-radius:7px;padding:10px;"><div><strong>!{{ command.name }}</strong><span>{{ command.description }}</span></div><input class="builtin-enabled" type="checkbox" {% if command.enabled %}checked{% endif %}><input class="builtin-cooldown" type="number" min="0" max="3600" value="{{ command.cooldown or 10 }}" style="width:62px;padding:6px;border:1px solid #dbe2ec;border-radius:5px;" title="Cooldown seconds"></div>{% endfor %}
                 </div>
-                <label class="field">Custom commands JSON<textarea id="custom-commands" rows="5">{{ settings.custom_commands | tojson }}</textarea></label>
+                <div id="custom-command-list"></div>
+                <button class="button" type="button" id="add-custom-command"><i class="fas fa-plus"></i> Add custom command</button>
             </section>
 
             <section class="card wide">
                 <h2>Timers</h2><p>Timed messages use a message and interval in seconds. Disabled timers are ignored.</p>
                 <div class="toggle-row"><div><strong>Timers enabled</strong><span>Send enabled timer messages while the stream is live.</span></div><input id="timers-enabled" type="checkbox" {% if settings.timed_messages_enabled %}checked{% endif %}></div>
-                <label class="field">Timer list JSON<textarea id="timed-messages" rows="5">{{ settings.timed_messages | tojson }}</textarea></label>
+                <div id="timer-list"></div>
+                <button class="button" type="button" id="add-timer"><i class="fas fa-plus"></i> Add timer</button>
             </section>
 
             <section class="card wide">
@@ -109,8 +116,29 @@
     (function() {
         var channelId = {{ channel.id }};
         var consoleEl = document.getElementById('bot-console');
+        var customCommands = {{ settings.custom_commands | tojson }} || {};
+        var timers = {{ settings.timed_messages | tojson }} || [];
         function value(id) { return document.getElementById(id).value; }
         function checked(id) { return document.getElementById(id).checked; }
+        function escapeHtml(text) { return String(text || '').replace(/[&<>"']/g, function(char) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]; }); }
+        function renderEditors() {
+            var commandList = document.getElementById('custom-command-list');
+            commandList.innerHTML = Object.keys(customCommands).map(function(name) {
+                var command = customCommands[name] || {};
+                return '<div class="editor-row custom-command-row" data-name="' + escapeHtml(name) + '"><span class="editor-label">' + escapeHtml(name) + '</span><input data-field="response" value="' + escapeHtml(command.response || command) + '" placeholder="Reply text"><input data-field="cooldown" type="number" min="0" value="' + (Number(command.cooldown) || 0) + '" title="Cooldown seconds"><select data-field="permission"><option value="everyone" ' + (command.permission_level === 'everyone' ? 'selected' : '') + '>Everyone</option><option value="subscriber" ' + (command.permission_level === 'subscriber' ? 'selected' : '') + '>Subscriber</option><option value="moderator" ' + (command.permission_level === 'moderator' ? 'selected' : '') + '>Moderator</option></select><button class="remove" type="button" data-remove="command" title="Remove command"><i class="fas fa-trash"></i></button></div>';
+            }).join('') || '<p style="color:#64748b;font-size:12px;">No custom commands yet.</p>';
+            var timerList = document.getElementById('timer-list');
+            timerList.innerHTML = timers.map(function(timer, index) {
+                return '<div class="editor-row timer-row" data-index="' + index + '"><span class="editor-label">Timer ' + (index + 1) + '</span><input data-field="message" value="' + escapeHtml(timer.message) + '" placeholder="Message to send"><input data-field="interval" type="number" min="30" value="' + (Number(timer.interval) || 300) + '" title="Interval seconds"><select data-field="enabled"><option value="true" ' + (timer.enabled !== false ? 'selected' : '') + '>Enabled</option><option value="false" ' + (timer.enabled === false ? 'selected' : '') + '>Disabled</option></select><button class="remove" type="button" data-remove="timer" title="Remove timer"><i class="fas fa-trash"></i></button></div>';
+            }).join('') || '<p style="color:#64748b;font-size:12px;">No timers yet.</p>';
+        }
+        function readEditors() {
+            var commands = {};
+            document.querySelectorAll('.custom-command-row').forEach(function(row) { var name = row.dataset.name; commands[name] = {response:row.querySelector('[data-field="response"]').value, cooldown:Number(row.querySelector('[data-field="cooldown"]').value) || 0, permission_level:row.querySelector('[data-field="permission"]').value}; });
+            var timerValues = [];
+            document.querySelectorAll('.timer-row').forEach(function(row) { timerValues.push({message:row.querySelector('[data-field="message"]').value, interval:Number(row.querySelector('[data-field="interval"]').value) || 300, enabled:row.querySelector('[data-field="enabled"]').value === 'true'}); });
+            return {commands:commands, timers:timerValues};
+        }
         function request(path, options) { return fetch(path, Object.assign({credentials:'same-origin'}, options || {})).then(function(response) { return response.json().then(function(data) { if (!response.ok || data.error) throw new Error(data.error || 'Request failed'); return data; }); }); }
         function renderStatus(data) {
             var status = (data.channels || []).find(function(item) { return Number(item.channel_id) === channelId; });
@@ -138,18 +166,36 @@
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
         function poll() { request('/api/bot/live-status').then(renderStatus).catch(function(error) { consoleEl.textContent = error.message; }); }
-        document.getElementById('run-bot').addEventListener('click', function() { request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:true})}).then(function() { poll(); }).catch(function(error) { consoleEl.textContent = error.message; }); });
+        document.getElementById('run-bot').addEventListener('click', function() { var button = this; button.disabled = true; consoleEl.innerHTML = '<div>Starting bot...</div><div>Loading channel settings...</div><div>Starting YouTube monitor...</div>'; request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:true})}).then(function() { setTimeout(poll, 250); }).catch(function(error) { consoleEl.textContent = error.message; }).finally(function() { button.disabled = false; }); });
         document.getElementById('stop-bot').addEventListener('click', function() { request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:false})}).then(function() { poll(); }).catch(function(error) { consoleEl.textContent = error.message; }); });
         document.getElementById('save-settings').addEventListener('click', function() {
             var status = document.getElementById('save-status');
             var payload;
             try {
-                payload = {bot_enabled:checked('bot-enabled'), chat_prefix:value('chat-prefix') || '!', response_delay:Number(value('response-delay')) || 0, live_search_interval:Number(value('live-search-interval')) || 10, join_message:value('join-message'), command_cooldown:Number(value('command-cooldown')) || 0, command_user_cooldown:Number(value('command-user-cooldown')) || 0, command_permission_default:value('command-permission'), auto_greet_new_viewers:checked('auto-greet'), spam_filter_enabled:checked('spam-filter'), link_filter_enabled:checked('link-filter'), caps_filter_enabled:checked('caps-filter'), viewer_loyalty_tracking:checked('loyalty-enabled'), loyalty_points_per_minute:Number(value('points-per-minute')) || 0, gambling_enabled:checked('gambling-enabled'), timed_messages_enabled:checked('timers-enabled'), custom_commands:JSON.parse(value('custom-commands')), timed_messages:JSON.parse(value('timed-messages'))};
-            } catch (error) { status.textContent = 'Commands and timers must contain valid JSON.'; status.style.color = '#dc2626'; return; }
+                var editors = readEditors();
+                payload = {bot_enabled:checked('bot-enabled'), chat_prefix:value('chat-prefix') || '!', response_delay:Number(value('response-delay')) || 0, live_search_interval:Number(value('live-search-interval')) || 10, join_message:value('join-message'), command_cooldown:Number(value('command-cooldown')) || 0, command_user_cooldown:Number(value('command-user-cooldown')) || 0, command_permission_default:value('command-permission'), auto_greet_new_viewers:checked('auto-greet'), spam_filter_enabled:checked('spam-filter'), link_filter_enabled:checked('link-filter'), caps_filter_enabled:checked('caps-filter'), viewer_loyalty_tracking:checked('loyalty-enabled'), loyalty_points_per_minute:Number(value('points-per-minute')) || 0, gambling_enabled:checked('gambling-enabled'), timed_messages_enabled:checked('timers-enabled'), custom_commands:editors.commands, timed_messages:editors.timers};
+            } catch (error) { status.textContent = 'Could not read the editor values.'; status.style.color = '#dc2626'; return; }
             var updates = [];
             document.querySelectorAll('[data-command-name]').forEach(function(row) { updates.push({name:row.dataset.commandName, enabled:row.querySelector('.builtin-enabled').checked, cooldown:Number(row.querySelector('.builtin-cooldown').value) || 0}); });
             request('/api/channels/' + channelId + '/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}).then(function() { return request('/api/channels/' + channelId + '/builtin-commands', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({commands:updates})}); }).then(function() { status.textContent = 'Saved'; status.style.color = '#059669'; setTimeout(function() { status.textContent = ''; }, 2500); }).catch(function(error) { status.textContent = error.message; status.style.color = '#dc2626'; });
         });
+        document.getElementById('add-custom-command').addEventListener('click', function() {
+            var name = window.prompt('Command name, without the prefix:');
+            if (!name) return;
+            name = name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            if (!name) return;
+            customCommands[name] = {response:'', cooldown:5, permission_level:'everyone'};
+            renderEditors();
+        });
+        document.getElementById('add-timer').addEventListener('click', function() { timers.push({message:'', interval:300, enabled:true}); renderEditors(); });
+        document.addEventListener('click', function(event) {
+            var remove = event.target.closest('[data-remove]');
+            if (!remove) return;
+            if (remove.dataset.remove === 'command') delete customCommands[remove.closest('.custom-command-row').dataset.name];
+            if (remove.dataset.remove === 'timer') timers.splice(Number(remove.closest('.timer-row').dataset.index), 1);
+            renderEditors();
+        });
+        renderEditors();
         poll();
         setInterval(poll, 2500);
     })();
