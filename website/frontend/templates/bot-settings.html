@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ channel.channel_name }} Bot Settings - Nexus</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { margin:0; background:#f5f7fb; color:#172033; font-family:Inter,system-ui,sans-serif; }
+        .settings-wrap { max-width:1050px; margin:0 auto; padding:30px 20px 60px; }
+        .settings-head { display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+        .settings-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; background:#635bff; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; }
+        .settings-head h1 { margin:0; font-size:24px; }
+        .settings-head p { margin:4px 0 0; color:#64748b; font-size:13px; }
+        .settings-actions { margin-left:auto; display:flex; gap:8px; }
+        .button { border:1px solid #dbe2ec; background:#fff; color:#334155; border-radius:8px; padding:10px 14px; cursor:pointer; font-weight:700; text-decoration:none; font-size:13px; }
+        .button.primary { border-color:#635bff; background:#635bff; color:#fff; }
+        .button.success { border-color:#059669; background:#059669; color:#fff; }
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; }
+        .card.wide { grid-column:1 / -1; }
+        .card h2 { margin:0 0 5px; font-size:16px; }
+        .card p { margin:0 0 16px; color:#64748b; font-size:13px; line-height:1.5; }
+        .field { display:block; margin:12px 0; color:#475569; font-size:12px; font-weight:700; }
+        .field input, .field textarea, .field select { display:block; width:100%; margin-top:6px; box-sizing:border-box; border:1px solid #dbe2ec; border-radius:7px; padding:10px; color:#172033; background:#fff; }
+        .field textarea { resize:vertical; }
+        .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .toggle-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 0; border-top:1px solid #eef2f7; }
+        .toggle-row strong { display:block; font-size:13px; }
+        .toggle-row span { color:#64748b; font-size:12px; }
+        .toggle input { accent-color:#635bff; width:18px; height:18px; }
+        .console { background:#0d1420; color:#b9c5d6; border-radius:9px; min-height:170px; max-height:270px; overflow:auto; padding:14px; font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; }
+        .status-line { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; color:#64748b; }
+        .dot { width:9px; height:9px; border-radius:50%; background:#94a3b8; }
+        .dot.on { background:#10b981; box-shadow:0 0 0 4px rgba(16,185,129,.15); }
+        @media (max-width:700px) { .grid { grid-template-columns:1fr; } .card.wide { grid-column:auto; } .settings-head { align-items:flex-start; flex-wrap:wrap; } .settings-actions { width:100%; margin-left:0; } }
+    </style>
+</head>
+<body>
+    {% include 'partials/nav.html' ignore missing %}
+    <main class="settings-wrap">
+        <div class="settings-head">
+            {% if channel.channel_thumbnail %}<img class="settings-avatar" src="{{ channel.channel_thumbnail }}" alt="">{% else %}<div class="settings-avatar">{{ channel.channel_name[0]|upper }}</div>{% endif %}
+            <div><h1>{{ channel.channel_name }} bot</h1><p>Manage this YouTube bot and watch it search for live streams.</p></div>
+            <div class="settings-actions"><a class="button" href="/dashboard"><i class="fas fa-arrow-left"></i> Dashboard</a><button class="button success" id="run-bot"><i class="fas fa-play"></i> Run bot</button><button class="button" id="stop-bot"><i class="fas fa-stop"></i> Stop</button></div>
+        </div>
+
+        <div class="grid">
+            <section class="card">
+                <h2>Bot basics</h2><p>These controls apply only to {{ channel.channel_name }}.</p>
+                <div class="toggle-row"><div><strong>Bot enabled</strong><span>Watch for live streams and answer chat commands.</span></div><label class="toggle"><input id="bot-enabled" type="checkbox" {% if settings.bot_enabled %}checked{% endif %}></label></div>
+                <div class="field-grid">
+                    <label class="field">Command prefix<input id="chat-prefix" maxlength="3" value="{{ settings.chat_prefix or '!' }}"></label>
+                    <label class="field">Reply delay (seconds)<input id="response-delay" type="number" min="0" max="15" value="{{ settings.response_delay or 0 }}"></label>
+                </div>
+                <label class="field">Stream start message<textarea id="join-message" rows="3" placeholder="Welcome to the stream!">{{ settings.join_message or '' }}</textarea></label>
+            </section>
+
+            <section class="card">
+                <h2>Command behavior</h2><p>Keep replies fast while preventing command spam.</p>
+                <div class="field-grid">
+                    <label class="field">Global cooldown<input id="command-cooldown" type="number" min="0" max="120" value="{{ settings.command_cooldown or 5 }}"></label>
+                    <label class="field">Per-user cooldown<input id="command-user-cooldown" type="number" min="0" max="300" value="{{ settings.command_user_cooldown or 10 }}"></label>
+                </div>
+                <label class="field">Default permission<select id="command-permission"><option value="everyone" {% if settings.command_permission_default == 'everyone' %}selected{% endif %}>Everyone</option><option value="subscriber" {% if settings.command_permission_default == 'subscriber' %}selected{% endif %}>Subscribers</option><option value="moderator" {% if settings.command_permission_default == 'moderator' %}selected{% endif %}>Moderators</option></select></label>
+                <div class="toggle-row"><div><strong>Auto-greet viewers</strong><span>Welcome new chatters once per stream.</span></div><label class="toggle"><input id="auto-greet" type="checkbox" {% if settings.auto_greet_new_viewers %}checked{% endif %}></label></div>
+            </section>
+
+            <section class="card">
+                <h2>Moderation switches</h2><p>Simple safeguards for this channel.</p>
+                <div class="toggle-row"><div><strong>Spam filter</strong><span>Catch repeated and oversized messages.</span></div><input id="spam-filter" type="checkbox" {% if settings.spam_filter_enabled %}checked{% endif %}></div>
+                <div class="toggle-row"><div><strong>Link filter</strong><span>Block unknown external links.</span></div><input id="link-filter" type="checkbox" {% if settings.link_filter_enabled %}checked{% endif %}></div>
+                <div class="toggle-row"><div><strong>Caps filter</strong><span>Warn on excessive uppercase text.</span></div><input id="caps-filter" type="checkbox" {% if settings.caps_filter_enabled %}checked{% endif %}></div>
+            </section>
+
+            <section class="card">
+                <h2>Live stream search</h2><p>The bot checks YouTube automatically and connects to live chat when a stream is found.</p>
+                <div class="status-line"><span class="dot" id="status-dot"></span><strong id="status-label">Checking status...</strong></div>
+                <div class="console" id="bot-console">Waiting for status...</div>
+            </section>
+
+            <section class="card wide">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><div><h2>Save channel bot settings</h2><p>Changes are saved for {{ channel.channel_name }} only.</p></div><button class="button primary" id="save-settings"><i class="fas fa-save"></i> Save settings</button></div>
+                <span id="save-status" style="font-size:12px;color:#059669;"></span>
+            </section>
+        </div>
+    </main>
+    <script>
+    (function() {
+        var channelId = {{ channel.id }};
+        var consoleEl = document.getElementById('bot-console');
+        function value(id) { return document.getElementById(id).value; }
+        function checked(id) { return document.getElementById(id).checked; }
+        function request(path, options) { return fetch(path, Object.assign({credentials:'same-origin'}, options || {})).then(function(response) { return response.json().then(function(data) { if (!response.ok || data.error) throw new Error(data.error || 'Request failed'); return data; }); }); }
+        function renderStatus(data) {
+            var status = (data.channels || []).find(function(item) { return Number(item.channel_id) === channelId; });
+            if (!status) return;
+            document.getElementById('status-dot').className = 'dot ' + (status.running ? 'on' : '');
+            document.getElementById('status-label').textContent = status.is_live ? 'Live and connected' : (status.running ? 'Searching for a live stream' : 'Bot stopped');
+            var lines = (status.logs || []).map(function(line) { return '<div>' + line.replace(/</g, '&lt;') + '</div>'; });
+            if (status.last_error) lines.push('<div style="color:#fca5a5;">Error: ' + status.last_error.replace(/</g, '&lt;') + '</div>');
+            consoleEl.innerHTML = lines.length ? lines.slice(-50).join('') : 'No bot activity yet. Click Run bot.';
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+        function poll() { request('/api/bot/live-status').then(renderStatus).catch(function(error) { consoleEl.textContent = error.message; }); }
+        document.getElementById('run-bot').addEventListener('click', function() { request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:true})}).then(function() { poll(); }).catch(function(error) { consoleEl.textContent = error.message; }); });
+        document.getElementById('stop-bot').addEventListener('click', function() { request('/api/channels/' + channelId + '/bot/toggle', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled:false})}).then(function() { poll(); }).catch(function(error) { consoleEl.textContent = error.message; }); });
+        document.getElementById('save-settings').addEventListener('click', function() {
+            var status = document.getElementById('save-status');
+            var payload = {bot_enabled:checked('bot-enabled'), chat_prefix:value('chat-prefix') || '!', response_delay:Number(value('response-delay')) || 0, join_message:value('join-message'), command_cooldown:Number(value('command-cooldown')) || 0, command_user_cooldown:Number(value('command-user-cooldown')) || 0, command_permission_default:value('command-permission'), auto_greet_new_viewers:checked('auto-greet'), spam_filter_enabled:checked('spam-filter'), link_filter_enabled:checked('link-filter'), caps_filter_enabled:checked('caps-filter')};
+            request('/api/channels/' + channelId + '/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}).then(function() { status.textContent = 'Saved'; setTimeout(function() { status.textContent = ''; }, 2500); }).catch(function(error) { status.textContent = error.message; status.style.color = '#dc2626'; });
+        });
+        poll();
+        setInterval(poll, 2500);
+    })();
+    </script>
+</body>
+</html>

@@ -307,7 +307,7 @@
                                     <span>{{ '{:,}'.format(ch.subscriber_count or 0) }} subs · {{ '{:,}'.format(ch.view_count or 0) }} views</span>
                                 </div>
                                 <div class="ch-actions">
-                                    <a href="/dashboard?channel={{ ch.id }}#bot-console" class="icon-btn" title="YouTube bot settings" aria-label="YouTube bot settings"><i class="fas fa-robot"></i></a>
+                                    <a href="/channel/{{ ch.id }}/bot-settings" class="icon-btn" title="YouTube bot settings" aria-label="YouTube bot settings"><i class="fas fa-robot"></i></a>
                                     <a href="https://youtube.com/channel/{{ ch.youtube_channel_id }}" target="_blank" class="icon-btn" title="Open on YouTube"><i class="fab fa-youtube"></i></a>
                                 </div>
                             </div>

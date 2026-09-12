@@ -3439,6 +3439,20 @@ def channel_settings(channel_id):
     return redirect('/dashboard#bot-console')
 
 
+@app.route('/channel/<int:channel_id>/bot-settings')
+@login_required
+def channel_bot_settings(channel_id):
+    channel = Channel.query.filter_by(id=channel_id, user_id=session['user_id']).first()
+    if not channel:
+        return redirect('/dashboard')
+    settings = ChannelBotSettings.query.filter_by(channel_id=channel.id).first()
+    if not settings:
+        settings = ChannelBotSettings(channel_id=channel.id)
+        db.session.add(settings)
+        db.session.commit()
+    return render_template('bot-settings.html', channel=channel, settings=settings.to_dict())
+
+
 @app.route('/robots.txt')
 def robots_txt():
     content = """User-agent: *
