@@ -526,33 +526,6 @@
             });
         }
 
-        document.querySelectorAll('.run-channel-bot').forEach(function(button) {
-            button.addEventListener('click', function() { startChannelBot(this.dataset.channelId); });
-        });
-
-        var botToggle = document.getElementById('bot-toggle');
-        if (botToggle) {
-            botToggle.addEventListener('change', function() {
-                var on = this.checked;
-                fetch('/api/bot/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ enabled: on })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() {
-                    showToast('Bot ' + (on ? 'enabled' : 'disabled'), 'success');
-                    var ring = document.getElementById('bot-status-ring');
-                    var label = document.getElementById('bot-status-label');
-                    if (ring) ring.className = 'bot-status ' + (on ? 'on' : 'off');
-                    if (label) label.textContent = on ? 'Bot Enabled' : 'Bot Disabled';
-                    pollLiveStatus();
-                })
-                .catch(function() { showToast('Failed to update', 'error'); this.checked = !on; }.bind(this));
-            });
-        }
-
         function pollLiveStatus() {
             fetch('/api/bot/status', { credentials: 'same-origin' })
             .then(function(r) {
